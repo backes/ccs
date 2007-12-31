@@ -2,6 +2,7 @@ package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.InteralSystemException;
@@ -19,10 +20,14 @@ public class UnknownString extends AbstractExpression {
 
     public UnknownString(String name, List<String> parameters) {
         super();
-        assert name != null && parameters != null;
-        
         this.name = name;
         this.parameters = parameters;
+    }
+
+    public UnknownString(String name) {
+        super();
+        this.name = name;
+        this.parameters = Collections.emptyList();
     }
 
     public Collection<Expression> getChildren() {

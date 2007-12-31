@@ -11,10 +11,12 @@ import de.unisb.cs.depend.ccs_sem.lexer.tokens.Assignment;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Comma;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Dot;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Identifier;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.LBrace;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.LBracket;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.LParenthesis;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Parallel;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Plus;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Choice;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.RBrace;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.RBracket;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.RParenthesis;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Restrict;
@@ -62,7 +64,7 @@ public class CCSLexer extends AbstractLexer {
             break;
             
         case '+':
-            tokens.add(new Plus(position));
+            tokens.add(new Choice(position));
             break;
             
         case '|':
@@ -87,6 +89,14 @@ public class CCSLexer extends AbstractLexer {
             
         case ']':
             tokens.add(new RBracket(position));
+            break;
+            
+        case '{':
+            tokens.add(new LBrace(position));
+            break;
+            
+        case '}':
+            tokens.add(new RBrace(position));
             break;
             
         case ',':
@@ -117,8 +127,11 @@ public class CCSLexer extends AbstractLexer {
     private Identifier readIdentifier(int nextChar, PushbackReader input, List<Token> tokens, int position) throws IOException {
         boolean first = true;
         StringBuilder name = new StringBuilder();
-        while ((nextChar >= 'a' && nextChar <= 'z') || (nextChar >= 'A' && nextChar <= 'Z') || (!first && nextChar >= '0' && nextChar <= '9')) {
-            assert (char) nextChar == nextChar;
+        while ((nextChar >= 'a' && nextChar <= 'z') || (nextChar >= 'A' && nextChar <= 'Z')
+                || (!first && nextChar >= '0' && nextChar <= '9')
+                || (!first && (nextChar == '?' || nextChar == '!'))
+                || nextChar == '_') {
+            assert 0 <= nextChar && nextChar < 1<<16;
             name.append((char)nextChar);
             nextChar = input.read();
         }
