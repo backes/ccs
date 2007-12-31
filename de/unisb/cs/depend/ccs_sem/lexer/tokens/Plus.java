@@ -5,7 +5,6 @@ public class Plus extends AbstractToken {
 
     public Plus(int startPosition) {
         super(startPosition, startPosition);
-        // TODO Auto-generated constructor stub
     }
 
     @Override

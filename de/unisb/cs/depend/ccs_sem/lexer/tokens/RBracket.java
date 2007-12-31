@@ -6,7 +6,6 @@ public class RBracket extends AbstractToken {
 
     public RBracket(int startPosition) {
         super(startPosition, startPosition);
-        // TODO Auto-generated constructor stub
     }
 
     @Override

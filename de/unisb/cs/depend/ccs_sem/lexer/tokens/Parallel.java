@@ -5,7 +5,6 @@ public class Parallel extends AbstractToken {
 
     public Parallel(int startPosition) {
         super(startPosition, startPosition);
-        // TODO Auto-generated constructor stub
     }
 
     @Override

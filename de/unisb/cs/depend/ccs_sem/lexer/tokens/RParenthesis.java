@@ -5,7 +5,6 @@ public class RParenthesis extends AbstractToken {
 
     public RParenthesis(int startPosition) {
         super(startPosition, startPosition);
-        // TODO Auto-generated constructor stub
     }
 
     @Override

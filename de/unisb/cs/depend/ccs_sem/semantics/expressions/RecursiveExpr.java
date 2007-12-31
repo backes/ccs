@@ -1,21 +1,27 @@
 package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 
 
-public class StopExpr extends AbstractExpression {
+public class RecursiveExpr extends AbstractExpression {
     
-    public StopExpr() {
+    private Declaration decl;
+    private List<String> parameters;
+
+    public RecursiveExpr(Declaration decl, List<String> parameters) {
         super();
+        this.decl = decl;
+        this.parameters = parameters;
     }
 
     public Collection<Expression> getChildren() {
-        return Collections.emptySet();
+        // TODO Auto-generated method stub
+        return null;
     }
 
     @Override
@@ -25,7 +31,8 @@ public class StopExpr extends AbstractExpression {
     }
 
     public Expression replaceRecursion(List<Declaration> declarations) {
-        return this;
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }

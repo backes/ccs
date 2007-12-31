@@ -5,7 +5,6 @@ public class Semicolon extends AbstractToken {
 
     public Semicolon(int startPosition) {
         super(startPosition, startPosition);
-        // TODO Auto-generated constructor stub
     }
 
     @Override

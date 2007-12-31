@@ -1,4 +1,4 @@
-package de.unisb.cs.depend.ccs_sem.semantics;
+package de.unisb.cs.depend.ccs_sem.semantics.types;
 
 import com.sun.corba.se.spi.orbutil.fsm.Action;
 

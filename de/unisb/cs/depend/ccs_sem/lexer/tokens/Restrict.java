@@ -5,7 +5,6 @@ public class Restrict extends AbstractToken {
 
     public Restrict(int startPosition) {
         super(startPosition, startPosition);
-        // TODO Auto-generated constructor stub
     }
 
     @Override
