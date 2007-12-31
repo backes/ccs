@@ -35,5 +35,18 @@ public class PrefixExpr extends AbstractExpression {
         postfix = postfix.replaceRecursion(declarations);
         return this;
     }
+    
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(prefix).append('.');
+        if (postfix instanceof ChoiceExpr || postfix instanceof ParallelExpr
+                || postfix instanceof RestrictExpr)
+            sb.append('(').append(postfix).append(')');
+        else
+            sb.append(postfix);
+
+        return sb.toString();
+    }
 
 }

@@ -2,10 +2,8 @@ package de.unisb.cs.depend.ccs_sem.parser;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Assignment;
@@ -15,8 +13,6 @@ import de.unisb.cs.depend.ccs_sem.lexer.tokens.RBracket;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Semicolon;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Token;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.ParallelExpr;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.RestrictExpr;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 

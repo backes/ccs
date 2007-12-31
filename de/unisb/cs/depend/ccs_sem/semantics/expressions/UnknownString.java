@@ -6,8 +6,10 @@ import java.util.List;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.InteralSystemException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
 
 public class UnknownString extends AbstractExpression {
@@ -55,15 +57,35 @@ public class UnknownString extends AbstractExpression {
                 if (decl.getName().equalsIgnoreCase(name))
                     proposals.add(decl);
             StringBuilder sb = new StringBuilder("Unknown recursion identifier ");
-            // TODO sb fuellen
+            sb.append(this);
+            if (proposals.size() > 0) {
+                sb.append(". Did you mean");
+                for (Declaration prop: proposals)
+                    sb.append(Globals.getNewline()).append("  - ").append(prop);
+            }
+
             throw new ParseException(sb.toString());
         }
-        // TODO Auto-generated method stub
-        return null;
+        Action prefix = Action.newAction(name);
+        return new PrefixExpr(prefix, new StopExpr());
     }
 
     public boolean matches(Declaration decl) {
         return decl.getName().equals(name) && decl.getParameters().size() == parameters.size();
+    }
+    
+    @Override
+    public String toString() {
+        if (parameters.size() == 0)
+            return name;
+        
+        StringBuilder sb = new StringBuilder(name);
+        sb.append('[');
+        for (int i = 0; i < parameters.size(); ++i)
+            sb.append(i==0 ? "," : "").append(parameters.get(i));
+        sb.append(']');
+
+        return sb.toString();
     }
 
 }

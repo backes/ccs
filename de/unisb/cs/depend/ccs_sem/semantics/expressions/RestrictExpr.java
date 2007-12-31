@@ -36,5 +36,22 @@ public class RestrictExpr extends AbstractExpression {
         expr = expr.replaceRecursion(declarations);
         return this;
     }
+    
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(expr).append(" \\ {");
+        boolean first = true;
+        for (Action restr: restricted) {
+            if (first)
+                first = false;
+            else
+                sb.append(',');
+            sb.append(restr);
+        }
+        sb.append('}');
+
+        return sb.toString();
+    }
 
 }

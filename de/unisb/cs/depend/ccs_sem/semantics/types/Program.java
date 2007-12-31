@@ -1,15 +1,9 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Map.Entry;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Identifier;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.ParallelExpr;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.RestrictExpr;
 
 
 public class Program {
