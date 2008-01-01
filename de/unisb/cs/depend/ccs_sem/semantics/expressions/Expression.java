@@ -19,6 +19,10 @@ public abstract class Expression implements Cloneable {
         = new HashMap<Expression, Expression>();
 
     private List<Transition> transitions = null;
+    
+    protected Expression() {
+        // nothing to do
+    }
 
     // TODO synchronized?? costs time, most propably not necessary
     public List<Transition> evaluate() {
@@ -67,8 +71,6 @@ public abstract class Expression implements Cloneable {
         Expression foundExpr = repository.get(expr);
         if (foundExpr != null)
             return foundExpr;
-        
-        // TODO replace subterms
         
         repository.put(expr, expr);
 

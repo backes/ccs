@@ -35,8 +35,7 @@ public class TauAction extends Action {
 
     @Override
     public Action insertParameters(List<Value> parameters) {
-        // TODO Auto-generated method stub
-        return null;
+        return this;
     }
 
     @Override

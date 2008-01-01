@@ -88,7 +88,7 @@ public class CCSParser implements Parser {
         Program program = new Program(declarations, expr);
         
         if (!program.isRegular()) {
-            // TODO Exception (or move this code to somewhere else??)
+            throw new ParseException("Your recursive definitions are not regular");
         }
         
         return program;
@@ -151,7 +151,7 @@ public class CCSParser implements Parser {
                 if (!(tokens.next() instanceof LBrace))
                     throw new ParseException("Expected '{'");
                 Set<Action> restricted = readActionSet(tokens);
-                expr = new RestrictExpr(expr, restricted);
+                expr = Expression.getExpression(new RestrictExpr(expr, restricted));
             } else
                 tokens.previous();
         }
@@ -200,7 +200,7 @@ public class CCSParser implements Parser {
         while (tokens.hasNext()) {
             if (tokens.next() instanceof Parallel) {
                 Expression newExpr = readChoiceExpression(tokens);
-                expr = new ParallelExpr(expr, newExpr);
+                expr = Expression.getExpression(new ParallelExpr(expr, newExpr));
             } else
                 tokens.previous();
         }
@@ -216,7 +216,7 @@ public class CCSParser implements Parser {
         while (tokens.hasNext()) {
             if (tokens.next() instanceof Choice) {
                 Expression newExpr = readPrefixExpression(tokens);
-                expr = new ChoiceExpr(expr, newExpr);
+                expr = Expression.getExpression(new ChoiceExpr(expr, newExpr));
             } else
                 tokens.previous();
         }
@@ -235,7 +235,7 @@ public class CCSParser implements Parser {
                 if (tokens.next() instanceof Dot) {
                     Expression postfix = readPrefixExpression(tokens);
                     Action action = Action.newAction(identifier.getName());
-                    return new PrefixExpr(action, postfix);
+                    return Expression.getExpression(new PrefixExpr(action, postfix));
                 }
                 // else put back the read tokens and let readBaseExpression() do the work
                 tokens.previous();
@@ -254,7 +254,7 @@ public class CCSParser implements Parser {
             Token nextToken = tokens.next();
             
             if (nextToken instanceof Stop)
-                return new StopExpr();
+                return Expression.getExpression(new StopExpr());
             
             if (nextToken instanceof LParenthesis) {
                 Expression expr = readRestrictExpression(tokens);
@@ -268,11 +268,12 @@ public class CCSParser implements Parser {
                 if (tokens.hasNext()) {
                     if (tokens.next() instanceof LBracket) {
                         List<Value> parameters = readParameters(tokens);
-                        return new UnknownString(identifier.getName(), parameters);
+                        UnknownString newExpr = new UnknownString(identifier.getName(), parameters);
+                        return Expression.getExpression(newExpr);
                     }
                     tokens.previous();
                 }
-                return new UnknownString(identifier.getName());
+                return Expression.getExpression(new UnknownString(identifier.getName()));
             }
             
             throw new ParseException("Syntax error. Unexpected '" + nextToken + "'");

@@ -43,7 +43,7 @@ public class CCSLexer extends AbstractLexer {
         return tokens;
     }
     
-    private void lex0(PushbackReader input, List<Token> tokens, int position) throws IOException {
+    private void lex0(PushbackReader input, List<Token> tokens, int position) throws IOException, LexException {
         int nextChar = input.read();
         if (nextChar == -1)
             return;
@@ -113,9 +113,9 @@ public class CCSLexer extends AbstractLexer {
             
         default:
             Identifier id = readIdentifier(nextChar, input, tokens, position);
-            if (id == null) {
-                // TODO Exception
-            }
+            if (id == null)
+                throw new LexException("Syntaxerror on position " + position);
+
             tokens.add(id);
             position += id.getName().length()-1;
             break;
@@ -134,6 +134,7 @@ public class CCSLexer extends AbstractLexer {
             assert 0 <= nextChar && nextChar < 1<<16;
             name.append((char)nextChar);
             nextChar = input.read();
+            first = false;
         }
         if (nextChar != -1)
             input.unread(nextChar);

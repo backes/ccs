@@ -14,6 +14,12 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Value;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
 
+/**
+ * Is later (by replaceRecursion()) replaced by a PrefixExpression+StopExpression,
+ * or by a RecursiveExpression.
+ * 
+ * @author Clemens Hammacher
+ */
 public class UnknownString extends Expression {
     
     private String name;
@@ -52,7 +58,7 @@ public class UnknownString extends Expression {
         for (Declaration decl: declarations) {
             if (matches(decl)) {
                 RecursiveExpr newExpr = new RecursiveExpr(decl, parameters);
-                return newExpr;
+                return Expression.getExpression(newExpr);
             }
         }
         
@@ -75,7 +81,8 @@ public class UnknownString extends Expression {
             throw new ParseException(sb.toString());
         }
         Action prefix = Action.newAction(name);
-        return new PrefixExpr(prefix, new StopExpr());
+        Expression stopExpression = Expression.getExpression(new StopExpr());
+        return Expression.getExpression(new PrefixExpr(prefix, stopExpression));
     }
 
     public boolean matches(Declaration decl) {

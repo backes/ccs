@@ -47,5 +47,8 @@ public class Program {
         return true;
     }
 
+    public List<Transition> evaluate() {
+        return mainExpression.evaluate();
+    }
 
 }
