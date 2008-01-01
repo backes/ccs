@@ -10,15 +10,16 @@ import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Value;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
 
-public class UnknownString extends AbstractExpression {
+public class UnknownString extends Expression {
     
     private String name;
-    private List<String> parameters;
+    private List<Value> parameters;
 
-    public UnknownString(String name, List<String> parameters) {
+    public UnknownString(String name, List<Value> parameters) {
         super();
         this.name = name;
         this.parameters = parameters;
@@ -30,6 +31,7 @@ public class UnknownString extends AbstractExpression {
         this.parameters = Collections.emptyList();
     }
 
+    @Override
     public Collection<Expression> getChildren() {
         StackTraceElement topmostStackTraceElement = Thread.currentThread().getStackTrace()[0];
         throw new InteralSystemException(topmostStackTraceElement.getClassName()
@@ -45,6 +47,7 @@ public class UnknownString extends AbstractExpression {
             + " should never be called. Did you forget to call replaceRecursion?");
     }
 
+    @Override
     public Expression replaceRecursion(List<Declaration> declarations) throws ParseException {
         for (Declaration decl: declarations) {
             if (matches(decl)) {
@@ -91,6 +94,14 @@ public class UnknownString extends AbstractExpression {
         sb.append(']');
 
         return sb.toString();
+    }
+
+    @Override
+    public Expression replaceParameters(List<Value> params) {
+        StackTraceElement topmostStackTraceElement = Thread.currentThread().getStackTrace()[0];
+        throw new InteralSystemException(topmostStackTraceElement.getClassName()
+            + "." + topmostStackTraceElement.getMethodName()
+            + " should never be called. Did you forget to call replaceRecursion?");
     }
 
     @Override

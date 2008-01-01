@@ -32,8 +32,10 @@ import de.unisb.cs.depend.ccs_sem.semantics.expressions.RestrictExpr;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.StopExpr;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.UnknownString;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Action;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ConstantValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Value;
 
 
 public class CCSParser implements Parser {
@@ -49,7 +51,7 @@ public class CCSParser implements Parser {
             Token token1 = it.next();
             Token token2 = it.next();
             Identifier identifier;
-            List<String> parameters;
+            List<Value> parameters;
             Expression expr;
             if (!(token1 instanceof Identifier))
                 break;
@@ -95,8 +97,8 @@ public class CCSParser implements Parser {
     /**
      * Read all parameters up to the next RBracket (this token is read too).
      */
-    private List<String> readParameters(ListIterator<Token> tokens) throws ParseException {
-        List<String> parameters = new ArrayList<String>();
+    private List<Value> readParameters(ListIterator<Token> tokens) throws ParseException {
+        ArrayList<Value> parameters = new ArrayList<Value>();
         
         if (tokens.hasNext() && tokens.next() instanceof RBracket)
             return Collections.emptyList();
@@ -110,14 +112,17 @@ public class CCSParser implements Parser {
                 String name = identifier.getName();
                 if (!identifier.isValidParameter())
                     throw new ParseException("Invalid parameter: " + name);
-                parameters.add(name);
+                parameters.add(new ConstantValue(name));
 
                 if (!tokens.hasNext())
                     throw new ParseException("Expected ']'");
                 nextToken = tokens.next();
                 
-                if (nextToken instanceof RBracket)
+                if (nextToken instanceof RBracket) {
+                    // save memory
+                    parameters.trimToSize();
                     return parameters;
+                }
                 
                 if (!(nextToken instanceof Comma))
                     throw new ParseException("Expected ',' or ']'");
@@ -262,7 +267,7 @@ public class CCSParser implements Parser {
                 Identifier identifier = (Identifier) nextToken;
                 if (tokens.hasNext()) {
                     if (tokens.next() instanceof LBracket) {
-                        List<String> parameters = readParameters(tokens);
+                        List<Value> parameters = readParameters(tokens);
                         return new UnknownString(identifier.getName(), parameters);
                     }
                     tokens.previous();

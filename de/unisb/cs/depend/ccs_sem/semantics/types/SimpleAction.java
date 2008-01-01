@@ -1,31 +1,30 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types;
 
+import java.util.List;
+
 
 public class SimpleAction extends Action {
 
-    private String name;
+    private Value name;
 
-    public SimpleAction(String name) {
+    public SimpleAction(Value name) {
         super();
         this.name = name;
     }
 
     @Override
-    public String getValue() {
-        return name;
+    public String getLabel() {
+        return name.getValue();
     }
     
     @Override
     public String toString() {
-        return name;
+        return name.getValue();
     }
 
     @Override
     public int hashCode() {
-        final int PRIME = 31;
-        int result = 1;
-        result = PRIME * result + ((name == null) ? 0 : name.hashCode());
-        return result;
+        return name.hashCode();
     }
 
     @Override
@@ -43,6 +42,23 @@ public class SimpleAction extends Action {
         } else if (!name.equals(other.name))
             return false;
         return true;
+    }
+
+    @Override
+    public boolean isCounterTransition(Action action) {
+        if (!(action instanceof SimpleAction))
+            return false;
+        
+        SimpleAction simAct = (SimpleAction) action;
+        
+        return simAct.name.equals(name);
+    }
+
+    @Override
+    public Action replaceParameters(List<Value> parameters) {
+        name = name.replaceParameters(parameters);
+
+        return this;
     }
 
 }

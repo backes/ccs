@@ -6,10 +6,12 @@ import java.util.List;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
+import de.unisb.cs.depend.ccs_sem.semantics.types.TauAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Value;
 
 
-public class ParallelExpr extends AbstractExpression {
+public class ParallelExpr extends Expression {
     
     private Expression left;
     private Expression right;
@@ -20,6 +22,7 @@ public class ParallelExpr extends AbstractExpression {
         this.right = right;
     }
 
+    @Override
     public Collection<Expression> getChildren() {
         List<Expression> children = new ArrayList<Expression>(2);
         children.add(left);
@@ -29,10 +32,49 @@ public class ParallelExpr extends AbstractExpression {
 
     @Override
     protected List<Transition> evaluate0() {
-        // TODO Auto-generated method stub
-        return null;
+        List<Transition> leftTransitions = left.evaluate();
+        List<Transition> rightTransitions = right.evaluate();
+        
+        List<Transition> transitions = new ArrayList<Transition>((leftTransitions.size() + rightTransitions.size())*3/2);
+        
+        // either left alone
+        for (Transition trans: leftTransitions) {
+            Expression newExpr = new ParallelExpr(trans.getTarget(), right);
+            // search if this expression is already known
+            newExpr = Expression.getExpression(newExpr);
+            // search if this transition is already known (otherwise create it)
+            Transition newTrans = Transition.getTransition(trans.getAction(), newExpr);
+            transitions.add(newTrans);
+        }
+
+        // or right alone
+        for (Transition trans: rightTransitions) {
+            Expression newExpr = new ParallelExpr(left, trans.getTarget());
+            // search if this expression is already known
+            newExpr = Expression.getExpression(newExpr);
+            // search if this transition is already known (otherwise create it)
+            Transition newTrans = Transition.getTransition(trans.getAction(), newExpr);
+            transitions.add(newTrans);
+        }
+        
+        // or synchronized
+        for (Transition leftTrans: leftTransitions) {
+            for (Transition rightTrans: rightTransitions) {
+                if (leftTrans.getAction().isCounterTransition(rightTrans.getAction())) {
+                    Expression newExpr = new ParallelExpr(leftTrans.getTarget(), rightTrans.getTarget());
+                    // search if this expression is already known
+                    newExpr = Expression.getExpression(newExpr);
+                    // search if this transition is already known (otherwise create it)
+                    Transition newTrans = Transition.getTransition(TauAction.get(), newExpr);
+                    transitions.add(newTrans);
+                }
+            }
+        }
+
+        return transitions;
     }
 
+    @Override
     public Expression replaceRecursion(List<Declaration> declarations) throws ParseException {
         left = left.replaceRecursion(declarations);
         right = right.replaceRecursion(declarations);
@@ -68,6 +110,14 @@ public class ParallelExpr extends AbstractExpression {
         } else if (!right.equals(other.right))
             return false;
         return true;
+    }
+
+    @Override
+    public Expression replaceParameters(List<Value> parameters) {
+        left = left.replaceParameters(parameters);
+        right = right.replaceParameters(parameters);
+
+        return this;
     }
 
 }

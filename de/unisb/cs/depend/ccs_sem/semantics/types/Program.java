@@ -14,6 +14,8 @@ public class Program {
     public Program(List<Declaration> declarations, Expression expr) throws ParseException {
         this.declarations = declarations;
         this.mainExpression = expr.clone().replaceRecursion(declarations);
+        for (Declaration decl: declarations)
+            decl.replaceRecursion(declarations);
     }
     
     @Override

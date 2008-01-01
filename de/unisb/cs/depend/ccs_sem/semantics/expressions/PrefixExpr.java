@@ -8,9 +8,10 @@ import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Value;
 
 
-public class PrefixExpr extends AbstractExpression {
+public class PrefixExpr extends Expression {
     
     private Action prefix;
     private Expression postfix;
@@ -21,16 +22,17 @@ public class PrefixExpr extends AbstractExpression {
         this.postfix = postfix;
     }
 
+    @Override
     public Collection<Expression> getChildren() {
         return Collections.singleton(postfix);
     }
 
     @Override
     protected List<Transition> evaluate0() {
-        // TODO Auto-generated method stub
-        return null;
+        return Collections.singletonList(Transition.getTransition(prefix, postfix));
     }
 
+    @Override
     public Expression replaceRecursion(List<Declaration> declarations) throws ParseException {
         postfix = postfix.replaceRecursion(declarations);
         return this;
@@ -78,6 +80,14 @@ public class PrefixExpr extends AbstractExpression {
         } else if (!prefix.equals(other.prefix))
             return false;
         return true;
+    }
+
+    @Override
+    public Expression replaceParameters(List<Value> parameters) {
+        prefix = prefix.replaceParameters(parameters);
+        postfix = postfix.replaceParameters(parameters);
+
+        return this;
     }
 
 }

@@ -6,25 +6,32 @@ import java.util.List;
 
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Value;
 
 
-public class StopExpr extends AbstractExpression {
+public class StopExpr extends Expression {
     
     public StopExpr() {
         super();
     }
 
+    @Override
     public Collection<Expression> getChildren() {
         return Collections.emptySet();
     }
 
     @Override
     protected List<Transition> evaluate0() {
-        // TODO Auto-generated method stub
-        return null;
+        return Collections.emptyList();
     }
 
+    @Override
     public Expression replaceRecursion(List<Declaration> declarations) {
+        return this;
+    }
+
+    @Override
+    public Expression replaceParameters(List<Value> parameters) {
         return this;
     }
 

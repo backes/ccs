@@ -1,5 +1,6 @@
 package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -9,9 +10,10 @@ import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Value;
 
 
-public class RestrictExpr extends AbstractExpression {
+public class RestrictExpr extends Expression {
     
     private Expression expr;
     private Set<Action> restricted;
@@ -22,16 +24,30 @@ public class RestrictExpr extends AbstractExpression {
         this.restricted = restricted;
     }
 
+    @Override
     public Collection<Expression> getChildren() {
         return Collections.singleton(expr);
     }
 
     @Override
     protected List<Transition> evaluate0() {
-        // TODO Auto-generated method stub
-        return null;
+        List<Transition> oldTransitions = expr.evaluate();
+        List<Transition> newTransitions = new ArrayList<Transition>(oldTransitions.size());
+        
+        for (Transition trans: oldTransitions)
+            if (!restricted.contains(trans.getAction())) {
+                Expression newExpr = new RestrictExpr(trans.getTarget(), restricted);
+                // search if this expression is already known
+                newExpr = Expression.getExpression(newExpr);
+                // search if this transition is already known (otherwise create it)
+                Transition newTrans = Transition.getTransition(trans.getAction(), newExpr);
+                newTransitions.add(newTrans);
+            }
+
+        return newTransitions;
     }
 
+    @Override
     public Expression replaceRecursion(List<Declaration> declarations) throws ParseException {
         expr = expr.replaceRecursion(declarations);
         return this;
@@ -83,6 +99,13 @@ public class RestrictExpr extends AbstractExpression {
         } else if (!restricted.equals(other.restricted))
             return false;
         return true;
+    }
+
+    @Override
+    public Expression replaceParameters(List<Value> parameters) {
+        expr = expr.replaceParameters(parameters);
+
+        return this;
     }
 
 }

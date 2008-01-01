@@ -1,19 +1,56 @@
 package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import de.unisb.cs.depend.ccs_sem.exceptions.InteralSystemException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Value;
 
 
-public interface Expression extends Cloneable {
-    List<Transition> evaluate();
+public abstract class Expression implements Cloneable {
 
-    Collection<Expression> getChildren();
+    private static Map<Expression, Expression> repository
+        = new HashMap<Expression, Expression>();
 
-    public Expression clone();
+    private List<Transition> transitions = null;
+
+    // TODO synchronized?? costs time, most propably not necessary
+    public List<Transition> evaluate() {
+        if (transitions == null) {
+            transitions = evaluate0();
+            assert transitions != null;
+            
+            // save memory
+            if (transitions instanceof ArrayList) {
+                ArrayList<Transition> list = (ArrayList<Transition>) transitions;
+                list.trimToSize();
+            } else {
+                transitions = new ArrayList<Transition>(transitions);
+            }
+                
+        }
+        
+        return transitions;
+    }
+
+    protected abstract List<Transition> evaluate0();
+
+    public abstract Collection<Expression> getChildren();
+
+    @Override
+    public Expression clone() {
+        try {
+            return (Expression) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new InteralSystemException("Expression cannot be cloned", e);
+        }
+    }
 
     /**
      * Replaces every {@link UnknownString} either by a {@link PrefixExpr} and
@@ -21,6 +58,18 @@ public interface Expression extends Cloneable {
      * @return either itself (children may have changed) or a new created Expression
      * @throws ParseException 
      */
-    Expression replaceRecursion(List<Declaration> declarations) throws ParseException;
+    public abstract Expression replaceRecursion(List<Declaration> declarations) throws ParseException;
     
+    public static Expression getExpression(Expression expr) {
+        Expression foundExpr = repository.get(expr);
+        if (foundExpr != null)
+            return foundExpr;
+        
+        repository.put(expr, expr);
+
+        return expr;
+    }
+
+    public abstract Expression replaceParameters(List<Value> parameters);
+
 }

@@ -6,14 +6,15 @@ import java.util.List;
 
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Value;
 
 
-public class RecursiveExpr extends AbstractExpression {
+public class RecursiveExpr extends Expression {
     
     private Declaration referencedDeclaration;
-    private List<String> parameters;
+    private List<Value> parameters;
 
-    public RecursiveExpr(Declaration referencedDeclaration, List<String> parameters) {
+    public RecursiveExpr(Declaration referencedDeclaration, List<Value> parameters) {
         super();
         this.referencedDeclaration = referencedDeclaration;
         this.parameters = parameters;
@@ -21,9 +22,8 @@ public class RecursiveExpr extends AbstractExpression {
 
     /**
      * Note: The returned list must not be changed!
-     * @return
      */
-    public List<String> getParameters() {
+    public List<Value> getParameters() {
         return parameters;
     }
     
@@ -31,19 +31,26 @@ public class RecursiveExpr extends AbstractExpression {
         return referencedDeclaration;
     }
 
+    @Override
     public Collection<Expression> getChildren() {
         return Collections.emptySet();
     }
 
     @Override
     protected List<Transition> evaluate0() {
-        // TODO Auto-generated method stub
-        return null;
+        // generate the new expression to evaluate, then delegate to it
+        Expression newExpr = referencedDeclaration.getValue().clone();
+        newExpr = newExpr.replaceParameters(parameters);
+
+        return newExpr.evaluate();
+        // the new expression is not needed anymore afterwards, so the garbage
+        // collector will throw it away
     }
 
+    @Override
     public Expression replaceRecursion(List<Declaration> declarations) {
-        // TODO Auto-generated method stub
-        return null;
+        // nothing to replace here
+        return this;
     }
     
     @Override
@@ -89,6 +96,15 @@ public class RecursiveExpr extends AbstractExpression {
         } else if (!parameters.equals(other.parameters))
             return false;
         return true;
+    }
+
+    @Override
+    public Expression replaceParameters(List<Value> replaceParameters) {
+        for (int i = 0; i < parameters.size(); ++i) {
+            parameters.set(i, parameters.get(i).replaceParameters(parameters));
+        }
+
+        return this;
     }
 
 }

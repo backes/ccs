@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
+import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.ParallelExpr;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.RecursiveExpr;
@@ -15,10 +16,10 @@ import de.unisb.cs.depend.ccs_sem.semantics.expressions.RestrictExpr;
 public class Declaration {
     
     private String name;
-    private List<String> parameters;
+    private List<Value> parameters;
     private Expression value;
     
-    public Declaration(String name, List<String> parameters, Expression value) {
+    public Declaration(String name, List<Value> parameters, Expression value) {
         super();
         this.name = name;
         this.parameters = parameters;
@@ -88,12 +89,16 @@ public class Declaration {
         return name;
     }
 
-    public List<String> getParameters() {
+    public List<Value> getParameters() {
         return parameters;
     }
 
     public Expression getValue() {
         return value;
+    }
+
+    public Expression replaceRecursion(List<Declaration> declarations) throws ParseException {
+        return value.replaceRecursion(declarations);
     }
 
     @Override
