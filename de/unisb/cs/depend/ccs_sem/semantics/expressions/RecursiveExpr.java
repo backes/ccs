@@ -48,4 +48,35 @@ public class RecursiveExpr extends AbstractExpression {
         return sb.toString();
     }
 
+    @Override
+    public int hashCode() {
+        final int PRIME = 31;
+        int result = 1;
+        result = PRIME * result + ((decl == null) ? 0 : decl.hashCode());
+        result = PRIME * result + ((parameters == null) ? 0 : parameters.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final RecursiveExpr other = (RecursiveExpr) obj;
+        if (decl == null) {
+            if (other.decl != null)
+                return false;
+        } else if (!decl.equals(other.decl))
+            return false;
+        if (parameters == null) {
+            if (other.parameters != null)
+                return false;
+        } else if (!parameters.equals(other.parameters))
+            return false;
+        return true;
+    }
+
 }

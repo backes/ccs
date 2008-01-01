@@ -54,4 +54,35 @@ public class RestrictExpr extends AbstractExpression {
         return sb.toString();
     }
 
+    @Override
+    public int hashCode() {
+        final int PRIME = 31;
+        int result = 1;
+        result = PRIME * result + ((expr == null) ? 0 : expr.hashCode());
+        result = PRIME * result + ((restricted == null) ? 0 : restricted.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final RestrictExpr other = (RestrictExpr) obj;
+        if (expr == null) {
+            if (other.expr != null)
+                return false;
+        } else if (!expr.equals(other.expr))
+            return false;
+        if (restricted == null) {
+            if (other.restricted != null)
+                return false;
+        } else if (!restricted.equals(other.restricted))
+            return false;
+        return true;
+    }
+
 }

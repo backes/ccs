@@ -13,19 +13,6 @@ public interface Expression extends Cloneable {
 
     Collection<Expression> getChildren();
 
-    /**
-     * An expression is regular iff <br />
-     * - it does not contain parallel expressions or restriction <br />
-     * OR <br />
-     * - it does not contain recursion
-     * 
-     * <br /><br />
-     * BETTER??: 
-     * iff it does not contain recursion of parallel or restrictive expressions
-     */
-    // TODO too strong?
-    boolean isRegular();
-    
     public Expression clone();
 
     /**

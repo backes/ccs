@@ -24,4 +24,35 @@ public class InputAction extends Action {
         return getValue();
     }
 
+    @Override
+    public int hashCode() {
+        final int PRIME = 31;
+        int result = 1;
+        result = PRIME * result + ((firstPart == null) ? 0 : firstPart.hashCode());
+        result = PRIME * result + ((secondPart == null) ? 0 : secondPart.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final InputAction other = (InputAction) obj;
+        if (firstPart == null) {
+            if (other.firstPart != null)
+                return false;
+        } else if (!firstPart.equals(other.firstPart))
+            return false;
+        if (secondPart == null) {
+            if (other.secondPart != null)
+                return false;
+        } else if (!secondPart.equals(other.secondPart))
+            return false;
+        return true;
+    }
+
 }

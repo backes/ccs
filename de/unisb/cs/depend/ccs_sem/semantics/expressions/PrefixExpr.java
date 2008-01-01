@@ -49,4 +49,35 @@ public class PrefixExpr extends AbstractExpression {
         return sb.toString();
     }
 
+    @Override
+    public int hashCode() {
+        final int PRIME = 31;
+        int result = 1;
+        result = PRIME * result + ((postfix == null) ? 0 : postfix.hashCode());
+        result = PRIME * result + ((prefix == null) ? 0 : prefix.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final PrefixExpr other = (PrefixExpr) obj;
+        if (postfix == null) {
+            if (other.postfix != null)
+                return false;
+        } else if (!postfix.equals(other.postfix))
+            return false;
+        if (prefix == null) {
+            if (other.prefix != null)
+                return false;
+        } else if (!prefix.equals(other.prefix))
+            return false;
+        return true;
+    }
+
 }
