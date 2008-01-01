@@ -3,6 +3,7 @@ package de.unisb.cs.depend.ccs_sem.gui;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.util.List;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -10,7 +11,13 @@ import javax.swing.WindowConstants;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.FileReadException;
 import de.unisb.cs.depend.ccs_sem.exceptions.InternalSystemException;
+import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
+import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.gui.components.GUIFrame;
+import de.unisb.cs.depend.ccs_sem.lexer.CCSLexer;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Token;
+import de.unisb.cs.depend.ccs_sem.parser.CCSParser;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 
 
 public class GUI extends GUIFrame {
@@ -46,6 +53,18 @@ public class GUI extends GUIFrame {
             }
         } else if ("newFile".equals(command)) {
             getFileEditorPanel().newFile();
+        } else if ("process".equals(command)) {
+            String text = getFileEditorPanel().getCurrentlyOpenedPanel().getText();
+            try {
+                List<Token> tokens = new CCSLexer().lex(text);
+                Program program = new CCSParser().parse(tokens);
+                System.out.println(program);
+            } catch (LexException e) {
+                throw new InternalSystemException(e);
+            } catch (ParseException e) {
+                throw new InternalSystemException(e);
+            }
+            
         } else {
             throw new InternalSystemException("Unknown action command: " + command);
         }

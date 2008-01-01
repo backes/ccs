@@ -75,6 +75,13 @@ public class CCSParser implements Parser {
                     throw new ParseException("Expected ';' after this declaration");
             }
             index = it.nextIndex();
+            
+            // check if a declaration with the same name and number of parameters is already known
+            for (Declaration decl: declarations)
+                if (decl.getName().equals(identifier.getName()) && decl.getParameters().size() == parameters.size())
+                    throw new ParseException("Dublicate recursion variable definition ("
+                        + identifier.getName() + "[" + parameters.size() + "]");
+            
             declarations.add(new Declaration(identifier.getName(), parameters, expr));
         }
         

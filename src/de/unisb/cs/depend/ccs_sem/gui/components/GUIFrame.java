@@ -66,6 +66,14 @@ public abstract class GUIFrame
         quitItem.addActionListener(this);
         quitItem.setMnemonic(KeyEvent.VK_F4);
         fileMenu.add(quitItem);
+        
+        JMenu processMenu = new JMenu("Process");
+        menubar.add(processMenu);
+        
+        JMenuItem processItem = new JMenuItem("process...");
+        processItem.setActionCommand("process");
+        processItem.addActionListener(this);
+        processMenu.add(processItem);
 
     }
 

@@ -98,6 +98,24 @@ public class ParallelExpr extends Expression {
     }
     
     @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        if (left instanceof RestrictExpr) {
+            sb.append('(').append(left).append(')');
+        } else {
+            sb.append(left);
+        }
+        sb.append(" | ");
+        if (right instanceof RestrictExpr) {
+            sb.append('(').append(right).append(')');
+        } else {
+            sb.append(right);
+        }
+
+        return sb.toString();
+    }
+    
+    @Override
     public int hashCode() {
         final int PRIME = 31;
         int result = 1;

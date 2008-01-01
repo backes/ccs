@@ -42,12 +42,19 @@ public class FileEditorPanel extends JTabbedPane {
         CSSEditorPanel newPanel = new CSSEditorPanel(file);
         openedFiles.add(file);
         insertTab(file.getName(), ICON_CSS_FILE, newPanel, file.getAbsolutePath(), getTabCount());
-
     }
 
     public void newFile() {
         CSSEditorPanel newPanel = new CSSEditorPanel();
         insertTab("new file", ICON_CSS_FILE, newPanel, "new file", getTabCount());
+    }
+    
+    public CSSEditorPanel getCurrentlyOpenedPanel() {
+        int selectedIndex = getSelectedIndex();
+        if (selectedIndex == -1)
+            return null;
+        
+        return (CSSEditorPanel) getComponentAt(selectedIndex);
     }
 
 }
