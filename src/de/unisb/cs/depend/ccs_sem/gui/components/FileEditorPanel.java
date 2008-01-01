@@ -9,6 +9,8 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JTabbedPane;
 
+import de.unisb.cs.depend.ccs_sem.exceptions.FileReadException;
+
 
 public class FileEditorPanel extends JTabbedPane {
 
@@ -22,13 +24,13 @@ public class FileEditorPanel extends JTabbedPane {
         super();
     }
     
-    public FileEditorPanel(Collection<File> filesToOpen) {
+    public FileEditorPanel(Collection<File> filesToOpen) throws FileReadException {
         this();
         for (File file: filesToOpen)
             openFile(file);
     }
 
-    public void openFile(File file) {
+    public void openFile(File file) throws FileReadException {
         int index = openedFiles.indexOf(file);
         if (index != -1) {
             setSelectedIndex(index);
@@ -41,6 +43,11 @@ public class FileEditorPanel extends JTabbedPane {
         openedFiles.add(file);
         insertTab(file.getName(), ICON_CSS_FILE, newPanel, file.getAbsolutePath(), getTabCount());
 
+    }
+
+    public void newFile() {
+        CSSEditorPanel newPanel = new CSSEditorPanel();
+        insertTab("new file", ICON_CSS_FILE, newPanel, "new file", getTabCount());
     }
 
 }
