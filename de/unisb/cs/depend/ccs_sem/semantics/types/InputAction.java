@@ -31,8 +31,27 @@ public class InputAction extends Action {
     }
 
     @Override
-    public String toString() {
-        return getLabel();
+    public boolean isCounterTransition(Action action) {
+        if (!(action instanceof OutputAction))
+            return false;
+        
+        OutputAction outAct = (OutputAction) action;
+        
+        return outAct.getChannel().equals(channel) && outAct.getMessage().equals(message);
+    }
+
+    @Override
+    public Action replaceParameters(List<Value> parameters) {
+        message = message.replaceParameters(parameters);
+
+        return this;
+    }
+
+    @Override
+    public Action insertParameters(List<Value> parameters) {
+        message = message.insertParameters(parameters);
+        
+        return this;
     }
 
     @Override
@@ -65,22 +84,13 @@ public class InputAction extends Action {
             return false;
         return true;
     }
-
+    
     @Override
-    public boolean isCounterTransition(Action action) {
-        if (!(action instanceof OutputAction))
-            return false;
+    public Action clone() {
+        InputAction cloned = (InputAction) super.clone();
+        cloned.message = message.clone();
         
-        OutputAction outAct = (OutputAction) action;
-        
-        return outAct.getChannel().equals(channel) && outAct.getMessage().equals(message);
-    }
-
-    @Override
-    public Action replaceParameters(List<Value> parameters) {
-        message = message.replaceParameters(parameters);
-
-        return this;
+        return cloned;
     }
 
 }

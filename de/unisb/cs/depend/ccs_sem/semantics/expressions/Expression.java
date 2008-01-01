@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import de.unisb.cs.depend.ccs_sem.exceptions.InteralSystemException;
+import de.unisb.cs.depend.ccs_sem.exceptions.InternalSystemException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
@@ -46,9 +46,12 @@ public abstract class Expression implements Cloneable {
     @Override
     public Expression clone() {
         try {
-            return (Expression) super.clone();
+            Expression cloned = (Expression) super.clone();
+            // the clone is typically changed afterwards
+            cloned.transitions = null;
+            return cloned;
         } catch (CloneNotSupportedException e) {
-            throw new InteralSystemException("Expression cannot be cloned", e);
+            throw new InternalSystemException("Expression cannot be cloned", e);
         }
     }
 
@@ -65,11 +68,15 @@ public abstract class Expression implements Cloneable {
         if (foundExpr != null)
             return foundExpr;
         
+        // TODO replace subterms
+        
         repository.put(expr, expr);
 
         return expr;
     }
 
     public abstract Expression replaceParameters(List<Value> parameters);
+
+    public abstract Expression insertParameters(List<Value> parameters);
 
 }

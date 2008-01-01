@@ -82,6 +82,22 @@ public class ParallelExpr extends Expression {
     }
 
     @Override
+    public Expression replaceParameters(List<Value> parameters) {
+        left = left.replaceParameters(parameters);
+        right = right.replaceParameters(parameters);
+
+        return this;
+    }
+
+    @Override
+    public Expression insertParameters(List<Value> parameters) {
+        left = left.insertParameters(parameters);
+        right = right.insertParameters(parameters);
+        
+        return this;
+    }
+    
+    @Override
     public int hashCode() {
         final int PRIME = 31;
         int result = 1;
@@ -113,11 +129,12 @@ public class ParallelExpr extends Expression {
     }
 
     @Override
-    public Expression replaceParameters(List<Value> parameters) {
-        left = left.replaceParameters(parameters);
-        right = right.replaceParameters(parameters);
-
-        return this;
+    public Expression clone() {
+        ParallelExpr cloned = (ParallelExpr) super.clone();
+        cloned.left = left.clone();
+        cloned.right = right.clone();
+        
+        return cloned;
     }
 
 }

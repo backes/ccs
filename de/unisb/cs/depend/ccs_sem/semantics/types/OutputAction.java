@@ -31,8 +31,27 @@ public class OutputAction extends Action {
     }
 
     @Override
-    public String toString() {
-        return getLabel();
+    public boolean isCounterTransition(Action action) {
+        if (!(action instanceof InputAction))
+            return false;
+        
+        InputAction inAct = (InputAction) action;
+        
+        return inAct.getChannel().equals(channel) && inAct.getMessage().equals(message);
+    }
+
+    @Override
+    public Action replaceParameters(List<Value> parameters) {
+        message = message.replaceParameters(parameters);
+
+        return this;
+    }
+
+    @Override
+    public Action insertParameters(List<Value> parameters) {
+        message = message.insertParameters(parameters);
+        
+        return this;
     }
 
     @Override
@@ -65,21 +84,13 @@ public class OutputAction extends Action {
             return false;
         return true;
     }
-
+    
     @Override
-    public boolean isCounterTransition(Action action) {
-        if (!(action instanceof InputAction))
-            return false;
+    public Action clone() {
+        OutputAction cloned = (OutputAction) super.clone();
+        cloned.message = message.clone();
         
-        InputAction inAct = (InputAction) action;
-        
-        return inAct.getChannel().equals(channel) && inAct.getMessage().equals(message);
-    }
-
-    @Override
-    public Action replaceParameters(List<Value> parameters) {
-        // TODO Auto-generated method stub
-        return null;
+        return cloned;
     }
 
 }

@@ -23,7 +23,7 @@ public class Declaration {
         super();
         this.name = name;
         this.parameters = parameters;
-        this.value = value;
+        this.value = Expression.getExpression(value.clone().insertParameters(parameters));
     }
 
     /**

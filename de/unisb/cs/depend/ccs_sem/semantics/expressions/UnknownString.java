@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import de.unisb.cs.depend.ccs_sem.exceptions.InteralSystemException;
+import de.unisb.cs.depend.ccs_sem.exceptions.InternalSystemException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
@@ -34,7 +34,7 @@ public class UnknownString extends Expression {
     @Override
     public Collection<Expression> getChildren() {
         StackTraceElement topmostStackTraceElement = Thread.currentThread().getStackTrace()[0];
-        throw new InteralSystemException(topmostStackTraceElement.getClassName()
+        throw new InternalSystemException(topmostStackTraceElement.getClassName()
             + "." + topmostStackTraceElement.getMethodName()
             + " should never be called. Did you forget to call replaceRecursion?");
     }
@@ -42,7 +42,7 @@ public class UnknownString extends Expression {
     @Override
     protected List<Transition> evaluate0() {
         StackTraceElement topmostStackTraceElement = Thread.currentThread().getStackTrace()[0];
-        throw new InteralSystemException(topmostStackTraceElement.getClassName()
+        throw new InternalSystemException(topmostStackTraceElement.getClassName()
             + "." + topmostStackTraceElement.getMethodName()
             + " should never be called. Did you forget to call replaceRecursion?");
     }
@@ -99,7 +99,15 @@ public class UnknownString extends Expression {
     @Override
     public Expression replaceParameters(List<Value> params) {
         StackTraceElement topmostStackTraceElement = Thread.currentThread().getStackTrace()[0];
-        throw new InteralSystemException(topmostStackTraceElement.getClassName()
+        throw new InternalSystemException(topmostStackTraceElement.getClassName()
+            + "." + topmostStackTraceElement.getMethodName()
+            + " should never be called. Did you forget to call replaceRecursion?");
+    }
+
+    @Override
+    public Expression insertParameters(List<Value> params) {
+        StackTraceElement topmostStackTraceElement = Thread.currentThread().getStackTrace()[0];
+        throw new InternalSystemException(topmostStackTraceElement.getClassName()
             + "." + topmostStackTraceElement.getMethodName()
             + " should never be called. Did you forget to call replaceRecursion?");
     }
@@ -133,6 +141,14 @@ public class UnknownString extends Expression {
         } else if (!parameters.equals(other.parameters))
             return false;
         return true;
+    }
+    
+    @Override
+    public Expression clone() {
+        UnknownString cloned = (UnknownString) super.clone();
+        cloned.parameters = new ArrayList<Value>(parameters);
+
+        return cloned;
     }
 
 }

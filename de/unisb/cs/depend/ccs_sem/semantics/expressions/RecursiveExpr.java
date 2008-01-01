@@ -1,5 +1,6 @@
 package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -54,6 +55,24 @@ public class RecursiveExpr extends Expression {
     }
     
     @Override
+    public Expression replaceParameters(List<Value> params) {
+        for (int i = 0; i < parameters.size(); ++i) {
+            parameters.set(i, parameters.get(i).replaceParameters(params));
+        }
+
+        return this;
+    }
+
+    @Override
+    public Expression insertParameters(List<Value> params) {
+        for (int i = 0; i < parameters.size(); ++i) {
+            parameters.set(i, parameters.get(i).insertParameters(params));
+        }
+
+        return this;
+    }
+
+    @Override
     public String toString() {
         if (parameters.size() == 0)
             return referencedDeclaration.getName();
@@ -97,14 +116,15 @@ public class RecursiveExpr extends Expression {
             return false;
         return true;
     }
-
+    
     @Override
-    public Expression replaceParameters(List<Value> replaceParameters) {
-        for (int i = 0; i < parameters.size(); ++i) {
-            parameters.set(i, parameters.get(i).replaceParameters(parameters));
-        }
+    public Expression clone() {
+        RecursiveExpr cloned = (RecursiveExpr) super.clone();
+        cloned.parameters = new ArrayList<Value>(parameters);
 
-        return this;
+        // referencedDeclaration doesn't have to be cloned
+
+        return cloned;
     }
 
 }

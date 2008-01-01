@@ -37,7 +37,22 @@ public class PrefixExpr extends Expression {
         postfix = postfix.replaceRecursion(declarations);
         return this;
     }
-    
+
+    @Override
+    public Expression replaceParameters(List<Value> parameters) {
+        prefix = prefix.replaceParameters(parameters);
+        postfix = postfix.replaceParameters(parameters);
+
+        return this;
+    }
+
+    @Override
+    public Expression insertParameters(List<Value> parameters) {
+        prefix = prefix.insertParameters(parameters);
+        postfix = postfix.insertParameters(parameters);
+
+        return this;
+    }
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -81,13 +96,14 @@ public class PrefixExpr extends Expression {
             return false;
         return true;
     }
-
+    
     @Override
-    public Expression replaceParameters(List<Value> parameters) {
-        prefix = prefix.replaceParameters(parameters);
-        postfix = postfix.replaceParameters(parameters);
+    public Expression clone() {
+        PrefixExpr cloned = (PrefixExpr) super.clone();
+        cloned.prefix = prefix.clone();
+        cloned.postfix = postfix.clone();
 
-        return this;
+        return cloned;
     }
 
 }

@@ -29,6 +29,17 @@ public class TauAction extends Action {
     }
     
     @Override
+    public Action replaceParameters(List<Value> parameters) {
+        return this;
+    }
+
+    @Override
+    public Action insertParameters(List<Value> parameters) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
     public int hashCode() {
         return 0;
     }
@@ -37,10 +48,5 @@ public class TauAction extends Action {
     public boolean equals(Object obj) {
         return obj instanceof TauAction;
     }
-
-    @Override
-    public Action replaceParameters(List<Value> parameters) {
-        return this;
-    }
-
+    
 }

@@ -2,10 +2,11 @@ package de.unisb.cs.depend.ccs_sem.semantics.types;
 
 import java.util.List;
 
+import de.unisb.cs.depend.ccs_sem.exceptions.InternalSystemException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 
 
-public abstract class Action {
+public abstract class Action implements Cloneable {
 
     public abstract String getLabel();
 
@@ -39,5 +40,24 @@ public abstract class Action {
     public abstract boolean isCounterTransition(Action action);
 
     public abstract Action replaceParameters(List<Value> parameters);
+
+    public abstract Action insertParameters(List<Value> parameters);
+    
+    @Override
+    public Action clone() {
+        Action cloned;
+        try {
+            cloned = (Action) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new InternalSystemException("Action cannot be cloned", e);
+        }
+        
+        return cloned;
+    }
+    
+    @Override
+    public String toString() {
+        return getLabel();
+    }
 
 }

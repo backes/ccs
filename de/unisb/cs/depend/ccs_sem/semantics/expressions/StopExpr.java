@@ -14,7 +14,7 @@ public class StopExpr extends Expression {
     public StopExpr() {
         super();
     }
-
+    
     @Override
     public Collection<Expression> getChildren() {
         return Collections.emptySet();
@@ -33,6 +33,26 @@ public class StopExpr extends Expression {
     @Override
     public Expression replaceParameters(List<Value> parameters) {
         return this;
+    }
+    
+    @Override
+    public Expression insertParameters(List<Value> parameters) {
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return "0";
+    }
+    
+    @Override
+    public int hashCode() {
+        return 0;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof StopExpr;
     }
 
 }

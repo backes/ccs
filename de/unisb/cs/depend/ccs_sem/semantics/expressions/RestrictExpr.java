@@ -71,6 +71,20 @@ public class RestrictExpr extends Expression {
     }
 
     @Override
+    public Expression replaceParameters(List<Value> parameters) {
+        expr = expr.replaceParameters(parameters);
+
+        return this;
+    }
+
+    @Override
+    public Expression insertParameters(List<Value> parameters) {
+        expr = expr.insertParameters(parameters);
+
+        return this;
+    }
+
+    @Override
     public int hashCode() {
         final int PRIME = 31;
         int result = 1;
@@ -100,12 +114,15 @@ public class RestrictExpr extends Expression {
             return false;
         return true;
     }
-
+    
     @Override
-    public Expression replaceParameters(List<Value> parameters) {
-        expr = expr.replaceParameters(parameters);
+    public Expression clone() {
+        RestrictExpr cloned = (RestrictExpr) super.clone();
+        cloned.expr = expr.clone();
+        
+        // field restricted doesn't have to be cloned
 
-        return this;
+        return cloned;
     }
 
 }

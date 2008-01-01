@@ -18,8 +18,20 @@ public class SimpleAction extends Action {
     }
     
     @Override
-    public String toString() {
-        return name.getValue();
+    public boolean isCounterTransition(Action action) {
+        if (!(action instanceof SimpleAction))
+            return false;
+        
+        SimpleAction simAct = (SimpleAction) action;
+        
+        return simAct.name.equals(name);
+    }
+
+    @Override
+    public Action replaceParameters(List<Value> parameters) {
+        name = name.replaceParameters(parameters);
+
+        return this;
     }
 
     @Override
@@ -43,21 +55,19 @@ public class SimpleAction extends Action {
             return false;
         return true;
     }
-
+    
     @Override
-    public boolean isCounterTransition(Action action) {
-        if (!(action instanceof SimpleAction))
-            return false;
-        
-        SimpleAction simAct = (SimpleAction) action;
-        
-        return simAct.name.equals(name);
+    public Action clone() {
+        SimpleAction cloned = (SimpleAction) super.clone();
+        cloned.name = name.clone();
+
+        return cloned;
     }
 
     @Override
-    public Action replaceParameters(List<Value> parameters) {
-        name = name.replaceParameters(parameters);
-
+    public Action insertParameters(List<Value> parameters) {
+        name = name.insertParameters(parameters);
+        
         return this;
     }
 
