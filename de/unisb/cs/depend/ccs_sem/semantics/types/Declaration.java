@@ -1,8 +1,9 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types;
 
-import java.util.Collections;
+import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
@@ -16,7 +17,6 @@ public class Declaration {
     private String name;
     private List<String> parameters;
     private Expression value;
-    private List<Declaration> declarationsReachableThroughStaticOperators;
     
     public Declaration(String name, List<String> parameters, Expression value) {
         super();
@@ -27,24 +27,61 @@ public class Declaration {
 
     /**
      * A Declaration is regular iff it does not contain a cycle of recursions
-     * that contains parallel or restriction operators (so called "static" operators).
+     * back to itself that contains parallel or restriction operators (so called
+     * "static" operators).
+     * Besides, the value of the declaration must not be the recursion variable
+     * itself.
      */
     public boolean isRegular() {
-        Set<Declaration> checked = new HashSet<Declaration>();
-        Set<Declaration> emptySet = Collections.singleton(this);
-        return checkRegularity(value, emptySet, false);
-    }
+        // check the second condition first (easier)
+        if (value instanceof RecursiveExpr) {
+            RecursiveExpr recExpr = (RecursiveExpr) value;
+            if (recExpr.getReferencedDeclaration().equals(this))
+                return false;
+        }
+        
+        // then, check for a recursive loop back to this declaration, that
+        // contains parallel or restriction operator(s)
+        
+        // every expression has to be checked only once
+        Set<Expression> checked = new HashSet<Expression>();
+        // a queue of expressions to check
+        Queue<Expression> queue = new ArrayDeque<Expression>();
+        // queue of expressions that occured after static operators
+        Queue<Expression> afterStaticQueue = new ArrayDeque<Expression>();
+        queue.add(value);
+        
+        // first, search for all expressions that occure after static operators
+        while (!queue.isEmpty()) {
+            Expression expr = queue.poll();
+            if (checked.add(expr)) {
+                // not checked before...
+                if (expr instanceof ParallelExpr || expr instanceof RestrictExpr) {
+                    afterStaticQueue.addAll(expr.getChildren());
+                } else {
+                    queue.addAll(expr.getChildren());
+                }
+            }
+        }
+        checked.clear();
 
-    private boolean checkRegularity(Expression expr, Set<Declaration> evilDeclarations, boolean passedStaticOperator) {
-        if (!passedStaticOperator && (expr instanceof ParallelExpr || expr instanceof RestrictExpr)) {
-            passedStaticOperator = true;
+        // then, check these expressions for occurences of the current declaration (recursive loop)
+        while (!afterStaticQueue.isEmpty()) {
+            Expression expr = afterStaticQueue.poll();
+            if (checked.add(expr)) {
+                // not checked before...
+                if (expr instanceof RecursiveExpr) {
+                    RecursiveExpr recExpr = (RecursiveExpr) expr;
+                    if (recExpr.getReferencedDeclaration().equals(this))
+                        return false;
+                } else {
+                    afterStaticQueue.addAll(expr.getChildren());
+                }
+            }
         }
-        if (expr instanceof RecursiveExpr) {
-            RecursiveExpr recExpr = (RecursiveExpr) expr;
-            if (passedStaticOperator)
-        }
-        // TODO Auto-generated method stub
-        return false;
+        
+        // nothing bad found...
+        return true;
     }
 
     public String getName() {
@@ -63,7 +100,6 @@ public class Declaration {
     public int hashCode() {
         final int PRIME = 31;
         int result = 1;
-        result = PRIME * result + ((declarationsReachableThroughStaticOperators == null) ? 0 : declarationsReachableThroughStaticOperators.hashCode());
         result = PRIME * result + ((name == null) ? 0 : name.hashCode());
         result = PRIME * result + ((parameters == null) ? 0 : parameters.hashCode());
         result = PRIME * result + ((value == null) ? 0 : value.hashCode());
@@ -79,11 +115,6 @@ public class Declaration {
         if (getClass() != obj.getClass())
             return false;
         final Declaration other = (Declaration) obj;
-        if (declarationsReachableThroughStaticOperators == null) {
-            if (other.declarationsReachableThroughStaticOperators != null)
-                return false;
-        } else if (!declarationsReachableThroughStaticOperators.equals(other.declarationsReachableThroughStaticOperators))
-            return false;
         if (name == null) {
             if (other.name != null)
                 return false;
