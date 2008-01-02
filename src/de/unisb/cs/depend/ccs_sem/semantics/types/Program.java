@@ -25,7 +25,7 @@ public class Program {
         
         StringBuilder sb = new StringBuilder();
         for (Declaration decl: declarations) {
-            sb.append(decl).append(newLine);
+            sb.append(decl).append(';').append(newLine);
         }
         if (declarations.size() > 0)
             sb.append(newLine);

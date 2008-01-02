@@ -14,27 +14,43 @@ public class ParameterRefValue implements Value {
     }
 
     public String getValue() {
-        StackTraceElement topmostStackTraceElement = Thread.currentThread().getStackTrace()[0];
-        throw new InternalSystemException(topmostStackTraceElement.getClassName()
-            + "." + topmostStackTraceElement.getMethodName()
-            + " should never be called.");
+        return "param#"+paramNr;
     }
 
     public Value replaceParameters(List<Value> parameters) {
         assert parameters.size() > paramNr;
         
-        return parameters.get(paramNr).clone();
+        return parameters.get(paramNr);
     }
     
     public Value insertParameters(List<Value> parameters) {
         return this;
     }
-
+    
     @Override
     public String toString() {
-        return "param#"+paramNr;
+        return getValue();
     }
-    
+
+    @Override
+    public int hashCode() {
+        return paramNr;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final ParameterRefValue other = (ParameterRefValue) obj;
+        if (paramNr != other.paramNr)
+            return false;
+        return true;
+    }
+
     @Override
     public Value clone() {
         Value cloned;

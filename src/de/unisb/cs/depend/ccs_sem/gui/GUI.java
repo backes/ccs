@@ -18,6 +18,7 @@ import de.unisb.cs.depend.ccs_sem.lexer.CCSLexer;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Token;
 import de.unisb.cs.depend.ccs_sem.parser.CCSParser;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 
 
 public class GUI extends GUIFrame {
@@ -58,7 +59,7 @@ public class GUI extends GUIFrame {
             try {
                 List<Token> tokens = new CCSLexer().lex(text);
                 Program program = new CCSParser().parse(tokens);
-                System.out.println(program);
+                List<Transition> trans = program.evaluate();
             } catch (LexException e) {
                 throw new InternalSystemException(e);
             } catch (ParseException e) {

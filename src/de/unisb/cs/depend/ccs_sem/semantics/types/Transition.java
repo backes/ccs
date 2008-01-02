@@ -46,7 +46,7 @@ public class Transition {
 
     @Override
     public String toString() {
-        return "--" + action + "-> " + target;
+        return action + " --> " + target;
     }
 
     @Override

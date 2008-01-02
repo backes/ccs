@@ -16,14 +16,16 @@ import de.unisb.cs.depend.ccs_sem.semantics.expressions.RestrictExpr;
 public class Declaration {
     
     private String name;
-    private List<Value> parameters;
+    private int paramNr;
     private Expression value;
     
     public Declaration(String name, List<Value> parameters, Expression value) {
         super();
         this.name = name;
-        this.parameters = parameters;
-        this.value = Expression.getExpression(value.clone().insertParameters(parameters));
+        this.paramNr = parameters.size();
+        // TODO clone necessary?
+        //this.value = Expression.getExpression(value.clone().insertParameters(parameters));
+        this.value = Expression.getExpression(value.insertParameters(parameters));
     }
 
     /**
@@ -88,9 +90,9 @@ public class Declaration {
     public String getName() {
         return name;
     }
-
-    public List<Value> getParameters() {
-        return parameters;
+    
+    public int getParamNr() {
+        return paramNr;
     }
 
     public Expression getValue() {
@@ -100,15 +102,17 @@ public class Declaration {
     public Expression replaceRecursion(List<Declaration> declarations) throws ParseException {
         return value.replaceRecursion(declarations);
     }
+    
+    @Override
+    public String toString() {
+        return name + "[" + paramNr + "] = " + value;
+    }
 
+    // NO HASHCODE COMPUTATION HERE. ONLY THE SAME DECLARATIONS ARE EQUAL!!
+    /*
     @Override
     public int hashCode() {
-        final int PRIME = 31;
-        int result = 1;
-        result = PRIME * result + ((name == null) ? 0 : name.hashCode());
-        result = PRIME * result + ((parameters == null) ? 0 : parameters.hashCode());
-        result = PRIME * result + ((value == null) ? 0 : value.hashCode());
-        return result;
+        return System.identityHashCode(this);
     }
 
     @Override
@@ -125,10 +129,7 @@ public class Declaration {
                 return false;
         } else if (!name.equals(other.name))
             return false;
-        if (parameters == null) {
-            if (other.parameters != null)
-                return false;
-        } else if (!parameters.equals(other.parameters))
+        if (paramNr != other.paramNr)
             return false;
         if (value == null) {
             if (other.value != null)
@@ -137,5 +138,6 @@ public class Declaration {
             return false;
         return true;
     }
+    */
 
 }

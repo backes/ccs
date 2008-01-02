@@ -34,8 +34,6 @@ public abstract class Expression implements Cloneable {
             if (transitions instanceof ArrayList) {
                 ArrayList<Transition> list = (ArrayList<Transition>) transitions;
                 list.trimToSize();
-            } else {
-                transitions = new ArrayList<Transition>(transitions);
             }
                 
         }
@@ -71,6 +69,8 @@ public abstract class Expression implements Cloneable {
         Expression foundExpr = repository.get(expr);
         if (foundExpr != null)
             return foundExpr;
+        
+        // TODO deep search for known expressions
         
         repository.put(expr, expr);
 

@@ -42,16 +42,20 @@ public class InputAction extends Action {
 
     @Override
     public Action replaceParameters(List<Value> parameters) {
-        message = message.replaceParameters(parameters);
+        Value newMessage = message.replaceParameters(parameters);
+        if (message.equals(newMessage))
+            return this;
 
-        return this;
+        return Action.getAction(new InputAction(channel, newMessage));
     }
 
     @Override
     public Action insertParameters(List<Value> parameters) {
-        message = message.insertParameters(parameters);
-        
-        return this;
+        Value newMessage = message.insertParameters(parameters);
+        if (message.equals(newMessage))
+            return this;
+
+        return Action.getAction(new InputAction(channel, newMessage));
     }
 
     @Override

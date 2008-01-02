@@ -100,7 +100,9 @@ public class PrefixExpr extends Expression {
     @Override
     public Expression clone() {
         PrefixExpr cloned = (PrefixExpr) super.clone();
-        cloned.prefix = prefix.clone();
+        
+        // the prefix doesn't have to be cloned (actions are "immutable" (not really))
+
         cloned.postfix = postfix.clone();
 
         return cloned;

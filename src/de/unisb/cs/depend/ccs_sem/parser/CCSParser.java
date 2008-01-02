@@ -41,7 +41,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Value;
 public class CCSParser implements Parser {
 
     public Program parse(List<Token> tokens) throws ParseException {
-        List<Declaration> declarations = new ArrayList<Declaration>();
+        ArrayList<Declaration> declarations = new ArrayList<Declaration>();
         
         int index = 0;
         
@@ -57,33 +57,33 @@ public class CCSParser implements Parser {
                 break;
             identifier = (Identifier) token1;
 
-            if ((token1 instanceof Identifier) && (token2 instanceof Assignment)) {
+            if (token2 instanceof Assignment) {
                 expr = readExpression(it);
                 parameters = Collections.emptyList();
-            } else if ((token1 instanceof Identifier) && (token2 instanceof LBracket)) {
+            } else if (token2 instanceof LBracket) {
                 parameters = readParameters(it);
-                if (!(it.next() instanceof Assignment))
+                if (!it.hasNext() || !(it.next() instanceof Assignment))
                     break;
                 expr = readExpression(it);
             } else {
                 break;
             }
             
-            if (it.hasNext()) {
-                Token next = it.next();
-                if (!(next instanceof Semicolon))
-                    throw new ParseException("Expected ';' after this declaration");
-            }
+            if (!it.hasNext() || !(it.next() instanceof Semicolon))
+                throw new ParseException("Expected ';' after this declaration");
+
             index = it.nextIndex();
             
             // check if a declaration with the same name and number of parameters is already known
             for (Declaration decl: declarations)
-                if (decl.getName().equals(identifier.getName()) && decl.getParameters().size() == parameters.size())
+                if (decl.getName().equals(identifier.getName()) && decl.getParamNr() == parameters.size())
                     throw new ParseException("Dublicate recursion variable definition ("
                         + identifier.getName() + "[" + parameters.size() + "]");
             
             declarations.add(new Declaration(identifier.getName(), parameters, expr));
         }
+        
+        declarations.trimToSize();
         
         // then, read the ccs expression
         ListIterator<Token> it = tokens.listIterator(index);
@@ -91,7 +91,7 @@ public class CCSParser implements Parser {
         
         if (it.hasNext())
             throw new ParseException("Syntax error: Unexpected '" + it.next() + "'");
-        
+
         Program program = new Program(declarations, expr);
         
         if (!program.isRegular()) {
@@ -159,8 +159,10 @@ public class CCSParser implements Parser {
                     throw new ParseException("Expected '{'");
                 Set<Action> restricted = readActionSet(tokens);
                 expr = Expression.getExpression(new RestrictExpr(expr, restricted));
-            } else
+            } else {
                 tokens.previous();
+                break;
+            }
         }
 
         return expr;
@@ -208,8 +210,10 @@ public class CCSParser implements Parser {
             if (tokens.next() instanceof Parallel) {
                 Expression newExpr = readChoiceExpression(tokens);
                 expr = Expression.getExpression(new ParallelExpr(expr, newExpr));
-            } else
+            } else {
                 tokens.previous();
+                break;
+            }
         }
 
         return expr;
@@ -224,8 +228,10 @@ public class CCSParser implements Parser {
             if (tokens.next() instanceof Choice) {
                 Expression newExpr = readPrefixExpression(tokens);
                 expr = Expression.getExpression(new ChoiceExpr(expr, newExpr));
-            } else
+            } else {
                 tokens.previous();
+                break;
+            }
         }
 
         return expr;

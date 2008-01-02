@@ -56,7 +56,7 @@ public class UnknownString extends Expression {
     @Override
     public Expression replaceRecursion(List<Declaration> declarations) throws ParseException {
         for (Declaration decl: declarations) {
-            if (matches(decl)) {
+            if (decl.getName().equals(name) && decl.getParamNr() == parameters.size()) {
                 RecursiveExpr newExpr = new RecursiveExpr(decl, parameters);
                 return Expression.getExpression(newExpr);
             }
@@ -85,10 +85,6 @@ public class UnknownString extends Expression {
         return Expression.getExpression(new PrefixExpr(prefix, stopExpression));
     }
 
-    public boolean matches(Declaration decl) {
-        return decl.getName().equals(name) && decl.getParameters().size() == parameters.size();
-    }
-    
     @Override
     public String toString() {
         if (parameters.size() == 0)
@@ -97,7 +93,7 @@ public class UnknownString extends Expression {
         StringBuilder sb = new StringBuilder(name);
         sb.append('[');
         for (int i = 0; i < parameters.size(); ++i)
-            sb.append(i==0 ? "," : "").append(parameters.get(i));
+            sb.append(i>0 ? "," : "").append(parameters.get(i));
         sb.append(']');
 
         return sb.toString();
@@ -113,10 +109,19 @@ public class UnknownString extends Expression {
 
     @Override
     public Expression insertParameters(List<Value> params) {
-        StackTraceElement topmostStackTraceElement = Thread.currentThread().getStackTrace()[0];
-        throw new InternalSystemException(topmostStackTraceElement.getClassName()
-            + "." + topmostStackTraceElement.getMethodName()
-            + " should never be called. Did you forget to call replaceRecursion?");
+        List<Value> newParameters = new ArrayList<Value>(parameters.size());
+        boolean changed = false;
+        for (Value param: parameters) {
+            Value newParam = param.replaceParameters(parameters);
+            if (!changed && !newParam.equals(param))
+                changed = true;
+            newParameters.add(newParam);
+        }
+
+        if (!changed)
+            return this;
+        
+        return Expression.getExpression(new UnknownString(name, newParameters));
     }
 
     @Override

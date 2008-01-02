@@ -29,9 +29,20 @@ public class SimpleAction extends Action {
 
     @Override
     public Action replaceParameters(List<Value> parameters) {
-        name = name.replaceParameters(parameters);
+        Value newName = name.replaceParameters(parameters);
+        if (name.equals(newName))
+            return this;
 
-        return this;
+        return Action.getAction(new SimpleAction(newName));
+    }
+
+    @Override
+    public Action insertParameters(List<Value> parameters) {
+        Value newName = name.insertParameters(parameters);
+        if (name.equals(newName))
+            return this;
+
+        return Action.getAction(new SimpleAction(newName));
     }
 
     @Override
@@ -62,13 +73,6 @@ public class SimpleAction extends Action {
         cloned.name = name.clone();
 
         return cloned;
-    }
-
-    @Override
-    public Action insertParameters(List<Value> parameters) {
-        name = name.insertParameters(parameters);
-        
-        return this;
     }
 
 }
