@@ -11,21 +11,5 @@
          </run>
       </application>
    </extension>
-   <extension
-         point="org.eclipse.ui.perspectives">
-      <perspective
-            name="Perspective"
-            class="ccs_semantics_rcp.Perspective"
-            id="CCS_Semantics_RCP.perspective">
-      </perspective>
-   </extension>
-   <extension
-         point="org.eclipse.ui.views">
-      <view
-            name="View"
-            class="ccs_semantics_rcp.View"
-            id="CCS_Semantics_RCP.view">
-      </view>
-   </extension>
 
 </plugin>

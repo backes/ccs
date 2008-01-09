@@ -36,6 +36,17 @@
             name="de.unisb.cs.depend.ccs_sem.plugin.perspectives.CCSPerspective">
       </perspective>
    </extension>
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            class="de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            extensions="ccs"
+            icon="icons/sample.gif"
+            id="de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor"
+            name="CCS Editor">
+      </editor>
+   </extension>
 
 
 </plugin>

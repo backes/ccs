@@ -1,15 +1,32 @@
 package de.unisb.cs.depend.ccs_sem.plugin.views;
 
 
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.ui.part.*;
-import org.eclipse.jface.viewers.*;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.jface.action.*;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IMenuListener;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.ui.*;
-import org.eclipse.swt.widgets.Menu;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredContentProvider;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.ITableLabelProvider;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.ISharedImages;
+import org.eclipse.ui.IWorkbenchActionConstants;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.part.ViewPart;
 
 
 /**
@@ -32,7 +49,7 @@ import org.eclipse.swt.SWT;
 
 public class CCSEditorView extends ViewPart {
 	private TableViewer viewer;
-	private Action action1;
+	private Action evaluateAction;
 	private Action action2;
 	private Action doubleClickAction;
 
@@ -42,10 +59,10 @@ public class CCSEditorView extends ViewPart {
 	 * existing objects in adapters or simply return
 	 * objects as-is. These objects may be sensitive
 	 * to the current input of the view, or ignore
-	 * it and always show the same content 
+	 * it and always show the same content
 	 * (like Task List, for example).
 	 */
-	 
+
 	class ViewContentProvider implements IStructuredContentProvider {
 		public void inputChanged(Viewer v, Object oldInput, Object newInput) {
 		}
@@ -62,7 +79,8 @@ public class CCSEditorView extends ViewPart {
 		public Image getColumnImage(Object obj, int index) {
 			return getImage(obj);
 		}
-		public Image getImage(Object obj) {
+		@Override
+        public Image getImage(Object obj) {
 			return PlatformUI.getWorkbench().
 					getSharedImages().getImage(ISharedImages.IMG_OBJ_ELEMENT);
 		}
@@ -74,13 +92,15 @@ public class CCSEditorView extends ViewPart {
 	 * The constructor.
 	 */
 	public CCSEditorView() {
+	    // nothing to do
 	}
 
 	/**
 	 * This is a callback that will allow us
 	 * to create the viewer and initialize it.
 	 */
-	public void createPartControl(Composite parent) {
+	@Override
+    public void createPartControl(Composite parent) {
 		viewer = new TableViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
 		viewer.setContentProvider(new ViewContentProvider());
 		viewer.setLabelProvider(new ViewLabelProvider());
@@ -93,55 +113,57 @@ public class CCSEditorView extends ViewPart {
 	}
 
 	private void hookContextMenu() {
-		MenuManager menuMgr = new MenuManager("#PopupMenu");
+		final MenuManager menuMgr = new MenuManager("#PopupMenu");
 		menuMgr.setRemoveAllWhenShown(true);
 		menuMgr.addMenuListener(new IMenuListener() {
 			public void menuAboutToShow(IMenuManager manager) {
 				CCSEditorView.this.fillContextMenu(manager);
 			}
 		});
-		Menu menu = menuMgr.createContextMenu(viewer.getControl());
+		final Menu menu = menuMgr.createContextMenu(viewer.getControl());
 		viewer.getControl().setMenu(menu);
 		getSite().registerContextMenu(menuMgr, viewer);
 	}
 
 	private void contributeToActionBars() {
-		IActionBars bars = getViewSite().getActionBars();
+		final IActionBars bars = getViewSite().getActionBars();
 		fillLocalPullDown(bars.getMenuManager());
 		fillLocalToolBar(bars.getToolBarManager());
 	}
 
 	private void fillLocalPullDown(IMenuManager manager) {
-		manager.add(action1);
+		manager.add(evaluateAction);
 		manager.add(new Separator());
 		manager.add(action2);
 	}
 
 	private void fillContextMenu(IMenuManager manager) {
-		manager.add(action1);
+		manager.add(evaluateAction);
 		manager.add(action2);
 		// Other plug-ins can contribute there actions here
 		manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
 	}
-	
+
 	private void fillLocalToolBar(IToolBarManager manager) {
-		manager.add(action1);
+		manager.add(evaluateAction);
 		manager.add(action2);
 	}
 
 	private void makeActions() {
-		action1 = new Action() {
-			public void run() {
+		evaluateAction = new Action() {
+			@Override
+            public void run() {
 				showMessage("Action 1 executed");
 			}
 		};
-		action1.setText("Action 1");
-		action1.setToolTipText("Action 1 tooltip");
-		action1.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
+		evaluateAction.setText("Action 1");
+		evaluateAction.setToolTipText("Action 1 tooltip");
+		evaluateAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
 			getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
-		
+
 		action2 = new Action() {
-			public void run() {
+			@Override
+            public void run() {
 				showMessage("Action 2 executed");
 			}
 		};
@@ -150,9 +172,10 @@ public class CCSEditorView extends ViewPart {
 		action2.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
 				getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
 		doubleClickAction = new Action() {
-			public void run() {
-				ISelection selection = viewer.getSelection();
-				Object obj = ((IStructuredSelection)selection).getFirstElement();
+			@Override
+            public void run() {
+				final ISelection selection = viewer.getSelection();
+				final Object obj = ((IStructuredSelection)selection).getFirstElement();
 				showMessage("Double-click detected on "+obj.toString());
 			}
 		};
@@ -175,7 +198,8 @@ public class CCSEditorView extends ViewPart {
 	/**
 	 * Passing the focus request to the viewer's control.
 	 */
-	public void setFocus() {
+	@Override
+    public void setFocus() {
 		viewer.getControl().setFocus();
 	}
 }

@@ -44,24 +44,32 @@ public class CCSPerspective implements IPerspectiveFactory {
 		// Creates the overall folder layout.
 		// Note that each new Folder uses a percentage of the remaining EditorArea.
 
-		final IFolderLayout bottom =
-			factory.createFolder(
-				"bottomRight", //NON-NLS-1
-				IPageLayout.BOTTOM,
-				0.75f,
-				factory.getEditorArea());
-		bottom.addView(IPageLayout.ID_PROBLEM_VIEW);
-		bottom.addView("org.eclipse.team.ui.GenericHistoryView"); //NON-NLS-1
-		bottom.addPlaceholder(IConsoleConstants.ID_CONSOLE_VIEW);
+        final IFolderLayout bottom =
+            factory.createFolder(
+                "bottom",
+                IPageLayout.BOTTOM,
+                0.8f,
+                factory.getEditorArea());
+        bottom.addView(IPageLayout.ID_PROBLEM_VIEW);
+        bottom.addView("org.eclipse.team.ui.GenericHistoryView");
+        bottom.addPlaceholder(IConsoleConstants.ID_CONSOLE_VIEW);
 
-		final IFolderLayout topLeft =
-			factory.createFolder(
-				"topLeft", //NON-NLS-1
-				IPageLayout.LEFT,
-				0.25f,
-				factory.getEditorArea());
-		topLeft.addView(IPageLayout.ID_RES_NAV);
-		topLeft.addView("org.eclipse.jdt.junit.ResultView"); //NON-NLS-1
+        final IFolderLayout center =
+            factory.createFolder(
+                "center",
+                IPageLayout.BOTTOM,
+                0.5f,
+                factory.getEditorArea());
+        center.addPlaceholder("de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView");
+
+        final IFolderLayout topLeft =
+            factory.createFolder("topLeft", IPageLayout.LEFT, 0.2f, factory.getEditorArea());
+        topLeft.addView(IPageLayout.ID_RES_NAV);
+        topLeft.addView("org.eclipse.jdt.junit.ResultView");
+
+        final IFolderLayout topRight =
+            factory.createFolder("topRight", IPageLayout.RIGHT, 0.75f, factory.getEditorArea());
+        topRight.addView(IPageLayout.ID_OUTLINE);
 
 		factory.addFastView("org.eclipse.team.ccvs.ui.RepositoriesView",0.50f); //NON-NLS-1
 		factory.addFastView("org.eclipse.team.sync.views.SynchronizeView", 0.50f); //NON-NLS-1
@@ -99,7 +107,7 @@ public class CCSPerspective implements IPerspectiveFactory {
 		factory.addShowViewShortcut("org.eclipse.pde.ui.DependenciesView"); //NON-NLS-1
 		factory.addShowViewShortcut("org.eclipse.jdt.junit.ResultView"); //NON-NLS-1
 		factory.addShowViewShortcut("org.eclipse.team.ui.GenericHistoryView"); //NON-NLS-1
-		factory.addShowViewShortcut(IConsoleConstants.ID_CONSOLE_VIEW);
+		//factory.addShowViewShortcut(IConsoleConstants.ID_CONSOLE_VIEW);
 		factory.addShowViewShortcut(JavaUI.ID_PACKAGES);
 		factory.addShowViewShortcut(IPageLayout.ID_RES_NAV);
 		factory.addShowViewShortcut(IPageLayout.ID_PROBLEM_VIEW);
