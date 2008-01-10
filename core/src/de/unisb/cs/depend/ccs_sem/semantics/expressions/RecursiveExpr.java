@@ -14,11 +14,14 @@ public class RecursiveExpr extends Expression {
     
     private Declaration referencedDeclaration;
     private List<Value> parameters;
+    private Expression newExpression;
 
     public RecursiveExpr(Declaration referencedDeclaration, List<Value> parameters) {
         super();
         this.referencedDeclaration = referencedDeclaration;
         this.parameters = parameters;
+        Expression newExpr = referencedDeclaration.getValue().replaceParameters(parameters);
+        newExpr = Expression.getExpression(newExpr);
     }
 
     /**
@@ -38,7 +41,7 @@ public class RecursiveExpr extends Expression {
     }
 
     @Override
-    protected List<Transition> evaluate0() {
+    protected void evaluate0() {
         // generate the new expression to evaluate, then delegate to it
         Expression newExpr = referencedDeclaration.getValue().clone();
         newExpr = newExpr.replaceParameters(parameters);

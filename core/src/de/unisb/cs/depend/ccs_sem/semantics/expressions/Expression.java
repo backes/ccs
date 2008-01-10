@@ -24,26 +24,37 @@ public abstract class Expression implements Cloneable {
         // nothing to do
     }
 
-    // TODO synchronized?? costs time, most propably not necessary
-    public List<Transition> evaluate() {
-        if (transitions == null) {
-            transitions = evaluate0();
-            assert transitions != null;
-            
-            // save memory
-            if (transitions instanceof ArrayList) {
-                ArrayList<Transition> list = (ArrayList<Transition>) transitions;
-                list.trimToSize();
-            }
-                
+    // precondition: children have been evaluated
+    public void evaluate() {
+        if (transitions != null)
+            return;
+    
+        transitions = evaluate0();
+        
+        assert transitions != null;
+        
+        // save memory
+        if (transitions instanceof ArrayList) {
+            ArrayList<Transition> list = (ArrayList<Transition>) transitions;
+            list.trimToSize();
         }
+    }
+
+    public boolean isEvaluated() {
+        return transitions == null;
+    }
+
+    // precondition: children have been evaluated
+    protected abstract List<Transition> evaluate0();
+
+    // returns the children that have to be evaluated before calling evaluate()
+    public abstract Collection<Expression> getChildren();
+
+    public List<Transition> getTransitions() {
+        assert transitions != null;
         
         return transitions;
     }
-
-    protected abstract List<Transition> evaluate0();
-
-    public abstract Collection<Expression> getChildren();
 
     @Override
     public Expression clone() {
@@ -63,14 +74,13 @@ public abstract class Expression implements Cloneable {
      * @return either itself (children may have changed) or a new created Expression
      * @throws ParseException 
      */
+    // TODO new Expressions (also replaceParameters and insertParameters)
     public abstract Expression replaceRecursion(List<Declaration> declarations) throws ParseException;
     
     public static Expression getExpression(Expression expr) {
         Expression foundExpr = repository.get(expr);
         if (foundExpr != null)
             return foundExpr;
-        
-        // TODO deep search for known expressions
         
         repository.put(expr, expr);
 

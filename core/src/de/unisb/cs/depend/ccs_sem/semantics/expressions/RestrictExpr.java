@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import de.unisb.cs.depend.ccs_sem.evalutators.Evaluator;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
@@ -30,8 +31,15 @@ public class RestrictExpr extends Expression {
     }
 
     @Override
-    protected List<Transition> evaluate0() {
-        List<Transition> oldTransitions = expr.evaluate();
+    protected void evaluateChildren(Evaluator eval) {
+        if (!expr.isEvaluated()) {
+            eval.evaluate(expr);
+        }
+    }
+    
+    @Override
+    protected List<Transition> evaluateThis() {
+        List<Transition> oldTransitions = expr.evaluateThis();
         List<Transition> newTransitions = new ArrayList<Transition>(oldTransitions.size());
         
         for (Transition trans: oldTransitions)

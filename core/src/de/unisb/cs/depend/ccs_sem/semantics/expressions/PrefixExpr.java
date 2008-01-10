@@ -34,16 +34,23 @@ public class PrefixExpr extends Expression {
 
     @Override
     public Expression replaceRecursion(List<Declaration> declarations) throws ParseException {
-        postfix = postfix.replaceRecursion(declarations);
-        return this;
+        Expression newPostfix = postfix.replaceRecursion(declarations);
+        
+        if (newPostfix.equals(postfix))
+            return this;
+        
+        return Expression.getExpression(new PrefixExpr(prefix, newPostfix));
     }
 
     @Override
     public Expression replaceParameters(List<Value> parameters) {
-        prefix = prefix.replaceParameters(parameters);
-        postfix = postfix.replaceParameters(parameters);
+        Action newPrefix = prefix.replaceParameters(parameters);
+        Expression newPostfix = postfix.replaceParameters(parameters);
+        
+        if (newPrefix.equals(prefix) && newPostfix.equals(postfix))
+            return this;
 
-        return this;
+        return Expression.getExpression(new PrefixExpr(newPrefix, newPostfix));
     }
 
     @Override
