@@ -9,6 +9,7 @@ import java.util.Map;
 import de.unisb.cs.depend.ccs_sem.exceptions.InternalSystemException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterRefValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Value;
 
@@ -19,7 +20,7 @@ public abstract class Expression implements Cloneable {
         = new HashMap<Expression, Expression>();
 
     private List<Transition> transitions = null;
-    
+
     protected Expression() {
         // nothing to do
     }
@@ -28,14 +29,14 @@ public abstract class Expression implements Cloneable {
     public void evaluate() {
         if (transitions != null)
             return;
-    
+
         transitions = evaluate0();
-        
+
         assert transitions != null;
-        
+
         // save memory
         if (transitions instanceof ArrayList) {
-            ArrayList<Transition> list = (ArrayList<Transition>) transitions;
+            final ArrayList<Transition> list = (ArrayList<Transition>) transitions;
             list.trimToSize();
         }
     }
@@ -52,18 +53,19 @@ public abstract class Expression implements Cloneable {
 
     public List<Transition> getTransitions() {
         assert transitions != null;
-        
+
         return transitions;
     }
 
     @Override
     public Expression clone() {
+        // TODO remove clone method?
         try {
-            Expression cloned = (Expression) super.clone();
+            final Expression cloned = (Expression) super.clone();
             // the clone is typically changed afterwards
             cloned.transitions = null;
             return cloned;
-        } catch (CloneNotSupportedException e) {
+        } catch (final CloneNotSupportedException e) {
             throw new InternalSystemException("Expression cannot be cloned", e);
         }
     }
@@ -71,24 +73,37 @@ public abstract class Expression implements Cloneable {
     /**
      * Replaces every {@link UnknownString} either by a {@link PrefixExpr} and
      * a {@link StopExpr}, or by a {@link RecursiveExpr}.
-     * @return either itself (children may have changed) or a new created Expression
-     * @throws ParseException 
+     * @return either itself or a new created Expression, if something changed
      */
     // TODO new Expressions (also replaceParameters and insertParameters)
     public abstract Expression replaceRecursion(List<Declaration> declarations) throws ParseException;
-    
+
     public static Expression getExpression(Expression expr) {
-        Expression foundExpr = repository.get(expr);
+        final Expression foundExpr = repository.get(expr);
         if (foundExpr != null)
             return foundExpr;
-        
+
         repository.put(expr, expr);
 
         return expr;
     }
 
-    public abstract Expression replaceParameters(List<Value> parameters);
+    /**
+     * Is called in the constructor of a {@link RecursiveExpr}.
+     * Replaces all {@link ParameterRefValue}s that occure in the expression by
+     * the corresponding {@link Value} from the parameter list.
+     * @param parameters
+     * @return
+     */
+    public abstract Expression instantiate(List<Value> parameters);
 
+    /**
+     * Is called in the constructor of a {@link Declaration}.
+     * Replaces all {@link Value}s of this expression that also occure in the
+     * parameter list by corresponding {@link ParameterRefValue}s.
+     * @param parameters
+     * @return
+     */
     public abstract Expression insertParameters(List<Value> parameters);
 
 }

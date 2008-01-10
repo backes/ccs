@@ -9,7 +9,7 @@ import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 
 
 public abstract class Action implements Cloneable {
-    
+
     private static Map<Action, Action> repository = new HashMap<Action, Action>();
 
     public abstract String getLabel();
@@ -20,15 +20,15 @@ public abstract class Action implements Cloneable {
         if ("i".equals(name)) {
             action = TauAction.get();
         } else if ((index = name.indexOf('?')) != -1) {
-            String firstPart = name.substring(0, index);
-            String secondPart = name.substring(index+1);
+            final String firstPart = name.substring(0, index);
+            final String secondPart = name.substring(index+1);
             if (firstPart.contains("?") || firstPart.contains("!")
                     || secondPart.contains("?") || secondPart.contains("!"))
                 throw new ParseException("Illegal action: " + name);
             action = new InputAction(firstPart, new ConstantValue(secondPart));
         } else if ((index = name.indexOf('!')) != -1) {
-            String firstPart = name.substring(0, index);
-            String secondPart = name.substring(index+1);
+            final String firstPart = name.substring(0, index);
+            final String secondPart = name.substring(index+1);
             if (firstPart.contains("?") || firstPart.contains("!")
                     || secondPart.contains("?") || secondPart.contains("!"))
                 throw new ParseException("Illegal action: " + name);
@@ -36,26 +36,26 @@ public abstract class Action implements Cloneable {
         } else {
             action = new SimpleAction(new ConstantValue(name));
         }
-        
+
         return getAction(action);
     }
 
     public static Action getAction(Action action) {
-        Action foundAction = repository.get(action);
+        final Action foundAction = repository.get(action);
         if (foundAction != null)
             return foundAction;
-        
+
         repository.put(action, action);
 
         return action;
     }
-    
+
     public abstract boolean isCounterTransition(Action action);
 
-    public abstract Action replaceParameters(List<Value> parameters);
+    public abstract Action instantiate(List<Value> parameters);
 
     public abstract Action insertParameters(List<Value> parameters);
-    
+
     @Override
     public String toString() {
         return getLabel();
@@ -66,10 +66,10 @@ public abstract class Action implements Cloneable {
         Action cloned;
         try {
             cloned = (Action) super.clone();
-        } catch (CloneNotSupportedException e) {
+        } catch (final CloneNotSupportedException e) {
             throw new InternalSystemException("Action cannot be cloned", e);
         }
-        
+
         return cloned;
     }
 

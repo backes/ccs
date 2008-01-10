@@ -6,27 +6,27 @@ import de.unisb.cs.depend.ccs_sem.exceptions.InternalSystemException;
 
 
 public class ParameterRefValue implements Value {
-    
-    private int paramNr;
-    
+
+    private final int paramNr;
+
     public ParameterRefValue(int paramNr) {
         this.paramNr = paramNr;
     }
 
     public String getValue() {
-        return "param#"+paramNr;
+        return "param#" + paramNr;
     }
 
-    public Value replaceParameters(List<Value> parameters) {
+    public Value instantiate(List<Value> parameters) {
         assert parameters.size() > paramNr;
-        
+
         return parameters.get(paramNr);
     }
-    
+
     public Value insertParameters(List<Value> parameters) {
         return this;
     }
-    
+
     @Override
     public String toString() {
         return getValue();
@@ -56,10 +56,10 @@ public class ParameterRefValue implements Value {
         Value cloned;
         try {
             cloned = (Value) super.clone();
-        } catch (CloneNotSupportedException e) {
+        } catch (final CloneNotSupportedException e) {
             throw new InternalSystemException(getClass().getName() + " could not be cloned");
         }
-        
+
         return cloned;
     }
 

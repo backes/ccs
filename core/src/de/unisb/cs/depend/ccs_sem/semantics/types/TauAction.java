@@ -29,7 +29,7 @@ public class TauAction extends Action {
     }
     
     @Override
-    public Action replaceParameters(List<Value> parameters) {
+    public Action instantiate(List<Value> parameters) {
         return this;
     }
 

@@ -14,18 +14,16 @@ import de.unisb.cs.depend.ccs_sem.semantics.expressions.RestrictExpr;
 
 
 public class Declaration {
-    
-    private String name;
-    private int paramNr;
-    private Expression value;
-    
+
+    private final String name;
+    private final int paramNr;
+    private final Expression value;
+
     public Declaration(String name, List<Value> parameters, Expression value) {
         super();
         this.name = name;
         this.paramNr = parameters.size();
-        // TODO clone necessary?
-        //this.value = Expression.getExpression(value.clone().insertParameters(parameters));
-        this.value = Expression.getExpression(value.insertParameters(parameters));
+        this.value = value.insertParameters(parameters);
     }
 
     /**
@@ -38,25 +36,25 @@ public class Declaration {
     public boolean isRegular() {
         // check the second condition first (easier)
         if (value instanceof RecursiveExpr) {
-            RecursiveExpr recExpr = (RecursiveExpr) value;
+            final RecursiveExpr recExpr = (RecursiveExpr) value;
             if (recExpr.getReferencedDeclaration().equals(this))
                 return false;
         }
-        
+
         // then, check for a recursive loop back to this declaration, that
         // contains parallel or restriction operator(s)
-        
+
         // every expression has to be checked only once
-        Set<Expression> checked = new HashSet<Expression>();
+        final Set<Expression> checked = new HashSet<Expression>();
         // a queue of expressions to check
-        Queue<Expression> queue = new ArrayDeque<Expression>();
+        final Queue<Expression> queue = new ArrayDeque<Expression>();
         // queue of expressions that occured after static operators
-        Queue<Expression> afterStaticQueue = new ArrayDeque<Expression>();
+        final Queue<Expression> afterStaticQueue = new ArrayDeque<Expression>();
         queue.add(value);
-        
+
         // first, search for all expressions that occure after static operators
         while (!queue.isEmpty()) {
-            Expression expr = queue.poll();
+            final Expression expr = queue.poll();
             if (checked.add(expr)) {
                 // not checked before...
                 if (expr instanceof ParallelExpr || expr instanceof RestrictExpr) {
@@ -70,11 +68,11 @@ public class Declaration {
 
         // then, check these expressions for occurences of the current declaration (recursive loop)
         while (!afterStaticQueue.isEmpty()) {
-            Expression expr = afterStaticQueue.poll();
+            final Expression expr = afterStaticQueue.poll();
             if (checked.add(expr)) {
                 // not checked before...
                 if (expr instanceof RecursiveExpr) {
-                    RecursiveExpr recExpr = (RecursiveExpr) expr;
+                    final RecursiveExpr recExpr = (RecursiveExpr) expr;
                     if (recExpr.getReferencedDeclaration().equals(this))
                         return false;
                 } else {
@@ -82,7 +80,7 @@ public class Declaration {
                 }
             }
         }
-        
+
         // nothing bad found...
         return true;
     }
@@ -90,7 +88,7 @@ public class Declaration {
     public String getName() {
         return name;
     }
-    
+
     public int getParamNr() {
         return paramNr;
     }
@@ -102,12 +100,13 @@ public class Declaration {
     public Expression replaceRecursion(List<Declaration> declarations) throws ParseException {
         return value.replaceRecursion(declarations);
     }
-    
+
     @Override
     public String toString() {
         return name + "[" + paramNr + "] = " + value;
     }
 
+    // TODO really?
     // NO HASHCODE COMPUTATION HERE. ONLY THE SAME DECLARATIONS ARE EQUAL!!
     /*
     @Override

@@ -12,8 +12,8 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Value;
 
 
 public class PrefixExpr extends Expression {
-    
-    private Action prefix;
+
+    private final Action prefix;
     private Expression postfix;
 
     public PrefixExpr(Action prefix, Expression postfix) {
@@ -24,7 +24,8 @@ public class PrefixExpr extends Expression {
 
     @Override
     public Collection<Expression> getChildren() {
-        return Collections.singleton(postfix);
+        // nothing has to be evaluated before we can evaluate, so: empty set
+        return Collections.emptySet();
     }
 
     @Override
@@ -34,19 +35,19 @@ public class PrefixExpr extends Expression {
 
     @Override
     public Expression replaceRecursion(List<Declaration> declarations) throws ParseException {
-        Expression newPostfix = postfix.replaceRecursion(declarations);
-        
+        final Expression newPostfix = postfix.replaceRecursion(declarations);
+
         if (newPostfix.equals(postfix))
             return this;
-        
+
         return Expression.getExpression(new PrefixExpr(prefix, newPostfix));
     }
 
     @Override
-    public Expression replaceParameters(List<Value> parameters) {
-        Action newPrefix = prefix.replaceParameters(parameters);
-        Expression newPostfix = postfix.replaceParameters(parameters);
-        
+    public Expression instantiate(List<Value> parameters) {
+        final Action newPrefix = prefix.instantiate(parameters);
+        final Expression newPostfix = postfix.instantiate(parameters);
+
         if (newPrefix.equals(prefix) && newPostfix.equals(postfix))
             return this;
 
@@ -55,14 +56,18 @@ public class PrefixExpr extends Expression {
 
     @Override
     public Expression insertParameters(List<Value> parameters) {
-        prefix = prefix.insertParameters(parameters);
-        postfix = postfix.insertParameters(parameters);
+        final Action newPrefix = prefix.insertParameters(parameters);
+        final Expression newPostfix = postfix.insertParameters(parameters);
 
-        return this;
+        if (newPrefix.equals(prefix) && newPostfix.equals(postfix))
+            return this;
+
+        return Expression.getExpression(new PrefixExpr(newPrefix, newPostfix));
     }
+
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         sb.append(prefix).append('.');
         if (postfix instanceof ChoiceExpr || postfix instanceof ParallelExpr
                 || postfix instanceof RestrictExpr)
@@ -103,11 +108,11 @@ public class PrefixExpr extends Expression {
             return false;
         return true;
     }
-    
+
     @Override
     public Expression clone() {
-        PrefixExpr cloned = (PrefixExpr) super.clone();
-        
+        final PrefixExpr cloned = (PrefixExpr) super.clone();
+
         // the prefix doesn't have to be cloned (actions are "immutable" (not really))
 
         cloned.postfix = postfix.clone();

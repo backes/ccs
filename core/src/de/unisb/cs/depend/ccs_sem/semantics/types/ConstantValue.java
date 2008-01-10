@@ -6,8 +6,8 @@ import de.unisb.cs.depend.ccs_sem.exceptions.InternalSystemException;
 
 
 public class ConstantValue implements Value {
-    
-    private String value;
+
+    private final String value;
 
     public ConstantValue(String value) {
         this.value = value;
@@ -17,18 +17,18 @@ public class ConstantValue implements Value {
         return value;
     }
 
-    public Value replaceParameters(List<Value> parameters) {
+    public Value instantiate(List<Value> parameters) {
         return this;
     }
 
     public Value insertParameters(List<Value> parameters) {
-        int index = parameters.indexOf(this);
+        final int index = parameters.indexOf(this);
         if (index != -1)
             return new ParameterRefValue(index);
 
         return this;
     }
-    
+
     @Override
     public String toString() {
         return value;
@@ -61,10 +61,10 @@ public class ConstantValue implements Value {
         Value cloned;
         try {
             cloned = (Value) super.clone();
-        } catch (CloneNotSupportedException e) {
+        } catch (final CloneNotSupportedException e) {
             throw new InternalSystemException(getClass().getName() + " could not be cloned");
         }
-        
+
         return cloned;
     }
 

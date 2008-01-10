@@ -41,8 +41,8 @@ public class InputAction extends Action {
     }
 
     @Override
-    public Action replaceParameters(List<Value> parameters) {
-        Value newMessage = message.replaceParameters(parameters);
+    public Action instantiate(List<Value> parameters) {
+        Value newMessage = message.instantiate(parameters);
         if (message.equals(newMessage))
             return this;
 

@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import de.unisb.cs.depend.ccs_sem.evalutators.Evaluator;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
@@ -15,40 +14,33 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Value;
 
 
 public class RestrictExpr extends Expression {
-    
-    private Expression expr;
-    private Set<Action> restricted;
 
-    public RestrictExpr(Expression expr, Set<Action> restricted) {
+    private Expression innerExpr;
+    private final Set<Action> restricted;
+
+    public RestrictExpr(Expression innerExpr, Set<Action> restricted) {
         super();
-        this.expr = expr;
+        this.innerExpr = innerExpr;
         this.restricted = restricted;
     }
 
     @Override
     public Collection<Expression> getChildren() {
-        return Collections.singleton(expr);
+        return Collections.singleton(innerExpr);
     }
 
     @Override
-    protected void evaluateChildren(Evaluator eval) {
-        if (!expr.isEvaluated()) {
-            eval.evaluate(expr);
-        }
-    }
-    
-    @Override
-    protected List<Transition> evaluateThis() {
-        List<Transition> oldTransitions = expr.evaluateThis();
-        List<Transition> newTransitions = new ArrayList<Transition>(oldTransitions.size());
-        
-        for (Transition trans: oldTransitions)
+    protected List<Transition> evaluate0() {
+        final List<Transition> oldTransitions = innerExpr.getTransitions();
+        final List<Transition> newTransitions = new ArrayList<Transition>(oldTransitions.size());
+
+        for (final Transition trans: oldTransitions)
             if (!restricted.contains(trans.getAction())) {
                 Expression newExpr = new RestrictExpr(trans.getTarget(), restricted);
                 // search if this expression is already known
                 newExpr = Expression.getExpression(newExpr);
                 // search if this transition is already known (otherwise create it)
-                Transition newTrans = Transition.getTransition(trans.getAction(), newExpr);
+                final Transition newTrans = Transition.getTransition(trans.getAction(), newExpr);
                 newTransitions.add(newTrans);
             }
 
@@ -57,16 +49,16 @@ public class RestrictExpr extends Expression {
 
     @Override
     public Expression replaceRecursion(List<Declaration> declarations) throws ParseException {
-        expr = expr.replaceRecursion(declarations);
+        innerExpr = innerExpr.replaceRecursion(declarations);
         return this;
     }
-    
+
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(expr).append(" \\ {");
+        final StringBuilder sb = new StringBuilder();
+        sb.append(innerExpr).append(" \\ {");
         boolean first = true;
-        for (Action restr: restricted) {
+        for (final Action restr: restricted) {
             if (first)
                 first = false;
             else
@@ -79,24 +71,30 @@ public class RestrictExpr extends Expression {
     }
 
     @Override
-    public Expression replaceParameters(List<Value> parameters) {
-        expr = expr.replaceParameters(parameters);
+    public Expression instantiate(List<Value> parameters) {
+        final Expression newExpr = innerExpr.instantiate(parameters);
 
-        return this;
+        if (newExpr.equals(innerExpr))
+            return this;
+
+        return Expression.getExpression(new RestrictExpr(newExpr, restricted));
     }
 
     @Override
     public Expression insertParameters(List<Value> parameters) {
-        expr = expr.insertParameters(parameters);
+        final Expression newExpr = innerExpr.insertParameters(parameters);
 
-        return this;
+        if (newExpr.equals(innerExpr))
+            return this;
+
+        return Expression.getExpression(new RestrictExpr(newExpr, restricted));
     }
 
     @Override
     public int hashCode() {
         final int PRIME = 31;
         int result = 1;
-        result = PRIME * result + ((expr == null) ? 0 : expr.hashCode());
+        result = PRIME * result + ((innerExpr == null) ? 0 : innerExpr.hashCode());
         result = PRIME * result + ((restricted == null) ? 0 : restricted.hashCode());
         return result;
     }
@@ -110,10 +108,10 @@ public class RestrictExpr extends Expression {
         if (getClass() != obj.getClass())
             return false;
         final RestrictExpr other = (RestrictExpr) obj;
-        if (expr == null) {
-            if (other.expr != null)
+        if (innerExpr == null) {
+            if (other.innerExpr != null)
                 return false;
-        } else if (!expr.equals(other.expr))
+        } else if (!innerExpr.equals(other.innerExpr))
             return false;
         if (restricted == null) {
             if (other.restricted != null)
@@ -122,12 +120,12 @@ public class RestrictExpr extends Expression {
             return false;
         return true;
     }
-    
+
     @Override
     public Expression clone() {
-        RestrictExpr cloned = (RestrictExpr) super.clone();
-        cloned.expr = expr.clone();
-        
+        final RestrictExpr cloned = (RestrictExpr) super.clone();
+        cloned.innerExpr = innerExpr.clone();
+
         // field restricted doesn't have to be cloned
 
         return cloned;

@@ -7,19 +7,19 @@ import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 
 
 public class Transition {
-    
-    private Action action;
-    private Expression target;
-    
+
+    private final Action action;
+    private final Expression target;
+
     private static Map<Action, Map<Expression, Transition>> repository
         = new HashMap<Action, Map<Expression,Transition>>();
-    
+
     public Transition(Action action, Expression target) {
         super();
         this.action = action;
         this.target = target;
     }
-    
+
     public Action getAction() {
         return action;
     }
@@ -27,26 +27,26 @@ public class Transition {
     public Expression getTarget() {
         return target;
     }
-    
+
     public static Transition getTransition(Action action, Expression target) {
         Map<Expression, Transition> map = repository.get(action);
         if (map == null) {
             map = new HashMap<Expression, Transition>();
             repository.put(action, map);
         }
-        
+
         Transition trans = map.get(target);
         if (trans == null) {
             trans = new Transition(action, target);
             map.put(target, trans);
         }
-        
+
         return trans;
     }
 
     @Override
     public String toString() {
-        return action + " --> " + target;
+        return "--" + action + "-> " + target;
     }
 
     @Override

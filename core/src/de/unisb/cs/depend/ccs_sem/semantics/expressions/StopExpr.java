@@ -31,7 +31,7 @@ public class StopExpr extends Expression {
     }
 
     @Override
-    public Expression replaceParameters(List<Value> parameters) {
+    public Expression instantiate(List<Value> parameters) {
         return this;
     }
     

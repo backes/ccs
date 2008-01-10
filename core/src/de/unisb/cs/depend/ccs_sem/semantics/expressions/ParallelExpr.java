@@ -12,10 +12,10 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Value;
 
 
 public class ParallelExpr extends Expression {
-    
+
     private Expression left;
     private Expression right;
-    
+
     public ParallelExpr(Expression left, Expression right) {
         super();
         this.left = left;
@@ -24,7 +24,7 @@ public class ParallelExpr extends Expression {
 
     @Override
     public Collection<Expression> getChildren() {
-        List<Expression> children = new ArrayList<Expression>(2);
+        final List<Expression> children = new ArrayList<Expression>(2);
         children.add(left);
         children.add(right);
         return children;
@@ -32,40 +32,41 @@ public class ParallelExpr extends Expression {
 
     @Override
     protected List<Transition> evaluate0() {
-        List<Transition> leftTransitions = left.evaluate();
-        List<Transition> rightTransitions = right.evaluate();
-        
-        List<Transition> transitions = new ArrayList<Transition>((leftTransitions.size() + rightTransitions.size())*3/2);
-        
+        final List<Transition> leftTransitions = left.getTransitions();
+        final List<Transition> rightTransitions = right.getTransitions();
+
+        final List<Transition> transitions = new ArrayList<Transition>((leftTransitions.size() + rightTransitions.size())*3/2);
+
         // either left alone
-        for (Transition trans: leftTransitions) {
+        for (final Transition trans: leftTransitions) {
             Expression newExpr = new ParallelExpr(trans.getTarget(), right);
             // search if this expression is already known
             newExpr = Expression.getExpression(newExpr);
             // search if this transition is already known (otherwise create it)
-            Transition newTrans = Transition.getTransition(trans.getAction(), newExpr);
+            final Transition newTrans = Transition.getTransition(trans.getAction(), newExpr);
             transitions.add(newTrans);
         }
 
         // or right alone
-        for (Transition trans: rightTransitions) {
+        for (final Transition trans: rightTransitions) {
             Expression newExpr = new ParallelExpr(left, trans.getTarget());
             // search if this expression is already known
             newExpr = Expression.getExpression(newExpr);
             // search if this transition is already known (otherwise create it)
-            Transition newTrans = Transition.getTransition(trans.getAction(), newExpr);
+            final Transition newTrans = Transition.getTransition(trans.getAction(), newExpr);
             transitions.add(newTrans);
         }
-        
+
         // or synchronized
-        for (Transition leftTrans: leftTransitions) {
-            for (Transition rightTrans: rightTransitions) {
+        // TODO use set of action?
+        for (final Transition leftTrans: leftTransitions) {
+            for (final Transition rightTrans: rightTransitions) {
                 if (leftTrans.getAction().isCounterTransition(rightTrans.getAction())) {
                     Expression newExpr = new ParallelExpr(leftTrans.getTarget(), rightTrans.getTarget());
                     // search if this expression is already known
                     newExpr = Expression.getExpression(newExpr);
                     // search if this transition is already known (otherwise create it)
-                    Transition newTrans = Transition.getTransition(TauAction.get(), newExpr);
+                    final Transition newTrans = Transition.getTransition(TauAction.get(), newExpr);
                     transitions.add(newTrans);
                 }
             }
@@ -76,30 +77,40 @@ public class ParallelExpr extends Expression {
 
     @Override
     public Expression replaceRecursion(List<Declaration> declarations) throws ParseException {
-        left = left.replaceRecursion(declarations);
-        right = right.replaceRecursion(declarations);
-        return this;
+        final Expression newLeft = left.replaceRecursion(declarations);
+        final Expression newRight = right.replaceRecursion(declarations);
+
+        if (newLeft.equals(left) && newRight.equals(right))
+            return this;
+
+        return Expression.getExpression(new ParallelExpr(newLeft, newRight));
     }
 
     @Override
-    public Expression replaceParameters(List<Value> parameters) {
-        left = left.replaceParameters(parameters);
-        right = right.replaceParameters(parameters);
+    public Expression instantiate(List<Value> parameters) {
+        final Expression newLeft = left.instantiate(parameters);
+        final Expression newRight = right.instantiate(parameters);
 
-        return this;
+        if (newLeft.equals(left) && newRight.equals(right))
+            return this;
+
+        return Expression.getExpression(new ParallelExpr(newLeft, newRight));
     }
 
     @Override
     public Expression insertParameters(List<Value> parameters) {
-        left = left.insertParameters(parameters);
-        right = right.insertParameters(parameters);
-        
-        return this;
+        final Expression newLeft = left.insertParameters(parameters);
+        final Expression newRight = right.insertParameters(parameters);
+
+        if (newLeft.equals(left) && newRight.equals(right))
+            return this;
+
+        return Expression.getExpression(new ParallelExpr(newLeft, newRight));
     }
-    
+
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         if (left instanceof RestrictExpr) {
             sb.append('(').append(left).append(')');
         } else {
@@ -114,7 +125,7 @@ public class ParallelExpr extends Expression {
 
         return sb.toString();
     }
-    
+
     @Override
     public int hashCode() {
         final int PRIME = 31;
@@ -148,10 +159,10 @@ public class ParallelExpr extends Expression {
 
     @Override
     public Expression clone() {
-        ParallelExpr cloned = (ParallelExpr) super.clone();
+        final ParallelExpr cloned = (ParallelExpr) super.clone();
         cloned.left = left.clone();
         cloned.right = right.clone();
-        
+
         return cloned;
     }
 

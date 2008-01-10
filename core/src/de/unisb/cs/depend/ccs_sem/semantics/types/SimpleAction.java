@@ -28,8 +28,8 @@ public class SimpleAction extends Action {
     }
 
     @Override
-    public Action replaceParameters(List<Value> parameters) {
-        Value newName = name.replaceParameters(parameters);
+    public Action instantiate(List<Value> parameters) {
+        Value newName = name.instantiate(parameters);
         if (name.equals(newName))
             return this;
 

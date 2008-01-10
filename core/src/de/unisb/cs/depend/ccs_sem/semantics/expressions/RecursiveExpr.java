@@ -11,17 +11,16 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Value;
 
 
 public class RecursiveExpr extends Expression {
-    
-    private Declaration referencedDeclaration;
+
+    private final Declaration referencedDeclaration;
     private List<Value> parameters;
-    private Expression newExpression;
+    private final Expression newExpression;
 
     public RecursiveExpr(Declaration referencedDeclaration, List<Value> parameters) {
         super();
         this.referencedDeclaration = referencedDeclaration;
         this.parameters = parameters;
-        Expression newExpr = referencedDeclaration.getValue().replaceParameters(parameters);
-        newExpr = Expression.getExpression(newExpr);
+        newExpression = referencedDeclaration.getValue().instantiate(parameters);
     }
 
     /**
@@ -30,24 +29,23 @@ public class RecursiveExpr extends Expression {
     public List<Value> getParameters() {
         return parameters;
     }
-    
+
     public Declaration getReferencedDeclaration() {
         return referencedDeclaration;
     }
 
-    @Override
-    public Collection<Expression> getChildren() {
-        return Collections.singleton(referencedDeclaration.getValue());
+    public Expression getNewExpression() {
+        return newExpression;
     }
 
     @Override
-    protected void evaluate0() {
-        // generate the new expression to evaluate, then delegate to it
-        Expression newExpr = referencedDeclaration.getValue().clone();
-        newExpr = newExpr.replaceParameters(parameters);
-        newExpr = Expression.getExpression(newExpr);
+    public Collection<Expression> getChildren() {
+        return Collections.singleton(newExpression);
+    }
 
-        return newExpr.evaluate();
+    @Override
+    protected List<Transition> evaluate0() {
+        return newExpression.getTransitions();
     }
 
     @Override
@@ -55,13 +53,13 @@ public class RecursiveExpr extends Expression {
         // nothing to replace here
         return this;
     }
-    
+
     @Override
-    public Expression replaceParameters(List<Value> params) {
-        List<Value> newParameters = new ArrayList<Value>(parameters.size());
+    public Expression instantiate(List<Value> params) {
+        final List<Value> newParameters = new ArrayList<Value>(parameters.size());
         boolean changed = false;
-        for (Value param: parameters) {
-            Value newParam = param.replaceParameters(parameters);
+        for (final Value param: parameters) {
+            final Value newParam = param.instantiate(parameters);
             if (!changed && !newParam.equals(param))
                 changed = true;
             newParameters.add(newParam);
@@ -69,16 +67,16 @@ public class RecursiveExpr extends Expression {
 
         if (!changed)
             return this;
-        
+
         return Expression.getExpression(new RecursiveExpr(referencedDeclaration, newParameters));
     }
 
     @Override
     public Expression insertParameters(List<Value> params) {
-        List<Value> newParameters = new ArrayList<Value>(parameters.size());
+        final List<Value> newParameters = new ArrayList<Value>(parameters.size());
         boolean changed = false;
-        for (Value param: parameters) {
-            Value newParam = param.replaceParameters(parameters);
+        for (final Value param: parameters) {
+            final Value newParam = param.insertParameters(parameters);
             if (!changed && !newParam.equals(param))
                 changed = true;
             newParameters.add(newParam);
@@ -86,7 +84,7 @@ public class RecursiveExpr extends Expression {
 
         if (!changed)
             return this;
-        
+
         return Expression.getExpression(new RecursiveExpr(referencedDeclaration, newParameters));
     }
 
@@ -94,8 +92,8 @@ public class RecursiveExpr extends Expression {
     public String toString() {
         if (parameters.size() == 0)
             return referencedDeclaration.getName();
-        
-        StringBuilder sb = new StringBuilder(referencedDeclaration.getName());
+
+        final StringBuilder sb = new StringBuilder(referencedDeclaration.getName());
         sb.append('[');
         for (int i = 0; i < parameters.size(); ++i)
             sb.append(i>0 ? "," : "").append(parameters.get(i));
@@ -134,10 +132,10 @@ public class RecursiveExpr extends Expression {
             return false;
         return true;
     }
-    
+
     @Override
     public Expression clone() {
-        RecursiveExpr cloned = (RecursiveExpr) super.clone();
+        final RecursiveExpr cloned = (RecursiveExpr) super.clone();
         cloned.parameters = new ArrayList<Value>(parameters);
 
         // referencedDeclaration doesn't have to be cloned

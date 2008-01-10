@@ -2,7 +2,9 @@ package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
@@ -11,10 +13,10 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Value;
 
 
 public class ChoiceExpr extends Expression {
-    
+
     private Expression left;
     private Expression right;
-    
+
     public ChoiceExpr(Expression left, Expression right) {
         super();
         this.left = left;
@@ -23,7 +25,7 @@ public class ChoiceExpr extends Expression {
 
     @Override
     public Collection<Expression> getChildren() {
-        List<Expression> children = new ArrayList<Expression>(2);
+        final List<Expression> children = new ArrayList<Expression>(2);
         children.add(left);
         children.add(right);
         return children;
@@ -33,42 +35,53 @@ public class ChoiceExpr extends Expression {
     protected List<Transition> evaluate0() {
         // compute the union of the transitions of the left expressions and
         // the transition of the right expression
-        List<Transition> leftTrans = left.evaluate();
-        List<Transition> rightTrans = right.evaluate();
-        
-        List<Transition> myTrans = new ArrayList<Transition>(leftTrans.size() + rightTrans.size());
+        final List<Transition> leftTrans = left.getTransitions();
+        final List<Transition> rightTrans = right.getTransitions();
+
+        // the set automatically filters out double transitions
+        final Set<Transition> myTrans = new HashSet<Transition>(leftTrans.size() + rightTrans.size());
         myTrans.addAll(leftTrans);
         myTrans.addAll(rightTrans);
-        
-        return myTrans;
+
+        return new ArrayList<Transition>(myTrans);
     }
 
     @Override
     public Expression replaceRecursion(List<Declaration> declarations) throws ParseException {
-        left = left.replaceRecursion(declarations);
-        right = right.replaceRecursion(declarations);
-        return this;
+        final Expression newLeft = left.replaceRecursion(declarations);
+        final Expression newRight = right.replaceRecursion(declarations);
+
+        if (newLeft.equals(left) && newRight.equals(right))
+            return this;
+
+        return Expression.getExpression(new ChoiceExpr(newLeft, newRight));
     }
 
     @Override
-    public Expression replaceParameters(List<Value> parameters) {
-        left = left.replaceParameters(parameters);
-        right = right.replaceParameters(parameters);
-        
-        return this;
+    public Expression instantiate(List<Value> parameters) {
+        final Expression newLeft = left.instantiate(parameters);
+        final Expression newRight = right.instantiate(parameters);
+
+        if (newLeft.equals(left) && newRight.equals(right))
+            return this;
+
+        return Expression.getExpression(new ChoiceExpr(newLeft, newRight));
     }
 
     @Override
     public Expression insertParameters(List<Value> parameters) {
-        left = left.insertParameters(parameters);
-        right = right.insertParameters(parameters);
-        
-        return this;
+        final Expression newLeft = left.insertParameters(parameters);
+        final Expression newRight = right.insertParameters(parameters);
+
+        if (newLeft.equals(left) && newRight.equals(right))
+            return this;
+
+        return Expression.getExpression(new ChoiceExpr(newLeft, newRight));
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         if (left instanceof RestrictExpr || left instanceof ParallelExpr) {
             sb.append('(').append(left).append(')');
         } else {
@@ -83,7 +96,7 @@ public class ChoiceExpr extends Expression {
 
         return sb.toString();
     }
-    
+
     @Override
     public int hashCode() {
         final int PRIME = 31;
@@ -114,10 +127,10 @@ public class ChoiceExpr extends Expression {
             return false;
         return true;
     }
-    
+
     @Override
     public Expression clone() {
-        ChoiceExpr cloned = (ChoiceExpr) super.clone();
+        final ChoiceExpr cloned = (ChoiceExpr) super.clone();
         cloned.left = left.clone();
         cloned.right = right.clone();
 
