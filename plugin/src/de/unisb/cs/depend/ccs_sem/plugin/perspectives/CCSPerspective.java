@@ -64,12 +64,14 @@ public class CCSPerspective implements IPerspectiveFactory {
 
         final IFolderLayout topLeft =
             factory.createFolder("topLeft", IPageLayout.LEFT, 0.2f, factory.getEditorArea());
-        topLeft.addView(IPageLayout.ID_RES_NAV);
-        topLeft.addView("org.eclipse.jdt.junit.ResultView");
+        //topLeft.addView(IPageLayout.ID_RES_NAV);
+        topLeft.addView(IPageLayout.ID_OUTLINE);
 
+        /*
         final IFolderLayout topRight =
             factory.createFolder("topRight", IPageLayout.RIGHT, 0.75f, factory.getEditorArea());
         topRight.addView(IPageLayout.ID_OUTLINE);
+        */
 
 		factory.addFastView("org.eclipse.team.ccvs.ui.RepositoriesView",0.50f); //NON-NLS-1
 		factory.addFastView("org.eclipse.team.sync.views.SynchronizeView", 0.50f); //NON-NLS-1

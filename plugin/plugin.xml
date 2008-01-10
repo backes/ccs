@@ -47,6 +47,67 @@
             name="CCS Editor">
       </editor>
    </extension>
+   <extension
+         point="org.eclipse.ui.newWizards">
+      <category
+            id="de.unisb.cs.depend.ccs_sem.plugin.CCS_category"
+            name="CCS">
+      </category>
+      <wizard
+            category="de.unisb.cs.depend.ccs_sem.plugin.CCS_category"
+            class="de.unisb.cs.depend.ccs_sem.plugin.wizards.NewCCSFileWizard"
+            hasPages="true"
+            icon="icons/sample.gif"
+            id="de.unisb.cs.depend.ccs_sem.plugin.wizards.NewCCSFileWizard"
+            name="CCS File"
+            project="false">
+      </wizard>
+      <wizard
+            category="de.unisb.cs.depend.ccs_sem.plugin.CCS_category"
+            class="de.unisb.cs.depend.ccs_sem.plugin.wizards.NewCCSProjectWizard"
+            finalPerspective="de.unisb.cs.depend.ccs_sem.plugin.perspectives.CCSPerspective"
+            hasPages="true"
+            icon="icons/sample.gif"
+            id="de.unisb.cs.depend.ccs_sem.plugin.wizards.NewCCSProjectWizard"
+            name="CCS Project"
+            project="true">
+      </wizard>
+   </extension>
+   <extension
+         point="org.eclipse.ui.actionSets">
+      <actionSet
+            id="de.unisb.cs.depend.ccs_sem.plugin.actionSet"
+            label="CCS Action Set"
+            visible="true">
+         <menu
+               id="ccsMenu"
+               label="CCS &amp;Menu">
+            <separator
+                  name="ccsGroup">
+            </separator>
+         </menu>
+         <action
+               class="de.unisb.cs.depend.ccs_sem.plugin.actions.CCSAction"
+               icon="icons/sample.gif"
+               id="de.unisb.cs.depend.ccs_sem.plugin.actions.CCSAction"
+               label="&amp;Sample Action"
+               menubarPath="ccsMenu/ccsGroup"
+               style="push"
+               toolbarPath="ccsGroup"
+               tooltip="Hello, Eclipse world">
+         </action>
+         <action
+               class="de.unisb.cs.depend.ccs_sem.plugin.actions.OpenCCSFileAction"
+               icon="icons/sample.gif"
+               id="de.unisb.cs.depend.ccs_sem.plugin.actions.OpenCCSFileAction"
+               label="&amp;Open File"
+               menubarPath="ccsMenu/ccsGroup"
+               style="push"
+               toolbarPath="ccsGroup"
+               tooltip="Open a ccs file">
+         </action>
+      </actionSet>
+   </extension>
 
 
 </plugin>
