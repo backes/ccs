@@ -42,7 +42,7 @@ public abstract class Expression implements Cloneable {
     }
 
     public boolean isEvaluated() {
-        return transitions == null;
+        return transitions != null;
     }
 
     // precondition: children have been evaluated

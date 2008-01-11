@@ -13,8 +13,8 @@ public class Program {
     private final Expression mainExpression;
 
     public Program(List<Declaration> declarations, Expression expr) throws ParseException {
-        this.declarations = declarations;
         this.mainExpression = expr.replaceRecursion(declarations);
+        this.declarations = declarations;
         for (final Declaration decl: declarations)
             decl.replaceRecursion(declarations);
     }
@@ -36,6 +36,10 @@ public class Program {
         return sb.toString();
     }
 
+    public Expression getMainExpression() {
+        return mainExpression;
+    }
+
     /**
      * A program is regular iff every recursive definition is regular.
      * See {@link Declaration#isRegular(List)}.
@@ -49,7 +53,7 @@ public class Program {
     }
 
     public void evaluate(Evaluator eval) {
-        eval.evaluate(mainExpression);
+        eval.evaluateAll(mainExpression);
     }
 
     public List<Transition> getTransitions() {

@@ -17,13 +17,17 @@ public class Declaration {
 
     private final String name;
     private final int paramNr;
-    private final Expression value;
+    private Expression value;
 
-    public Declaration(String name, List<Value> parameters, Expression value) {
+    public Declaration(String name, int paramNr, Expression readyValue) {
         super();
         this.name = name;
-        this.paramNr = parameters.size();
-        this.value = value.insertParameters(parameters);
+        this.paramNr = paramNr;
+        this.value = readyValue;
+    }
+
+    public Declaration(String name, List<Value> parameters, Expression value) {
+        this(name, parameters.size(), value.insertParameters(parameters));
     }
 
     /**
@@ -97,8 +101,8 @@ public class Declaration {
         return value;
     }
 
-    public Expression replaceRecursion(List<Declaration> declarations) throws ParseException {
-        return value.replaceRecursion(declarations);
+    public void replaceRecursion(List<Declaration> declarations) throws ParseException {
+        value = value.replaceRecursion(declarations);
     }
 
     @Override
