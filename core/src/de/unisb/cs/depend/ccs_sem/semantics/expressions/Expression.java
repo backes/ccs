@@ -75,7 +75,6 @@ public abstract class Expression implements Cloneable {
      * a {@link StopExpr}, or by a {@link RecursiveExpr}.
      * @return either itself or a new created Expression, if something changed
      */
-    // TODO new Expressions (also replaceParameters and insertParameters)
     public abstract Expression replaceRecursion(List<Declaration> declarations) throws ParseException;
 
     public static Expression getExpression(Expression expr) {
@@ -106,4 +105,5 @@ public abstract class Expression implements Cloneable {
      */
     public abstract Expression insertParameters(List<Value> parameters);
 
+    // TODO store hashCode
 }
