@@ -5,8 +5,9 @@ import java.util.List;
 
 public class OutputAction extends Action {
 
-    private String channel;
+    private final String channel;
     private Value message;
+    private Action counterAction = null;
 
     public OutputAction(String channel, Value message) {
         super();
@@ -16,16 +17,16 @@ public class OutputAction extends Action {
 
     @Override
     public String getLabel() {
-        String value = message.getValue();
-        StringBuilder sb = new StringBuilder(channel.length() + value.length() + 1);
+        final String value = message.getValue();
+        final StringBuilder sb = new StringBuilder(channel.length() + value.length() + 1);
         sb.append(channel).append('!').append(value);
         return sb.toString();
     }
-    
+
     public String getChannel() {
         return channel;
     }
-    
+
     public Value getMessage() {
         return message;
     }
@@ -34,15 +35,24 @@ public class OutputAction extends Action {
     public boolean isCounterTransition(Action action) {
         if (!(action instanceof InputAction))
             return false;
-        
-        InputAction inAct = (InputAction) action;
-        
+
+        final InputAction inAct = (InputAction) action;
+
         return inAct.getChannel().equals(channel) && inAct.getMessage().equals(message);
     }
 
     @Override
+    public Action getCounterAction() {
+        if (counterAction  == null)
+            counterAction =
+                    Action.getAction(new OutputAction(channel, message));
+
+        return counterAction;
+    }
+
+    @Override
     public Action instantiate(List<Value> parameters) {
-        Value newMessage = message.instantiate(parameters);
+        final Value newMessage = message.instantiate(parameters);
         if (message.equals(newMessage))
             return this;
 
@@ -51,7 +61,7 @@ public class OutputAction extends Action {
 
     @Override
     public Action insertParameters(List<Value> parameters) {
-        Value newMessage = message.insertParameters(parameters);
+        final Value newMessage = message.insertParameters(parameters);
         if (message.equals(newMessage))
             return this;
 
@@ -88,12 +98,12 @@ public class OutputAction extends Action {
             return false;
         return true;
     }
-    
+
     @Override
     public Action clone() {
-        OutputAction cloned = (OutputAction) super.clone();
+        final OutputAction cloned = (OutputAction) super.clone();
         cloned.message = message.clone();
-        
+
         return cloned;
     }
 

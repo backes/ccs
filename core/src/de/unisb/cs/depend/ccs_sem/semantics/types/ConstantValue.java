@@ -23,10 +23,10 @@ public class ConstantValue implements Value {
 
     public Value insertParameters(List<Value> parameters) {
         final int index = parameters.indexOf(this);
-        if (index != -1)
-            return new ParameterRefValue(index);
+        if (index == -1)
+            return this;
 
-        return this;
+        return new ParameterRefValue(index);
     }
 
     @Override

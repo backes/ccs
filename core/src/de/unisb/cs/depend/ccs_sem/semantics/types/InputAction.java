@@ -5,8 +5,9 @@ import java.util.List;
 
 public class InputAction extends Action {
 
-    private String channel;
+    private final String channel;
     private Value message;
+    private Action counterAction = null;
 
     public InputAction(String channel, Value message) {
         super();
@@ -16,33 +17,45 @@ public class InputAction extends Action {
 
     @Override
     public String getLabel() {
-        String value = message.getValue();
-        StringBuilder sb = new StringBuilder(channel.length() + value.length() + 1);
+        final String value = message.getValue();
+        final StringBuilder sb =
+                new StringBuilder(channel.length() + value.length() + 1);
         sb.append(channel).append('?').append(value);
         return sb.toString();
     }
-    
+
     public String getChannel() {
         return channel;
     }
-    
+
     public Value getMessage() {
         return message;
     }
 
     @Override
+    public Action getCounterAction() {
+        if (counterAction == null)
+            counterAction =
+                    Action.getAction(new OutputAction(channel, message));
+
+        return counterAction;
+    }
+
+    // TODO value lesen
+    @Override
     public boolean isCounterTransition(Action action) {
         if (!(action instanceof OutputAction))
             return false;
-        
-        OutputAction outAct = (OutputAction) action;
-        
-        return outAct.getChannel().equals(channel) && outAct.getMessage().equals(message);
+
+        final OutputAction outAct = (OutputAction) action;
+
+        return outAct.getChannel().equals(channel)
+                && outAct.getMessage().equals(message);
     }
 
     @Override
     public Action instantiate(List<Value> parameters) {
-        Value newMessage = message.instantiate(parameters);
+        final Value newMessage = message.instantiate(parameters);
         if (message.equals(newMessage))
             return this;
 
@@ -51,7 +64,7 @@ public class InputAction extends Action {
 
     @Override
     public Action insertParameters(List<Value> parameters) {
-        Value newMessage = message.insertParameters(parameters);
+        final Value newMessage = message.insertParameters(parameters);
         if (message.equals(newMessage))
             return this;
 
@@ -88,12 +101,12 @@ public class InputAction extends Action {
             return false;
         return true;
     }
-    
+
     @Override
     public Action clone() {
-        InputAction cloned = (InputAction) super.clone();
+        final InputAction cloned = (InputAction) super.clone();
         cloned.message = message.clone();
-        
+
         return cloned;
     }
 

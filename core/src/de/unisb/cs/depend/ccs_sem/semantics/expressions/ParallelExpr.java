@@ -2,9 +2,12 @@ package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.TauAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
@@ -35,48 +38,87 @@ public class ParallelExpr extends Expression {
         final List<Transition> leftTransitions = left.getTransitions();
         final List<Transition> rightTransitions = right.getTransitions();
 
-        final List<Transition> transitions = new ArrayList<Transition>((leftTransitions.size() + rightTransitions.size())*3/2);
+        final List<Transition> transitions =
+                new ArrayList<Transition>(
+                        (leftTransitions.size() + rightTransitions.size()) * 3 / 2);
 
-        // either left alone
+        // either left alone:
         for (final Transition trans: leftTransitions) {
             Expression newExpr = new ParallelExpr(trans.getTarget(), right);
             // search if this expression is already known
             newExpr = Expression.getExpression(newExpr);
             // search if this transition is already known (otherwise create it)
-            final Transition newTrans = Transition.getTransition(trans.getAction(), newExpr);
+            final Transition newTrans =
+                    Transition.getTransition(trans.getAction(), newExpr);
             transitions.add(newTrans);
         }
 
-        // or right alone
+        // or right alone:
         for (final Transition trans: rightTransitions) {
             Expression newExpr = new ParallelExpr(left, trans.getTarget());
             // search if this expression is already known
             newExpr = Expression.getExpression(newExpr);
             // search if this transition is already known (otherwise create it)
-            final Transition newTrans = Transition.getTransition(trans.getAction(), newExpr);
+            final Transition newTrans =
+                    Transition.getTransition(trans.getAction(), newExpr);
             transitions.add(newTrans);
         }
 
-        // or synchronized
-        // TODO use set of action?
-        for (final Transition leftTrans: leftTransitions) {
-            for (final Transition rightTrans: rightTransitions) {
-                if (leftTrans.getAction().isCounterTransition(rightTrans.getAction())) {
-                    Expression newExpr = new ParallelExpr(leftTrans.getTarget(), rightTrans.getTarget());
-                    // search if this expression is already known
-                    newExpr = Expression.getExpression(newExpr);
-                    // search if this transition is already known (otherwise create it)
-                    final Transition newTrans = Transition.getTransition(TauAction.get(), newExpr);
-                    transitions.add(newTrans);
-                }
+        // or synchronized:
+        // this is one of the hardest tasks, so it might be usefull to use a more
+        // clever way than just iterate nestedly through both transition lists
+        // TODO try other values here
+        final boolean useCleverWay =
+                leftTransitions.size() > 3
+                        && rightTransitions.size() > 3
+                        && (leftTransitions.size() + rightTransitions.size()) > 10;
+        if (useCleverWay) {
+            final boolean leftSmaller =
+                    leftTransitions.size() < rightTransitions.size();
+            final List<Transition> smaller =
+                    leftSmaller ? leftTransitions : rightTransitions;
+            final List<Transition> bigger =
+                    leftSmaller ? rightTransitions : leftTransitions;
+
+            final Map<Action, List<Expression>> actions =
+                    new HashMap<Action, List<Expression>>(bigger.size() * 3 / 2);
+            for (final Transition trans: bigger) {
+                List<Expression> list = actions.get(trans.getAction());
+                if (list == null)
+                    actions.put(trans.getAction(), list =
+                            new ArrayList<Expression>(2));
+                list.add(trans.getTarget());
             }
+            for (final Transition trans: smaller) {
+                final Action counterAct = trans.getAction().getCounterAction();
+                final List<Expression> list = actions.get(counterAct);
+                if (list != null)
+                    for (final Expression expr: list) {
+                        final ParallelExpr newExpr =
+                                leftSmaller ? new ParallelExpr(trans
+                                    .getTarget(), expr) : new ParallelExpr(
+                                        expr, trans.getTarget());
+                        transitions.add(Transition.getTransition(TauAction
+                            .get(), Expression.getExpression(newExpr)));
+                    }
+            }
+        } else {
+            for (final Transition leftTrans: leftTransitions)
+                for (final Transition rightTrans: rightTransitions)
+                    if (leftTrans.getAction().isCounterTransition(
+                        rightTrans.getAction()))
+                        transitions.add(Transition
+                            .getTransition(TauAction.get(), Expression
+                                .getExpression(new ParallelExpr(leftTrans
+                                    .getTarget(), rightTrans.getTarget()))));
         }
 
         return transitions;
     }
 
     @Override
-    public Expression replaceRecursion(List<Declaration> declarations) throws ParseException {
+    public Expression replaceRecursion(List<Declaration> declarations)
+            throws ParseException {
         final Expression newLeft = left.replaceRecursion(declarations);
         final Expression newRight = right.replaceRecursion(declarations);
 

@@ -44,18 +44,20 @@ public class Main {
         time("Evaluating...");
         switch (method) {
         case 0:
-            program.evaluate(new SequentialEvaluator());
-            break;
-        case 1:
             program.evaluate(new ParallelEvaluator());
             break;
+        case 1:
+            program.evaluate(new SequentialEvaluator());
+            break;
         default:
-            System.err.println("Falsche method");
+            program.evaluate(new ParallelEvaluator(method));
+            break;
         }
-        time("Ready.");
+        time("Exporting.");
 
         final Exporter export = new ETMCCExporter(traFile);
         export.export(program.getMainExpression());
+        time("Ready.");
     }
 
     private static void time(String output) {

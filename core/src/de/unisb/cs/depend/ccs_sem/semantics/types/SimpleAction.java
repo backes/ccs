@@ -16,20 +16,26 @@ public class SimpleAction extends Action {
     public String getLabel() {
         return name.getValue();
     }
-    
+
+    // TODO stimmt das???
+    @Override
+    public Action getCounterAction() {
+        return this;
+    }
+
     @Override
     public boolean isCounterTransition(Action action) {
         if (!(action instanceof SimpleAction))
             return false;
-        
-        SimpleAction simAct = (SimpleAction) action;
-        
+
+        final SimpleAction simAct = (SimpleAction) action;
+
         return simAct.name.equals(name);
     }
 
     @Override
     public Action instantiate(List<Value> parameters) {
-        Value newName = name.instantiate(parameters);
+        final Value newName = name.instantiate(parameters);
         if (name.equals(newName))
             return this;
 
@@ -38,7 +44,7 @@ public class SimpleAction extends Action {
 
     @Override
     public Action insertParameters(List<Value> parameters) {
-        Value newName = name.insertParameters(parameters);
+        final Value newName = name.insertParameters(parameters);
         if (name.equals(newName))
             return this;
 
@@ -66,10 +72,10 @@ public class SimpleAction extends Action {
             return false;
         return true;
     }
-    
+
     @Override
     public Action clone() {
-        SimpleAction cloned = (SimpleAction) super.clone();
+        final SimpleAction cloned = (SimpleAction) super.clone();
         cloned.name = name.clone();
 
         return cloned;

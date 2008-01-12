@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Value;
@@ -14,13 +15,12 @@ public class RecursiveExpr extends Expression {
 
     private final Declaration referencedDeclaration;
     private List<Value> parameters;
-    private final Expression newExpression;
+    private Expression instantiatedExpression = null;
 
     public RecursiveExpr(Declaration referencedDeclaration, List<Value> parameters) {
         super();
         this.referencedDeclaration = referencedDeclaration;
         this.parameters = parameters;
-        newExpression = referencedDeclaration.getValue().instantiate(parameters);
     }
 
     /**
@@ -34,23 +34,26 @@ public class RecursiveExpr extends Expression {
         return referencedDeclaration;
     }
 
-    public Expression getNewExpression() {
-        return newExpression;
+    public Expression getInstantiatedExpression() {
+        if (instantiatedExpression == null)
+            instantiatedExpression = referencedDeclaration.getValue().instantiate(parameters);
+
+        return instantiatedExpression;
     }
 
     @Override
     public Collection<Expression> getChildren() {
-        return Collections.singleton(newExpression);
+        return Collections.singleton(getInstantiatedExpression());
     }
 
     @Override
     protected List<Transition> evaluate0() {
-        return newExpression.getTransitions();
+        return getInstantiatedExpression().getTransitions();
     }
 
     @Override
-    public Expression replaceRecursion(List<Declaration> declarations) {
-        // nothing to replace here
+    public Expression replaceRecursion(List<Declaration> declarations) throws ParseException {
+        // nothing to do here
         return this;
     }
 
@@ -59,7 +62,7 @@ public class RecursiveExpr extends Expression {
         final List<Value> newParameters = new ArrayList<Value>(parameters.size());
         boolean changed = false;
         for (final Value param: parameters) {
-            final Value newParam = param.instantiate(parameters);
+            final Value newParam = param.instantiate(params);
             if (!changed && !newParam.equals(param))
                 changed = true;
             newParameters.add(newParam);
@@ -76,7 +79,7 @@ public class RecursiveExpr extends Expression {
         final List<Value> newParameters = new ArrayList<Value>(parameters.size());
         boolean changed = false;
         for (final Value param: parameters) {
-            final Value newParam = param.insertParameters(parameters);
+            final Value newParam = param.insertParameters(params);
             if (!changed && !newParam.equals(param))
                 changed = true;
             newParameters.add(newParam);

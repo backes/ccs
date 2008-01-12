@@ -6,7 +6,7 @@ import java.util.List;
 public class TauAction extends Action {
 
     private static TauAction instance = null;
-    
+
     private TauAction() {
         // private constructor, nothing to do
     }
@@ -24,10 +24,15 @@ public class TauAction extends Action {
     }
 
     @Override
+    public Action getCounterAction() {
+        return this;
+    }
+
+    @Override
     public boolean isCounterTransition(Action action) {
         return action instanceof TauAction;
     }
-    
+
     @Override
     public Action instantiate(List<Value> parameters) {
         return this;
@@ -42,10 +47,10 @@ public class TauAction extends Action {
     public int hashCode() {
         return 0;
     }
-    
+
     @Override
     public boolean equals(Object obj) {
         return obj instanceof TauAction;
     }
-    
+
 }

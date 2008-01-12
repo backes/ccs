@@ -50,6 +50,8 @@ public abstract class Action implements Cloneable {
         return action;
     }
 
+    public abstract Action getCounterAction();
+
     public abstract boolean isCounterTransition(Action action);
 
     public abstract Action instantiate(List<Value> parameters);

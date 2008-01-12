@@ -4,8 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ExportException;
 import de.unisb.cs.depend.ccs_sem.exporters.helpers.StateNumberComparator;
@@ -35,7 +37,7 @@ public class ETMCCExporter implements Exporter {
         }
 
         final Map<Expression, Integer> stateNumbers =
-                StateNumerator.numerateStates(expr);
+                StateNumerator.numerateStates(expr, 1);
         final int transitionCount = TransitionCounter.countTransitions(expr);
 
         // write tra header
@@ -50,6 +52,9 @@ public class ETMCCExporter implements Exporter {
                         stateNumbers));
         queue.add(expr);
 
+        final Set<Expression> written = new HashSet<Expression>(stateNumbers.size()*3/2);
+        written.add(expr);
+
         while (!queue.isEmpty()) {
             final Expression e = queue.poll();
             final Collection<Transition> transitions = e.getTransitions();
@@ -60,11 +65,17 @@ public class ETMCCExporter implements Exporter {
             final int sourceStateNr = stateNumbers.get(e);
             while (!transQueue.isEmpty()) {
                 final Transition trans = transQueue.poll();
-                final int targetStateNr = stateNumbers.get(trans.getTarget());
+                final Expression targetExpr = trans.getTarget();
+                final int targetStateNr = stateNumbers.get(targetExpr);
                 traWriter.println("d " + sourceStateNr + " " + targetStateNr
                         + " 0.0 I");
+                if (written.add(targetExpr))
+                    queue.add(targetExpr);
             }
         }
+
+        // close the tra file
+        traWriter.close();
 
     }
 
