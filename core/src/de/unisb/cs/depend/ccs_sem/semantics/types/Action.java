@@ -25,14 +25,16 @@ public abstract class Action implements Cloneable {
             if (firstPart.contains("?") || firstPart.contains("!")
                     || secondPart.contains("?") || secondPart.contains("!"))
                 throw new ParseException("Illegal action: " + name);
-            action = new InputAction(firstPart, new ConstantValue(secondPart));
+            action = new InputAction(firstPart,
+                secondPart.isEmpty() ? null : new ConstantValue(secondPart));
         } else if ((index = name.indexOf('!')) != -1) {
             final String firstPart = name.substring(0, index);
             final String secondPart = name.substring(index+1);
             if (firstPart.contains("?") || firstPart.contains("!")
                     || secondPart.contains("?") || secondPart.contains("!"))
                 throw new ParseException("Illegal action: " + name);
-            action = new OutputAction(firstPart, new ConstantValue(secondPart));
+            action = new OutputAction(firstPart,
+                secondPart.isEmpty() ? null : new ConstantValue(secondPart));
         } else {
             action = new SimpleAction(new ConstantValue(name));
         }
@@ -50,9 +52,12 @@ public abstract class Action implements Cloneable {
         return action;
     }
 
+    /**
+     * @return the counter action, or <code>null</code> if there is no counteraction
+     */
     public abstract Action getCounterAction();
 
-    public abstract boolean isCounterTransition(Action action);
+    public abstract boolean isCounterAction(Action action);
 
     public abstract Action instantiate(List<Value> parameters);
 

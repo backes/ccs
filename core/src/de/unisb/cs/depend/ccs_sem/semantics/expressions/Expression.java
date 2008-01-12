@@ -19,7 +19,7 @@ public abstract class Expression implements Cloneable {
     private static Map<Expression, Expression> repository
         = new HashMap<Expression, Expression>();
 
-    private List<Transition> transitions = null;
+    private volatile List<Transition> transitions = null;
 
     protected Expression() {
         // nothing to do

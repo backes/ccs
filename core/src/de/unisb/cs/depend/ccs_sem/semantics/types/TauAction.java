@@ -29,7 +29,7 @@ public class TauAction extends Action {
     }
 
     @Override
-    public boolean isCounterTransition(Action action) {
+    public boolean isCounterAction(Action action) {
         return action instanceof TauAction;
     }
 

@@ -17,9 +17,9 @@ public class InputAction extends Action {
 
     @Override
     public String getLabel() {
-        final String value = message.getValue();
+        final String value = message == null ? "" : message.getValue();
         final StringBuilder sb =
-                new StringBuilder(channel.length() + value.length() + 1);
+                new StringBuilder(channel.length() + 1 + value.length());
         sb.append(channel).append('?').append(value);
         return sb.toString();
     }
@@ -43,14 +43,15 @@ public class InputAction extends Action {
 
     // TODO value lesen
     @Override
-    public boolean isCounterTransition(Action action) {
+    public boolean isCounterAction(Action action) {
         if (!(action instanceof OutputAction))
             return false;
 
         final OutputAction outAct = (OutputAction) action;
 
         return outAct.getChannel().equals(channel)
-                && outAct.getMessage().equals(message);
+                && (outAct.getMessage() == null ? message == null :
+                    outAct.getMessage().equals(message));
     }
 
     @Override

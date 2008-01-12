@@ -1,23 +1,32 @@
 package de.unisb.cs.depend.ccs_sem.evalutators;
 
+import java.util.AbstractSet;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.InternalSystemException;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 
 
 public class ParallelEvaluator implements Evaluator {
 
     private final Integer numThreads;
 
-    private ExecutorService executor = null;
+    protected ExecutorService executor = null;
 
-    private Map<Expression, EvaluatorJob> currentlyEvaluating = null;
+    protected Map<Expression, EvaluatorJob> currentlyEvaluating = null;
+
+    protected Set<Expression> evaluatedSuccessors = null;
+
+    protected final Object readyLock = new Object();
 
     public ParallelEvaluator(int numThreads) {
         this.numThreads = numThreads;
@@ -31,22 +40,22 @@ public class ParallelEvaluator implements Evaluator {
         if (expr.isEvaluated())
             return;
 
-        initialize();
+        evaluate0(expr, false);
+    }
 
-        final Informable informer = new Informable() {
+    public void evaluateAll(Expression expr) {
+        evaluate0(expr, true);
+    }
 
-            public synchronized void inform() {
-                this.notify();
-            }
-        };
+    private void evaluate0(Expression expr, boolean evaluateSuccessors) {
+        initialize(evaluateSuccessors);
 
-        synchronized (informer) {
-            final Runnable job = new EvaluatorJob(expr, informer);
-
-            executor.execute(job);
+        synchronized (readyLock) {
+            // the EvaluatorJob executes itself automatically
+            new EvaluatorJob(expr, evaluateSuccessors);
 
             try {
-                informer.wait();
+                readyLock.wait();
             } catch (final InterruptedException e) {
                 throw new InternalSystemException(
                         "Interrupted while waiting for parallel evaluation to finish.");
@@ -56,27 +65,20 @@ public class ParallelEvaluator implements Evaluator {
         shutdown();
     }
 
-    public void evaluateAll(Expression expr) {
-        initialize();
-
-
-
-        // TODO evaluateAll
-
-        shutdown();
-    }
-
-    private void initialize() {
+    private void initialize(boolean evaluateSuccessors) {
         assert executor == null;
         assert currentlyEvaluating == null;
 
-        final int threadsToInstantiate =
-                numThreads == null ? Runtime.getRuntime().availableProcessors()
-                                  : numThreads;
+        final int threadsToInstantiate = numThreads == null
+            ? Runtime.getRuntime().availableProcessors() + 1
+            : numThreads;
 
         executor = Executors.newFixedThreadPool(threadsToInstantiate);
 
-        currentlyEvaluating = new HashMap<Expression, EvaluatorJob>();
+        currentlyEvaluating = new ConcurrentHashMap<Expression, EvaluatorJob>();
+
+        if (evaluateSuccessors)
+            evaluatedSuccessors = new ConcurrentSet<Expression>();
     }
 
     private void shutdown() {
@@ -85,6 +87,8 @@ public class ParallelEvaluator implements Evaluator {
 
         assert currentlyEvaluating.isEmpty();
         currentlyEvaluating = null;
+
+        evaluatedSuccessors = null;
     }
 
     private static interface Informable {
@@ -94,17 +98,15 @@ public class ParallelEvaluator implements Evaluator {
 
     private class EvaluatorJob implements Runnable {
 
-        private List<Informable> waiters = null;
-        private final Expression expr;
+        protected List<Informable> waiters = null;
+        protected final Expression expr;
+        protected final boolean evaluateSuccessors;
 
-        public EvaluatorJob(Expression expr) {
-            currentlyEvaluating.put(expr, this);
+        public EvaluatorJob(Expression expr, boolean evaluateSuccessors) {
             this.expr = expr;
-        }
-
-        public EvaluatorJob(Expression expr, Informable info) {
-            this(expr);
-            addWaiter(info);
+            this.evaluateSuccessors = evaluateSuccessors;
+            currentlyEvaluating.put(expr, this);
+            executor.execute(this);
         }
 
         private synchronized void addWaiter(Informable info) {
@@ -116,7 +118,7 @@ public class ParallelEvaluator implements Evaluator {
         public void run() {
             Barrier barrier = null;
 
-            final EvaluateNowJob eval = new EvaluateNowJob();
+            final EvaluateSingleExpressionJob eval = new EvaluateSingleExpressionJob();
 
             for (final Expression child: expr.getChildren()) {
                 synchronized (child) {
@@ -126,12 +128,9 @@ public class ParallelEvaluator implements Evaluator {
                         }
                         EvaluatorJob childEvaluator =
                                 currentlyEvaluating.get(child);
-                        if (childEvaluator == null) {
-                            childEvaluator = new EvaluatorJob(child, barrier);
-                            executor.execute(childEvaluator);
-                        } else {
-                            childEvaluator.addWaiter(barrier);
-                        }
+                        if (childEvaluator == null)
+                            childEvaluator = new EvaluatorJob(child, false);
+                        childEvaluator.addWaiter(barrier);
                         barrier.inc();
                     }
                 }
@@ -145,14 +144,35 @@ public class ParallelEvaluator implements Evaluator {
             // otherwise, the barrier will do this work
         }
 
-        private class EvaluateNowJob implements Runnable {
+        protected class EvaluateSingleExpressionJob implements Runnable {
 
             public void run() {
+                System.out.println("Evaluating " + expr);
                 expr.evaluate();
 
                 synchronized (expr) {
-                    for (final Informable inf: waiters)
-                        inf.inform();
+                    if (waiters != null)
+                        for (final Informable inf: waiters)
+                            inf.inform();
+                }
+
+                if (evaluateSuccessors) {
+                    for (final Transition trans: expr.getTransitions()) {
+                        final Expression succ = trans.getTarget();
+                        if (evaluatedSuccessors.add(succ)) {
+                            EvaluatorJob job = currentlyEvaluating.get(succ);
+                            if (job == null)
+                                job = new EvaluatorJob(succ, true);
+                        }
+                    }
+                }
+
+                // now the work is ready
+                currentlyEvaluating.remove(expr);
+                if (currentlyEvaluating.isEmpty()) {
+                    synchronized (readyLock) {
+                        readyLock.notify();
+                    }
                 }
             }
 
@@ -181,6 +201,48 @@ public class ParallelEvaluator implements Evaluator {
             }
         }
 
+    }
+
+    public static class ConcurrentSet<E> extends AbstractSet<E> {
+
+        private transient final ConcurrentMap<E, Object> map;
+
+        // Dummy value to associate with an Object in the backing Map
+        private static final Object PRESENT = new Object();
+
+        public ConcurrentSet() {
+            map = new ConcurrentHashMap<E, Object>();
+        }
+
+        @Override
+        public Iterator<E> iterator() {
+            return map.keySet().iterator();
+        }
+
+        @Override
+        public int size() {
+            return map.size();
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return map.isEmpty();
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            return map.containsKey(o);
+        }
+
+        @Override
+        public boolean add(E e) {
+            return map.putIfAbsent(e, PRESENT) == null;
+        }
+
+        @Override
+        public boolean remove(Object o) {
+            return map.remove(o) == PRESENT;
+        }
     }
 
 }

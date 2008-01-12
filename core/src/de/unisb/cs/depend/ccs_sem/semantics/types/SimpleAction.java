@@ -17,20 +17,16 @@ public class SimpleAction extends Action {
         return name.getValue();
     }
 
-    // TODO stimmt das???
     @Override
     public Action getCounterAction() {
-        return this;
+        // there is no countertransition of a simple action
+        return null;
     }
 
     @Override
-    public boolean isCounterTransition(Action action) {
-        if (!(action instanceof SimpleAction))
-            return false;
-
-        final SimpleAction simAct = (SimpleAction) action;
-
-        return simAct.name.equals(name);
+    public boolean isCounterAction(Action action) {
+        // there is no countertransition of a simple action
+        return false;
     }
 
     @Override

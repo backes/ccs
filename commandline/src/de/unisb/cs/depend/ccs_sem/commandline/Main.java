@@ -3,6 +3,7 @@ package de.unisb.cs.depend.ccs_sem.commandline;
 import java.io.File;
 import java.io.FileReader;
 import java.util.List;
+import java.util.Locale;
 
 import de.unisb.cs.depend.ccs_sem.evalutators.ParallelEvaluator;
 import de.unisb.cs.depend.ccs_sem.evalutators.SequentialEvaluator;
@@ -66,9 +67,8 @@ public class Main {
             oldTime = newTime;
 
         final long diff = newTime - oldTime;
-        oldTime = newTime;
 
-        System.out.format("[%3.3f] %s%n", 1e-3 * diff, output);
+        System.out.format((Locale)null, "[%3.3f] %s%n", 1e-3 * diff, output);
     }
 
 }

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
@@ -38,12 +37,21 @@ public class ChoiceExpr extends Expression {
         final List<Transition> leftTrans = left.getTransitions();
         final List<Transition> rightTrans = right.getTransitions();
 
-        // the set automatically filters out double transitions
-        final Set<Transition> myTrans = new HashSet<Transition>(leftTrans.size() + rightTrans.size());
-        myTrans.addAll(leftTrans);
-        myTrans.addAll(rightTrans);
+        // decide if we use a clever way to combine the transitions or not
+        final boolean useCleverWay = leftTrans.size() * rightTrans.size() > 20;
+        final List<Transition> transitions =
+            new ArrayList<Transition>(leftTrans.size() + rightTrans.size());
+        transitions.addAll(leftTrans);
 
-        return new ArrayList<Transition>(myTrans);
+        final Collection<Transition> leftTransToCompare = useCleverWay
+            ? new HashSet<Transition>(leftTrans) : leftTrans;
+
+        for (final Transition trans: rightTrans) {
+            if (!leftTransToCompare.contains(trans))
+                transitions.add(trans);
+        }
+
+        return transitions;
     }
 
     @Override

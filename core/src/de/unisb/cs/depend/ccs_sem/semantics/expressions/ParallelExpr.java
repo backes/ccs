@@ -105,7 +105,7 @@ public class ParallelExpr extends Expression {
         } else {
             for (final Transition leftTrans: leftTransitions)
                 for (final Transition rightTrans: rightTransitions)
-                    if (leftTrans.getAction().isCounterTransition(
+                    if (leftTrans.getAction().isCounterAction(
                         rightTrans.getAction()))
                         transitions.add(Transition
                             .getTransition(TauAction.get(), Expression
