@@ -1,0 +1,6 @@
+UPDATER = in?x.out!x.update.UPDATER;
+
+PROVIDER[a,b,c] = in!a.PROVIDER[b,c,a];
+
+PROVIDER[1,2,3] | UPDATER \ { in!, in? }
+

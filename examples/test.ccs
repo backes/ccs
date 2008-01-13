@@ -1,0 +1,4 @@
+X = a.X;
+Y[a,b] = a.Y[b,a];
+
+X + begin.Y[in,out]

@@ -1,0 +1,4 @@
+X[read,write,j] = read!j . X[read,write,j] + write?k . X[read,write,k];
+
+X[r,w,true]
+

@@ -1,0 +1,27 @@
+range clock_range = 0 .. 1<<32;
+
+T = tick! . T;
+
+CLOCK = (STOPPED[0] | T) \ {tick?, tick!};
+
+STOPPED[x: clock_range] = tick?.STOPPED[x]
+  + start?.RUNNING[x]
+  + stop?.STOPPED[x]
+  + reset?.STOPPED[0]
+  + get!x.STOPPED[x];
+
+RUNNING[x: clock_range] = tick?.RUNNING[x + 1]
+  + start?.RUNNING[x]
+  + stop?.STOPPED[x]
+  + reset?.FREEZED[x, x]
+  + get!x.RUNNING[x];
+
+FREEZED[x: clock_range, y: clock_range] = tick?.FREEZED[x + 1, y]
+  + start?.FREEZED[x]
+  + stop?.STOPPED[x]
+  + reset?.RUNNING[x]
+  + get!y.FREEZED[x, y];
+
+# the main expression:
+CLOCK
+

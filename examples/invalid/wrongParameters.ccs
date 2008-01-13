@@ -1,0 +1,4 @@
+X[channel,message] = channel!message.do.something.else.X[message,message];
+
+X[out,0]
+
