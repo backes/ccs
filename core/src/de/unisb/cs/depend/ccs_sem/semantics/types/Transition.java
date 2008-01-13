@@ -1,6 +1,7 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
@@ -26,6 +27,24 @@ public class Transition {
 
     public Expression getTarget() {
         return target;
+    }
+
+    /**
+     * Replaces multiple consecutive "tau"-Transitions by just one.
+     * @return either the Transition itself or a successor Transition that
+     *         this one can be replaces by
+     */
+    public Transition minimize() {
+        if (action instanceof TauAction) {
+            final List<Transition> targetTransitions = target.getTransitions();
+            if (targetTransitions.size() == 1) {
+                final Transition nextTransition = targetTransitions.get(0);
+                if (nextTransition.getAction() instanceof TauAction)
+                    return nextTransition;
+            }
+        }
+
+        return this;
     }
 
     public static Transition getTransition(Action action, Expression target) {

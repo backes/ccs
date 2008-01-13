@@ -64,4 +64,8 @@ public class Program {
         return mainExpression.isEvaluated();
     }
 
+    public void minimizeTransitions() {
+        mainExpression.minimize();
+    }
+
 }

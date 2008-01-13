@@ -35,7 +35,7 @@ public class AiSeeGraphExporter implements Exporter {
         }
 
         final Map<Expression, Integer> stateNumbers =
-                StateNumerator.numerateStates(expr, 1);
+                StateNumerator.numerateStates(expr);
 
         // write the header
         aiSeeWriter.println("graph: {");

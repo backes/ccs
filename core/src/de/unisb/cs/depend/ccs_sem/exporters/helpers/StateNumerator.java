@@ -11,6 +11,11 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 
 public class StateNumerator {
 
+    // caching
+    private static Expression lastExpression = null;
+    private static int lastStartIndex;
+    private static Map<Expression, Integer> lastStateNumbers;
+
     /**
      * Numerates the graph built by the given Expression. The starting expression
      * always gets the startIndex, the other Expressions are numbered in a BFS manner.
@@ -20,6 +25,9 @@ public class StateNumerator {
      */
     public static Map<Expression, Integer> numerateStates(
             Expression mainExpression, int startIndex) {
+
+        if (mainExpression.equals(lastExpression) && startIndex == lastStartIndex)
+            return lastStateNumbers;
 
         final Map<Expression, Integer> numbers = new HashMap<Expression, Integer>();
 
@@ -39,6 +47,10 @@ public class StateNumerator {
                     toNumerate.add(succ);
             }
         }
+
+        lastExpression = mainExpression;
+        lastStartIndex = startIndex;
+        lastStateNumbers = numbers;
 
         return numbers;
     }

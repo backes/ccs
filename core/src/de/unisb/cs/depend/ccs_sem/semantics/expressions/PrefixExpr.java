@@ -29,6 +29,11 @@ public class PrefixExpr extends Expression {
     }
 
     @Override
+    public Collection<Expression> getSubTerms() {
+        return Collections.singleton(postfix);
+    }
+
+    @Override
     protected List<Transition> evaluate0() {
         return Collections.singletonList(Transition.getTransition(prefix, postfix));
     }

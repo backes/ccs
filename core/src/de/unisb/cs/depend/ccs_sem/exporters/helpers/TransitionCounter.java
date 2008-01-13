@@ -1,19 +1,27 @@
 package de.unisb.cs.depend.ccs_sem.exporters.helpers;
 
+import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
-import java.util.Stack;
 
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 
 
 public class TransitionCounter {
+    // caching
+    private static Expression lastExpression = null;
+    private static int lastCount;
+
     public static int countTransitions(Expression mainExpr) {
 
-        final Stack<Expression> toCount = new Stack<Expression>();
-        toCount.push(mainExpr);
+        if (mainExpr.equals(lastExpression))
+            return lastCount;
+
+        final Queue<Expression> toCount = new ArrayDeque<Expression>();
+        toCount.add(mainExpr);
 
         final Set<Expression> counted = new HashSet<Expression>();
         counted.add(mainExpr);
@@ -21,7 +29,7 @@ public class TransitionCounter {
         int count = 0;
 
         while (!toCount.isEmpty()) {
-            final Expression expr = toCount.pop();
+            final Expression expr = toCount.poll();
 
             assert expr.isEvaluated();
 
@@ -34,6 +42,9 @@ public class TransitionCounter {
                     toCount.add(succ);
             }
         }
+
+        lastExpression = mainExpr;
+        lastCount = count;
 
         return count;
     }

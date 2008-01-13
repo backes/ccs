@@ -62,9 +62,9 @@ public class Declaration {
             if (checked.add(expr)) {
                 // not checked before...
                 if (expr instanceof ParallelExpr || expr instanceof RestrictExpr) {
-                    afterStaticQueue.addAll(expr.getChildren());
+                    afterStaticQueue.addAll(expr.getSubTerms());
                 } else {
-                    queue.addAll(expr.getChildren());
+                    queue.addAll(expr.getSubTerms());
                 }
             }
         }
@@ -80,7 +80,7 @@ public class Declaration {
                     if (recExpr.getReferencedDeclaration().equals(this))
                         return false;
                 } else {
-                    afterStaticQueue.addAll(expr.getChildren());
+                    afterStaticQueue.addAll(expr.getSubTerms());
                 }
             }
         }

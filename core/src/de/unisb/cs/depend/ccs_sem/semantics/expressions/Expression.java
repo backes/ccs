@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.InternalSystemException;
@@ -50,6 +51,12 @@ public abstract class Expression implements Cloneable {
 
     // returns the children that have to be evaluated before calling evaluate()
     public abstract Collection<Expression> getChildren();
+
+    // returns all subterms occuring in this expression. In general, it is the same
+    // as the children, but in some Expressions, it must be overwritten.
+    public Collection<Expression> getSubTerms() {
+        return getChildren();
+    }
 
     public List<Transition> getTransitions() {
         assert transitions != null;
@@ -105,5 +112,17 @@ public abstract class Expression implements Cloneable {
      */
     public abstract Expression insertParameters(List<Value> parameters);
 
+    public void minimize() {
+        assert isEvaluated();
+
+        for (final ListIterator<Transition> it = getTransitions().listIterator(); it.hasNext(); ) {
+            final Transition oldTrans = it.next();
+            final Transition newTrans = oldTrans.minimize();
+            if (oldTrans != newTrans)
+                it.set(newTrans);
+        }
+    }
+
     // TODO store hashCode
+    // TODO minimizeExpression (e.g. push down restriction)
 }

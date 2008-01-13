@@ -16,6 +16,8 @@ import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.exporters.AiSeeGraphExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.ETMCCExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.Exporter;
+import de.unisb.cs.depend.ccs_sem.exporters.helpers.StateNumerator;
+import de.unisb.cs.depend.ccs_sem.exporters.helpers.TransitionCounter;
 import de.unisb.cs.depend.ccs_sem.lexer.CCSLexer;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Token;
 import de.unisb.cs.depend.ccs_sem.parser.CCSParser;
@@ -28,6 +30,7 @@ public class Main {
     private File inputFile = null;
     private Evaluator evaluator = null;
     private final List<Exporter> exporters = new ArrayList<Exporter>(2);
+    private boolean minimize = false;
 
     public Main(String[] args) {
         parseCommandLine(args);
@@ -69,6 +72,21 @@ public class Main {
 
         log("Evaluating...");
         program.evaluate(evaluator);
+
+        log("Counting...");
+        int stateCount = StateNumerator.numerateStates(program.getMainExpression()).size();
+        int transitionCount = TransitionCounter.countTransitions(program.getMainExpression());
+        log(stateCount + " states, " + transitionCount + " Transitions.");
+
+        if (minimize) {
+            log("Minimizing...");
+            program.minimizeTransitions();
+            log("Counting...");
+            stateCount = StateNumerator.numerateStates(program.getMainExpression()).size();
+            transitionCount = TransitionCounter.countTransitions(program.getMainExpression());
+            log(stateCount + " states, " + transitionCount + " Transitions.");
+        }
+
 
         log("Exporting...");
         boolean errors = false;
@@ -113,6 +131,8 @@ public class Main {
                     System.exit(-1);
                 }
                 parseOutputFile(args[index++]);
+            } else if ("--minimize".equals(arg)) {
+                minimize = true;
             } else if (arg.length() >= 2 && arg.charAt(0) == '-' && arg.charAt(1) != '-') {
                 for (int i = 1; i < arg.length(); ++i) {
                     final char c = arg.charAt(i);
@@ -120,6 +140,10 @@ public class Main {
                     case 'h':
                         printHelp(System.out);
                         System.exit(0);
+                        break;
+
+                    case 'm':
+                        minimize = true;
                         break;
 
                     case 'o':
