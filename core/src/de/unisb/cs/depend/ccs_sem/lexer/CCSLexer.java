@@ -44,85 +44,104 @@ public class CCSLexer extends AbstractLexer {
     }
 
     private void lex0(PushbackReader input, List<Token> tokens, int position) throws IOException, LexException {
-        final int nextChar = input.read();
-        if (nextChar == -1)
-            return;
-        assert nextChar >= 0 && nextChar < 1<<16;
+        int nextChar;
 
-        switch (nextChar) {
-        case ' ':
-        case '\t':
-        case '\n':
-        case '\r':
-            break;
+        while ((nextChar = input.read()) != -1) {
+            assert nextChar >= 0 && nextChar < 1<<16;
 
-        case '0':
-            tokens.add(new Stop(position));
-            break;
+            switch (nextChar) {
+            case ' ':
+            case '\t':
+            case '\n':
+            case '\r':
+                break;
 
-        case '.':
-            tokens.add(new Dot(position));
-            break;
+            case '0':
+                tokens.add(new Stop(position));
+                break;
 
-        case '+':
-            tokens.add(new Choice(position));
-            break;
+            case '.':
+                tokens.add(new Dot(position));
+                break;
 
-        case '|':
-            tokens.add(new Parallel(position));
-            break;
+            case '+':
+                tokens.add(new Choice(position));
+                break;
 
-        case '\\':
-            tokens.add(new Restrict(position));
-            break;
+            case '|':
+                tokens.add(new Parallel(position));
+                break;
 
-        case '(':
-            tokens.add(new LParenthesis(position));
-            break;
+            case '\\':
+                tokens.add(new Restrict(position));
+                break;
 
-        case ')':
-            tokens.add(new RParenthesis(position));
-            break;
+            case '(':
+                tokens.add(new LParenthesis(position));
+                break;
 
-        case '[':
-            tokens.add(new LBracket(position));
-            break;
+            case ')':
+                tokens.add(new RParenthesis(position));
+                break;
 
-        case ']':
-            tokens.add(new RBracket(position));
-            break;
+            case '[':
+                tokens.add(new LBracket(position));
+                break;
 
-        case '{':
-            tokens.add(new LBrace(position));
-            break;
+            case ']':
+                tokens.add(new RBracket(position));
+                break;
 
-        case '}':
-            tokens.add(new RBrace(position));
-            break;
+            case '{':
+                tokens.add(new LBrace(position));
+                break;
 
-        case ',':
-            tokens.add(new Comma(position));
-            break;
+            case '}':
+                tokens.add(new RBrace(position));
+                break;
 
-        case '=':
-            tokens.add(new Assignment(position));
-            break;
+            case ',':
+                tokens.add(new Comma(position));
+                break;
 
-        case ';':
-            tokens.add(new Semicolon(position));
-            break;
+            case '=':
+                tokens.add(new Assignment(position));
+                break;
 
-        default:
-            final Identifier id = readIdentifier(nextChar, input, tokens, position);
-            if (id == null)
-                throw new LexException("Syntaxerror on position " + position);
+            case ';':
+                tokens.add(new Semicolon(position));
+                break;
 
-            tokens.add(id);
-            position += id.getName().length()-1;
-            break;
+            default:
+                final Identifier id = readIdentifier(nextChar, input, tokens, position);
+                if (id == null)
+                    throw new LexException("Syntaxerror on position " + position, readNext(input, 15));
+
+                tokens.add(id);
+                position += id.getName().length()-1;
+                break;
+            }
+            ++position;
+        }
+    }
+
+    private String readNext(PushbackReader input, int nr) {
+        final StringBuilder sb = new StringBuilder(nr);
+        int c;
+        try {
+            while (nr-- > 0 && (c = input.read()) != -1) {
+                if (c != '\n' && c != '\r')
+                    sb.append((char)c);
+            }
+            if ((c = input.read()) != -1) {
+                input.unread(c);
+                sb.append("...");
+            }
+        } catch (final IOException e) {
+            // hm, ok, then lets just abort here
         }
 
-        lex0(input, tokens, position+1);
+        return sb.toString();
     }
 
     private Identifier readIdentifier(int nextChar, PushbackReader input, List<Token> tokens, int position) throws IOException {

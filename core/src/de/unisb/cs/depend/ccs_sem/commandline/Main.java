@@ -60,6 +60,7 @@ public class Main {
             program = new CCSParser().parse(tokens);
         } catch (final LexException e) {
             System.err.println("Error lexing input file: " + e.getMessage());
+            System.err.println("around this context: \"" + e.getEnvironment() + "\"");
             return false;
         } catch (final ParseException e) {
             System.err.println("Error parsing input file: " + e.getMessage());
