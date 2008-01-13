@@ -130,13 +130,13 @@ public class NewCCSFileWizard extends Wizard implements INewWizard {
 	 * We will initialize file contents with a sample text.
 	 */
 
-	private InputStream openContentStream() {
+	protected InputStream openContentStream() {
 		final String contents =
 			"This is the initial file contents for *.ccs file that should be word-sorted in the Preview page of the multi-page editor";
 		return new ByteArrayInputStream(contents.getBytes());
 	}
 
-	private void throwCoreException(String message) throws CoreException {
+	protected void throwCoreException(String message) throws CoreException {
 		final IStatus status =
 			new Status(IStatus.ERROR, "de.unisb.cs.depend.ccs_sem.plugin", IStatus.OK, message, null);
 		throw new CoreException(status);

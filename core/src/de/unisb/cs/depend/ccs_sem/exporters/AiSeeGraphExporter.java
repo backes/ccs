@@ -12,41 +12,35 @@ import java.util.Set;
 import de.unisb.cs.depend.ccs_sem.exceptions.ExportException;
 import de.unisb.cs.depend.ccs_sem.exporters.helpers.StateNumberComparator;
 import de.unisb.cs.depend.ccs_sem.exporters.helpers.StateNumerator;
-import de.unisb.cs.depend.ccs_sem.exporters.helpers.TransitionCounter;
-import de.unisb.cs.depend.ccs_sem.exporters.helpers.TransitionsTargetNumberComparator;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 
 
-public class ETMCCExporter implements Exporter {
+public class AiSeeGraphExporter implements Exporter {
 
-    final File traFile;
+    final File aiSeeFile;
 
-    public ETMCCExporter(File traFile) {
+    public AiSeeGraphExporter(File aiSeeFile) {
         super();
-        this.traFile = traFile;
+        this.aiSeeFile = aiSeeFile;
     }
 
     public void export(Expression expr) throws ExportException {
-        final PrintWriter traWriter;
+        final PrintWriter aiSeeWriter;
         try {
-            traWriter = new PrintWriter(traFile);
+            aiSeeWriter = new PrintWriter(aiSeeFile);
         } catch (final IOException e) {
-            throw new ExportException("Error opening .tra-File: "
+            throw new ExportException("Error opening AiSee-File: "
                     + e.getMessage(), e);
         }
 
         final Map<Expression, Integer> stateNumbers =
                 StateNumerator.numerateStates(expr, 1);
-        final int transitionCount = TransitionCounter.countTransitions(expr);
 
-        // write tra header
-        traWriter.print("STATES ");
-        traWriter.println(stateNumbers.size());
-        traWriter.print("TRANSITIONS ");
-        traWriter.println(transitionCount);
+        // write the header
+        aiSeeWriter.println("graph: {");
 
-        // write the transitions
+        // write the states and transitions
         final PriorityQueue<Expression> queue =
                 new PriorityQueue<Expression>(11, new StateNumberComparator(
                         stateNumbers));
@@ -58,29 +52,39 @@ public class ETMCCExporter implements Exporter {
         while (!queue.isEmpty()) {
             final Expression e = queue.poll();
             final Collection<Transition> transitions = e.getTransitions();
-            final PriorityQueue<Transition> transQueue =
-                    new PriorityQueue<Transition>(transitions.size(),
-                            new TransitionsTargetNumberComparator(stateNumbers));
-            transQueue.addAll(transitions);
+
             final int sourceStateNr = stateNumbers.get(e);
-            while (!transQueue.isEmpty()) {
-                final Transition trans = transQueue.poll();
+            aiSeeWriter.print("node: { title: \"");
+            aiSeeWriter.print(sourceStateNr);
+            aiSeeWriter.print("\" label: \"");
+            aiSeeWriter.print(e);
+            aiSeeWriter.println("\" }");
+
+            for (final Transition trans: transitions) {
                 final Expression targetExpr = trans.getTarget();
                 final int targetStateNr = stateNumbers.get(targetExpr);
-                traWriter.println("d " + sourceStateNr + " " + targetStateNr
-                        + " 0.0 I");
+                aiSeeWriter.print("edge: { source: \"");
+                aiSeeWriter.print(sourceStateNr);
+                aiSeeWriter.print("\" target: \"");
+                aiSeeWriter.print(targetStateNr);
+                aiSeeWriter.print("\" label: \"");
+                aiSeeWriter.print(trans.getAction().getLabel());
+                aiSeeWriter.println("\" }");
                 if (written.add(targetExpr))
                     queue.add(targetExpr);
             }
         }
 
+        // close the graph
+        aiSeeWriter.println("}");
+
         // close the tra file
-        traWriter.close();
+        aiSeeWriter.close();
 
     }
 
     public String getIdentifier() {
-        return "ETMCC file export to " + traFile.getPath();
+        return "aiSee Graph File export to " + aiSeeFile.getPath();
     }
 
 }

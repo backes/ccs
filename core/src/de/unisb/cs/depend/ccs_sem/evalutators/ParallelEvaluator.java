@@ -78,7 +78,7 @@ public class ParallelEvaluator implements Evaluator {
         currentlyEvaluating = new ConcurrentHashMap<Expression, EvaluatorJob>();
 
         if (evaluateSuccessors)
-            evaluatedSuccessors = new ConcurrentSet<Expression>(numThreads);
+            evaluatedSuccessors = new ConcurrentSet<Expression>(threadsToInstantiate);
     }
 
     private void shutdown() {

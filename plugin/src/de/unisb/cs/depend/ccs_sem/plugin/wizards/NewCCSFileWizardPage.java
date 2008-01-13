@@ -120,7 +120,7 @@ public class NewCCSFileWizardPage extends WizardPage {
 	 * the container field.
 	 */
 
-	private void handleBrowse() {
+	protected void handleBrowse() {
 		final ContainerSelectionDialog dialog = new ContainerSelectionDialog(
 				getShell(), ResourcesPlugin.getWorkspace().getRoot(), false,
 				"Select new file container");
@@ -136,7 +136,7 @@ public class NewCCSFileWizardPage extends WizardPage {
 	 * Ensures that both text fields are set.
 	 */
 
-	private void dialogChanged() {
+	protected void dialogChanged() {
 		final IResource container = ResourcesPlugin.getWorkspace().getRoot()
 				.findMember(new Path(getContainerName()));
 		final String fileName = getFileName();

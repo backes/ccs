@@ -7,4 +7,6 @@ import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 public interface Exporter {
 
     void export(Expression expr) throws ExportException;
+
+    String getIdentifier();
 }

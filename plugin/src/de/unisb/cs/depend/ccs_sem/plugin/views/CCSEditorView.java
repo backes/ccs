@@ -137,7 +137,7 @@ public class CCSEditorView extends ViewPart {
 		manager.add(action2);
 	}
 
-	private void fillContextMenu(IMenuManager manager) {
+	protected void fillContextMenu(IMenuManager manager) {
 		manager.add(evaluateAction);
 		manager.add(action2);
 		// Other plug-ins can contribute there actions here
@@ -188,7 +188,8 @@ public class CCSEditorView extends ViewPart {
 			}
 		});
 	}
-	private void showMessage(String message) {
+
+	protected void showMessage(String message) {
 		MessageDialog.openInformation(
 			viewer.getControl().getShell(),
 			"CCS Editor",
