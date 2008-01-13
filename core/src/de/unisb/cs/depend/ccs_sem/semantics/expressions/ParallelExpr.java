@@ -7,17 +7,17 @@ import java.util.List;
 import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
-import de.unisb.cs.depend.ccs_sem.semantics.types.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
-import de.unisb.cs.depend.ccs_sem.semantics.types.TauAction;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
-import de.unisb.cs.depend.ccs_sem.semantics.types.Value;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.TauAction;
+import de.unisb.cs.depend.ccs_sem.semantics.types.value.Value;
 
 
 public class ParallelExpr extends Expression {
 
-    private Expression left;
-    private Expression right;
+    private final Expression left;
+    private final Expression right;
 
     public ParallelExpr(Expression left, Expression right) {
         super();
@@ -65,55 +65,136 @@ public class ParallelExpr extends Expression {
         }
 
         // or synchronized:
-        // this is one of the hardest tasks, so it might be usefull to use a more
+        // this is one of the hardest tasks, so it might be useful to use a more
         // clever way than just iterate nestedly through both transition lists
+        // (however, on a small number of transitions, the naive way is mor efficient)
+
         // TODO try other values here
         final boolean useCleverWay =
                 leftTransitions.size() > 3
                         && rightTransitions.size() > 3
-                        && (leftTransitions.size() + rightTransitions.size()) > 10;
+                        && (leftTransitions.size() * rightTransitions.size()) > 20;
         if (useCleverWay) {
-            final boolean leftSmaller =
-                    leftTransitions.size() < rightTransitions.size();
-            final List<Transition> smaller =
-                    leftSmaller ? leftTransitions : rightTransitions;
-            final List<Transition> bigger =
-                    leftSmaller ? rightTransitions : leftTransitions;
-
-            final Map<Action, List<Expression>> actions =
-                    new HashMap<Action, List<Expression>>(bigger.size() * 3 / 2);
-            for (final Transition trans: bigger) {
-                List<Expression> list = actions.get(trans.getAction());
-                if (list == null)
-                    actions.put(trans.getAction(), list =
-                            new ArrayList<Expression>(2));
-                list.add(trans.getTarget());
-            }
-            for (final Transition trans: smaller) {
-                final Action counterAct = trans.getAction().getCounterAction();
-                final List<Expression> list = actions.get(counterAct);
-                if (list != null)
-                    for (final Expression expr: list) {
-                        final ParallelExpr newExpr =
-                                leftSmaller ? new ParallelExpr(trans
-                                    .getTarget(), expr) : new ParallelExpr(
-                                        expr, trans.getTarget());
-                        transitions.add(Transition.getTransition(TauAction
-                            .get(), Expression.getExpression(newExpr)));
-                    }
-            }
+            combineUsingCleverWay(leftTransitions, rightTransitions, transitions);
         } else {
-            for (final Transition leftTrans: leftTransitions)
-                for (final Transition rightTrans: rightTransitions)
-                    if (leftTrans.getAction().isCounterAction(
-                        rightTrans.getAction()))
-                        transitions.add(Transition
-                            .getTransition(TauAction.get(), Expression
-                                .getExpression(new ParallelExpr(leftTrans
-                                    .getTarget(), rightTrans.getTarget()))));
+            combineUsingNaiveWay(leftTransitions, rightTransitions, transitions);
         }
 
         return transitions;
+    }
+
+    private void combineUsingNaiveWay(final List<Transition> leftTransitions,
+            final List<Transition> rightTransitions,
+            final List<Transition> transitions) {
+        for (final Transition leftTrans: leftTransitions)
+            for (final Transition rightTrans: rightTransitions) {
+                Expression newFromLeft = null;
+                Expression newFromRight = null;
+                if (leftTrans.getAction().isInputAction()
+                        && rightTrans.getAction().isOutputAction())
+                    newFromLeft = leftTrans.synchronizeWith(rightTrans.getAction());
+                if (rightTrans.getAction().isInputAction()
+                        && leftTrans.getAction().isOutputAction())
+                    newFromRight = rightTrans.synchronizeWith(leftTrans.getAction());
+
+                if (newFromLeft != null) {
+                    if (newFromRight != null) {
+                        // take care that we don't add the same transition twice
+                        if (!newFromLeft.equals(leftTrans.getTarget())
+                                || !newFromRight.equals(rightTrans.getTarget())) {
+                            // in this case, we have to add this new transition too
+                            final Expression newTarget = Expression.getExpression(
+                                new ParallelExpr(leftTrans.getTarget(), newFromRight));
+                            final Transition newTransition = Transition.getTransition(TauAction.get(), newTarget);
+                            transitions.add(newTransition);
+                        }
+                    }
+                    final Expression newTarget = Expression.getExpression(
+                        new ParallelExpr(newFromLeft, rightTrans.getTarget()));
+                    final Transition newTransition = Transition.getTransition(TauAction.get(), newTarget);
+                    transitions.add(newTransition);
+                } else if (newFromRight != null) {
+                    final Expression newTarget = Expression.getExpression(
+                        new ParallelExpr(leftTrans.getTarget(), newFromRight));
+                    final Transition newTransition = Transition.getTransition(TauAction.get(), newTarget);
+                    transitions.add(newTransition);
+                }
+            }
+    }
+
+    private void combineUsingCleverWay(final List<Transition> leftTransitions,
+            final List<Transition> rightTransitions,
+            final List<Transition> transitions) {
+        final Map<String, List<Transition>> leftInput =
+            new HashMap<String, List<Transition>>(leftTransitions.size());
+        final Map<String, List<Transition>> rightInput =
+            new HashMap<String, List<Transition>>(rightTransitions.size());
+
+        for (final Transition leftTrans: leftTransitions) {
+            if (leftTrans.getAction().isInputAction()) {
+                final String channel = leftTrans.getAction().getChannel();
+                List<Transition> list = leftInput.get(channel);
+                if (list == null)
+                    leftInput.put(channel, list = new ArrayList<Transition>(2));
+                list.add(leftTrans);
+            }
+        }
+        for (final Transition rightTrans: rightTransitions) {
+            if (rightTrans.getAction().isInputAction()) {
+                final String channel = rightTrans.getAction().getChannel();
+                List<Transition> list = rightInput.get(channel);
+                if (list == null)
+                    rightInput.put(channel, list = new ArrayList<Transition>(2));
+                list.add(rightTrans);
+            }
+            if (rightTrans.getAction().isOutputAction()) {
+                // search for corresponding input action
+                final String channel = rightTrans.getAction().getChannel();
+                final List<Transition> inputTransitions = leftInput.get(channel);
+                if (inputTransitions != null) {
+                    for (final Transition inputTrans: inputTransitions) {
+                        final Expression newLeftTarget = inputTrans.synchronizeWith(rightTrans.getAction());
+                        if (newLeftTarget != null) {
+                            // i.e. there was a match
+                            final Expression newTarget = Expression.getExpression(
+                                new ParallelExpr(newLeftTarget, rightTrans.getTarget()));
+                            final Transition newTrans = Transition.getTransition(TauAction.get(), newTarget);
+                            transitions.add(newTrans);
+                        }
+                    }
+                }
+            }
+        }
+        for (final Transition leftTrans: leftTransitions) {
+            if (!leftTrans.getAction().isOutputAction())
+                continue;
+            // search for corresponding input action
+            final String channel = leftTrans.getAction().getChannel();
+            final List<Transition> inputTransitions = rightInput.get(channel);
+            if (inputTransitions != null) {
+                for (final Transition inputTrans: inputTransitions) {
+                    final Expression newRightTarget = inputTrans.synchronizeWith(leftTrans.getAction());
+                    if (newRightTarget != null) {
+                        boolean seenBefore = inputTrans.getAction().isOutputAction()
+                            && leftTrans.getAction().isInputAction();
+                        if (seenBefore) {
+                            final Expression newLeftTarget = leftTrans.synchronizeWith(inputTrans.getAction());
+                            if (newLeftTarget == null
+                                || !newLeftTarget.equals(leftTrans.getTarget())
+                                || !newRightTarget.equals(inputTrans.getTarget()))
+                                seenBefore = false;
+                        }
+                        if (seenBefore)
+                            continue;
+
+                        final Expression newTarget = Expression.getExpression(
+                            new ParallelExpr(leftTrans.getTarget(), newRightTarget));
+                        final Transition newTrans = Transition.getTransition(TauAction.get(), newTarget);
+                        transitions.add(newTrans);
+                    }
+                }
+            }
+        }
     }
 
     @Override
@@ -132,21 +213,26 @@ public class ParallelExpr extends Expression {
     public Expression instantiate(List<Value> parameters) {
         final Expression newLeft = left.instantiate(parameters);
         final Expression newRight = right.instantiate(parameters);
-
         if (newLeft.equals(left) && newRight.equals(right))
             return this;
-
         return Expression.getExpression(new ParallelExpr(newLeft, newRight));
     }
 
     @Override
-    public Expression insertParameters(List<Value> parameters) {
+    public Expression insertParameters(List<Parameter> parameters) {
         final Expression newLeft = left.insertParameters(parameters);
         final Expression newRight = right.insertParameters(parameters);
-
         if (newLeft.equals(left) && newRight.equals(right))
             return this;
+        return Expression.getExpression(new ParallelExpr(newLeft, newRight));
+    }
 
+    @Override
+    public Expression instantiateInputValue(Value value) {
+        final Expression newLeft = left.instantiateInputValue(value);
+        final Expression newRight = right.instantiateInputValue(value);
+        if (newLeft.equals(left) && newRight.equals(right))
+            return this;
         return Expression.getExpression(new ParallelExpr(newLeft, newRight));
     }
 
@@ -197,15 +283,6 @@ public class ParallelExpr extends Expression {
         } else if (!right.equals(other.right))
             return false;
         return true;
-    }
-
-    @Override
-    public Expression clone() {
-        final ParallelExpr cloned = (ParallelExpr) super.clone();
-        cloned.left = left.clone();
-        cloned.right = right.clone();
-
-        return cloned;
     }
 
 }

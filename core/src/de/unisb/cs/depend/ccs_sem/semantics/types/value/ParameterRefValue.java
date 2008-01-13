@@ -1,11 +1,9 @@
-package de.unisb.cs.depend.ccs_sem.semantics.types;
+package de.unisb.cs.depend.ccs_sem.semantics.types.value;
 
 import java.util.List;
 
-import de.unisb.cs.depend.ccs_sem.exceptions.InternalSystemException;
 
-
-public class ParameterRefValue implements Value {
+public class ParameterRefValue extends AbstractValue {
 
     private final int paramNr;
 
@@ -13,23 +11,20 @@ public class ParameterRefValue implements Value {
         this.paramNr = paramNr;
     }
 
-    public String getValue() {
+    public String getStringValue() {
         return "param#" + paramNr;
     }
 
+    @Override
     public Value instantiate(List<Value> parameters) {
         assert parameters.size() > paramNr;
 
         return parameters.get(paramNr);
     }
 
-    public Value insertParameters(List<Value> parameters) {
-        return this;
-    }
-
     @Override
     public String toString() {
-        return getValue();
+        return getStringValue();
     }
 
     @Override
@@ -49,18 +44,6 @@ public class ParameterRefValue implements Value {
         if (paramNr != other.paramNr)
             return false;
         return true;
-    }
-
-    @Override
-    public Value clone() {
-        Value cloned;
-        try {
-            cloned = (Value) super.clone();
-        } catch (final CloneNotSupportedException e) {
-            throw new InternalSystemException(getClass().getName() + " could not be cloned");
-        }
-
-        return cloned;
     }
 
 }

@@ -1,20 +1,24 @@
-package de.unisb.cs.depend.ccs_sem.semantics.types;
+package de.unisb.cs.depend.ccs_sem.semantics.types.actions;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import de.unisb.cs.depend.ccs_sem.exceptions.InternalSystemException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.semantics.types.value.ConstantValue;
+import de.unisb.cs.depend.ccs_sem.semantics.types.value.Value;
 
 
-public abstract class Action implements Cloneable {
+public abstract class Action {
 
+    // caching
     private static Map<Action, Action> repository = new HashMap<Action, Action>();
 
-    public abstract String getLabel();
-
     public static Action newAction(String name) throws ParseException {
+        // TODO distinguish between different types of values
         Action action;
         int index;
         if ("i".equals(name)) {
@@ -52,32 +56,51 @@ public abstract class Action implements Cloneable {
         return action;
     }
 
-    /**
-     * @return the counter action, or <code>null</code> if there is no counteraction
-     */
-    public abstract Action getCounterAction();
+    public abstract String getLabel();
 
-    public abstract boolean isCounterAction(Action action);
+    public abstract String getChannel();
+
+    public abstract Value getMessage();
+
+    /**
+     * Overwritten by all Actions that can act as input action.
+     * @return
+     */
+    public boolean isInputAction() {
+        return false;
+    }
+
+    /**
+     * Overwritten by all Actions that can act as output action.
+     * @return
+     */
+    public boolean isOutputAction() {
+        return false;
+    }
 
     public abstract Action instantiate(List<Value> parameters);
 
-    public abstract Action insertParameters(List<Value> parameters);
+    public abstract Action insertParameters(List<Parameter> parameters);
+
+    /**
+     * @param actionToCheck
+     * @return true iff <b>this</b> Action restrict the Action actionToCheck.
+     */
+    public abstract boolean restricts(Action actionToCheck);
 
     @Override
     public String toString() {
         return getLabel();
     }
 
-    @Override
-    public Action clone() {
-        Action cloned;
-        try {
-            cloned = (Action) super.clone();
-        } catch (final CloneNotSupportedException e) {
-            throw new InternalSystemException("Action cannot be cloned", e);
-        }
+    /**
+     * See {@link Transition#synchronizeWith(Action)}
+     * @param otherAction the Action that we want to synchronize with
+     * @param our target Expression before synchronizing
+     * @return either the Expression target or a new one that's instantiated using otherAction
+     */
+    public abstract Expression synchronizeWith(Action otherAction, Expression target);
 
-        return cloned;
-    }
+    public abstract Action instantiateInputValue(Value value);
 
 }

@@ -1,13 +1,17 @@
-package de.unisb.cs.depend.ccs_sem.semantics.types;
+package de.unisb.cs.depend.ccs_sem.semantics.types.actions;
 
 import java.util.List;
+
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.value.InputValue;
+import de.unisb.cs.depend.ccs_sem.semantics.types.value.Value;
 
 
 public class InputAction extends Action {
 
     private final String channel;
-    private Value message;
-    private Action counterAction = null;
+    private final Value message;
 
     public InputAction(String channel, Value message) {
         super();
@@ -17,41 +21,41 @@ public class InputAction extends Action {
 
     @Override
     public String getLabel() {
-        final String value = message == null ? "" : message.getValue();
+        final String value = message == null ? "" : message.getStringValue();
         final StringBuilder sb =
                 new StringBuilder(channel.length() + 1 + value.length());
         sb.append(channel).append('?').append(value);
         return sb.toString();
     }
 
+    @Override
     public String getChannel() {
         return channel;
     }
 
+    @Override
     public Value getMessage() {
         return message;
     }
 
     @Override
-    public Action getCounterAction() {
-        if (counterAction == null)
-            counterAction =
-                    Action.getAction(new OutputAction(channel, message));
+    public Expression synchronizeWith(Action otherAction, Expression target) {
+        if (!(otherAction instanceof OutputAction))
+            return null;
 
-        return counterAction;
-    }
+        final OutputAction outAct = (OutputAction) otherAction;
 
-    // TODO value lesen
-    @Override
-    public boolean isCounterAction(Action action) {
-        if (!(action instanceof OutputAction))
-            return false;
+        if (message == null && outAct.getMessage() == null)
+            return target;
 
-        final OutputAction outAct = (OutputAction) action;
+        if (message instanceof InputValue) {
+            final InputValue inputMessage = (InputValue)message;
+            if (inputMessage.canBeInstantiated(otherAction.getMessage())) {
+                return target.instantiateInputValue(otherAction.getMessage());
+            }
+        }
 
-        return outAct.getChannel().equals(channel)
-                && (outAct.getMessage() == null ? message == null :
-                    outAct.getMessage().equals(message));
+        return null;
     }
 
     @Override
@@ -59,12 +63,31 @@ public class InputAction extends Action {
         final Value newMessage = message.instantiate(parameters);
         if (message.equals(newMessage))
             return this;
-
         return Action.getAction(new InputAction(channel, newMessage));
     }
 
     @Override
-    public Action insertParameters(List<Value> parameters) {
+    public Action instantiateInputValue(Value value) {
+        final Value newMessage = message.instantiateInputValue(value);
+        if (newMessage.equals(message))
+            return this;
+        return Action.getAction(new InputAction(channel, newMessage));
+    }
+
+    @Override
+    public boolean restricts(Action actionToCheck) {
+        if (actionToCheck instanceof InputAction) {
+            final InputAction inputActionToCheck = (InputAction) actionToCheck;
+            if (channel.equals(inputActionToCheck.channel)
+                    && (message == null) == (inputActionToCheck.message == null))
+                return true;
+        }
+
+        return false;
+    }
+
+    @Override
+    public Action insertParameters(List<Parameter> parameters) {
         final Value newMessage = message.insertParameters(parameters);
         if (message.equals(newMessage))
             return this;
@@ -101,14 +124,6 @@ public class InputAction extends Action {
         } else if (!message.equals(other.message))
             return false;
         return true;
-    }
-
-    @Override
-    public Action clone() {
-        final InputAction cloned = (InputAction) super.clone();
-        cloned.message = message.clone();
-
-        return cloned;
     }
 
 }

@@ -11,23 +11,24 @@ import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.ParallelExpr;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.RecursiveExpr;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.RestrictExpr;
+import de.unisb.cs.depend.ccs_sem.semantics.types.value.Value;
 
 
 public class Declaration {
 
     private final String name;
-    private final int paramNr;
+    private final List<Parameter> parameters;
     private Expression value;
 
-    public Declaration(String name, int paramNr, Expression readyValue) {
-        super();
-        this.name = name;
-        this.paramNr = paramNr;
-        this.value = readyValue;
+    public Declaration(String name, List<Parameter> parameters, Expression value) {
+        this(name, parameters, value, false);
     }
 
-    public Declaration(String name, List<Value> parameters, Expression value) {
-        this(name, parameters.size(), value.insertParameters(parameters));
+    private Declaration(String name, List<Parameter> parameters, Expression value, boolean expressionReady) {
+        super();
+        this.name = name;
+        this.parameters = parameters;
+        this.value = expressionReady ? value : value.insertParameters(parameters);
     }
 
     /**
@@ -94,7 +95,7 @@ public class Declaration {
     }
 
     public int getParamNr() {
-        return paramNr;
+        return parameters.size();
     }
 
     public Expression getValue() {
@@ -105,9 +106,23 @@ public class Declaration {
         value = value.replaceRecursion(declarations);
     }
 
+    /**
+     * Checks if the value list matches the parameters of this declaration.
+     * @param values the list of values to check the parameters against
+     * @throws ParseException if the values does not suit the parameters
+     */
+    public void checkMatch(List<Value> values) throws ParseException {
+        // this method is only called if the parameter length matches
+        assert parameters.size() == values.size();
+
+        for (int i = 0; i < parameters.size(); ++i)
+            if (!parameters.get(i).matches(values.get(i)))
+                throw new ParseException("The type of parameter " + i + " does not fit.");
+    }
+
     @Override
     public String toString() {
-        return name + "[" + paramNr + "] = " + value;
+        return name + parameters + " = " + value;
     }
 
     // TODO really?

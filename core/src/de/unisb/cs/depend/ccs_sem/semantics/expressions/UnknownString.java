@@ -7,10 +7,11 @@ import java.util.List;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.InternalSystemException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
-import de.unisb.cs.depend.ccs_sem.semantics.types.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
-import de.unisb.cs.depend.ccs_sem.semantics.types.Value;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
+import de.unisb.cs.depend.ccs_sem.semantics.types.value.Value;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
 
@@ -23,7 +24,7 @@ import de.unisb.cs.depend.ccs_sem.utils.Globals;
 public class UnknownString extends Expression {
 
     private final String name;
-    private List<Value> parameters;
+    private final List<Value> parameters;
 
     public UnknownString(String name, List<Value> parameters) {
         super();
@@ -57,6 +58,9 @@ public class UnknownString extends Expression {
     public Expression replaceRecursion(List<Declaration> declarations) throws ParseException {
         for (final Declaration decl: declarations) {
             if (decl.getName().equals(name) && decl.getParamNr() == parameters.size()) {
+                // check if parameters match
+                // this possibly throws a ParseException
+                decl.checkMatch(parameters);
                 final RecursiveExpr newExpr = new RecursiveExpr(decl, parameters);
                 return Expression.getExpression(newExpr);
             }
@@ -86,25 +90,11 @@ public class UnknownString extends Expression {
     }
 
     @Override
-    public String toString() {
-        if (parameters.size() == 0)
-            return name;
-
-        final StringBuilder sb = new StringBuilder(name);
-        sb.append('[');
-        for (int i = 0; i < parameters.size(); ++i)
-            sb.append(i>0 ? "," : "").append(parameters.get(i));
-        sb.append(']');
-
-        return sb.toString();
-    }
-
-    @Override
     public Expression instantiate(List<Value> params) {
         final List<Value> newParameters = new ArrayList<Value>(parameters.size());
         boolean changed = false;
         for (final Value param: parameters) {
-            final Value newParam = param.instantiate(parameters);
+            final Value newParam = param.instantiate(params);
             if (!changed && !newParam.equals(param))
                 changed = true;
             newParameters.add(newParam);
@@ -117,7 +107,24 @@ public class UnknownString extends Expression {
     }
 
     @Override
-    public Expression insertParameters(List<Value> params) {
+    public Expression instantiateInputValue(Value value) {
+        final List<Value> newParameters = new ArrayList<Value>(parameters.size());
+        boolean changed = false;
+        for (final Value param: parameters) {
+            final Value newParam = param.instantiateInputValue(value);
+            if (!changed && !newParam.equals(param))
+                changed = true;
+            newParameters.add(newParam);
+        }
+
+        if (!changed)
+            return this;
+
+        return Expression.getExpression(new UnknownString(name, newParameters));
+    }
+
+    @Override
+    public Expression insertParameters(List<Parameter> params) {
         final List<Value> newParameters = new ArrayList<Value>(parameters.size());
         boolean changed = false;
         for (final Value param: parameters) {
@@ -131,6 +138,20 @@ public class UnknownString extends Expression {
             return this;
 
         return Expression.getExpression(new UnknownString(name, newParameters));
+    }
+
+    @Override
+    public String toString() {
+        if (parameters.size() == 0)
+            return name;
+
+        final StringBuilder sb = new StringBuilder(name);
+        sb.append('[');
+        for (int i = 0; i < parameters.size(); ++i)
+            sb.append(i>0 ? "," : "").append(parameters.get(i));
+        sb.append(']');
+
+        return sb.toString();
     }
 
     @Override
@@ -162,14 +183,6 @@ public class UnknownString extends Expression {
         } else if (!parameters.equals(other.parameters))
             return false;
         return true;
-    }
-
-    @Override
-    public Expression clone() {
-        final UnknownString cloned = (UnknownString) super.clone();
-        cloned.parameters = new ArrayList<Value>(parameters);
-
-        return cloned;
     }
 
 }

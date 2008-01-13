@@ -1,5 +1,6 @@
 package de.unisb.cs.depend.ccs_sem.parser;
 
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -7,12 +8,15 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
 
+import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
+import de.unisb.cs.depend.ccs_sem.lexer.CCSLexer;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Assignment;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Choice;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Comma;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Dot;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Identifier;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.IntegerToken;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.LBrace;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.LBracket;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.LParenthesis;
@@ -31,57 +35,79 @@ import de.unisb.cs.depend.ccs_sem.semantics.expressions.PrefixExpr;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.RestrictExpr;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.StopExpr;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.UnknownString;
-import de.unisb.cs.depend.ccs_sem.semantics.types.Action;
-import de.unisb.cs.depend.ccs_sem.semantics.types.ConstantValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
-import de.unisb.cs.depend.ccs_sem.semantics.types.TauAction;
-import de.unisb.cs.depend.ccs_sem.semantics.types.Value;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.TauAction;
+import de.unisb.cs.depend.ccs_sem.semantics.types.value.ConstantValue;
+import de.unisb.cs.depend.ccs_sem.semantics.types.value.IntegerValue;
+import de.unisb.cs.depend.ccs_sem.semantics.types.value.Value;
 
-
+/**
+ * This Parser parses the following grammar:
+ *
+ * program            --> (declaration ";")*  expression
+ * declaration        --> recursionVariable = expression
+ * recursionVariable  --> identifier ( "[" ( ( identifier "," )* identifier)? "]"  )?
+ * expression         --> restrictExpression
+ * restrictExpression --> parallelExpression
+ *                          | restrictExpression "\" "{" ( ( identidier "," )* identifier )? "}"
+ * parallelExpression --> choiceExpression
+ *                          | parallelExpression "|" choiceExpression
+ * choiceExpression   --> prefixExpression
+ *                          | choiceExpression "+" prefixExpression
+ * prefixExpression   --> baseExpression
+ *                          | action "." prefixExpression
+ * baseExpression     --> "0"
+ *                          | "(" expression ")"
+ *                          | recursionVariable
+ * action             --> identifier ( ("?" | "!") value )?
+ * identifier         --> character ( digit | character ) *
+ * character          --> "a" | ... | "z" | "A" | ... | "Z" | "_"
+ * digit              --> "0" | ... | "9"
+ * value              --> digit+ | identifier
+ *
+ *
+ * @author Clemens Hammacher
+ */
 public class CCSParser implements Parser {
 
+    public Program parse(Reader input) throws ParseException, LexException {
+        return parse(new CCSLexer().lex(input));
+    }
+
+    public Program parse(String input) throws ParseException, LexException {
+        return parse(new CCSLexer().lex(input));
+    }
     public Program parse(List<Token> tokens) throws ParseException {
         final ArrayList<Declaration> declarations = new ArrayList<Declaration>();
 
         int index = 0;
 
         // first, read the declarations
-        while (index + 2 < tokens.size()) {
-            final ListIterator<Token> it = tokens.listIterator(index);
-            final Token token1 = it.next();
-            final Token token2 = it.next();
-            Identifier identifier;
-            List<Value> parameters;
-            Expression expr;
-            if (!(token1 instanceof Identifier))
-                break;
-            identifier = (Identifier) token1;
+        try {
+            while (index < tokens.size()) {
 
-            if (token2 instanceof Assignment) {
-                expr = readExpression(it);
-                parameters = Collections.emptyList();
-            } else if (token2 instanceof LBracket) {
-                parameters = readParameters(it);
-                if (!it.hasNext() || !(it.next() instanceof Assignment))
-                    break;
-                expr = readExpression(it);
-            } else {
-                break;
+                final ListIterator<Token> it = tokens.listIterator(index);
+                final Declaration nextDeclaration = readDeclaration(it);
+
+                if (!it.hasNext() || !(it.next() instanceof Semicolon))
+                    throw new ParseException("Expected ';' after this declaration");
+
+                index = it.nextIndex();
+
+                // check if a declaration with the same name and number of parameters is already known
+                for (final Declaration decl: declarations)
+                    if (decl.getName().equals(nextDeclaration.getName())
+                            && decl.getParamNr() == nextDeclaration.getParamNr())
+                        throw new ParseException("Duplicate recursion variable definition ("
+                            + nextDeclaration.getName() + "[" + nextDeclaration.getParamNr() + "]");
+
+                declarations.add(nextDeclaration);
             }
-
-            if (!it.hasNext() || !(it.next() instanceof Semicolon))
-                throw new ParseException("Expected ';' after this declaration");
-
-            index = it.nextIndex();
-
-            // check if a declaration with the same name and number of parameters is already known
-            for (final Declaration decl: declarations)
-                if (decl.getName().equals(identifier.getName()) && decl.getParamNr() == parameters.size())
-                    throw new ParseException("Dublicate recursion variable definition ("
-                        + identifier.getName() + "[" + parameters.size() + "]");
-
-            declarations.add(new Declaration(identifier.getName(), parameters, expr));
+        } catch (final ParseException e) {
+            // abort reading declarations, start reading the main expression
         }
 
         declarations.trimToSize();
@@ -102,10 +128,89 @@ public class CCSParser implements Parser {
         return program;
     }
 
+    private Declaration readDeclaration(ListIterator<Token> tokens) throws ParseException {
+        Token token1 = null;
+        Token token2 = null;
+        if (tokens.hasNext())
+            token1 = tokens.next();
+        if (tokens.hasNext())
+            token2 = tokens.next();
+        if (token1 == null || token2 == null)
+            throw new ParseException("Expected declaration");
+
+        Identifier identifier;
+        List<Parameter> parameters;
+        Expression expr;
+        if (!(token1 instanceof Identifier))
+            throw new ParseException("Expected declaration");
+        identifier = (Identifier) token1;
+
+        if (token2 instanceof Assignment) {
+            expr = readExpression(tokens);
+            parameters = Collections.emptyList();
+        } else if (token2 instanceof LBracket) {
+            parameters = readParameters(tokens);
+            if (!tokens.hasNext() || !(tokens.next() instanceof Assignment))
+                throw new ParseException("Expected declaration");
+            expr = readExpression(tokens);
+        } else {
+            throw new ParseException("Expected declaration");
+        }
+        return new Declaration(identifier.getName(), parameters, expr);
+    }
+
     /**
      * Read all parameters up to the next RBracket (this token is read too).
      */
-    private List<Value> readParameters(ListIterator<Token> tokens) throws ParseException {
+    private List<Parameter> readParameters(ListIterator<Token> tokens) throws ParseException {
+        final ArrayList<Parameter> parameters = new ArrayList<Parameter>();
+        final Set<String> readParameters = new HashSet<String>();
+
+        if (tokens.hasNext()) {
+            if (tokens.next() instanceof RBracket)
+                return Collections.emptyList();
+            tokens.previous();
+        }
+
+        while (tokens.hasNext()) {
+
+            final Parameter nextParameter = readParameter(tokens);
+
+            if (!readParameters.add(nextParameter.getName()))
+                throw new ParseException("Duplicated parameter name: " + nextParameter.getName());
+            parameters.add(nextParameter);
+
+            if (!tokens.hasNext())
+                throw new ParseException("Expected ']'");
+
+            final Token nextToken = tokens.next();
+
+            if (nextToken instanceof RBracket) {
+                parameters.trimToSize();
+                return parameters;
+            }
+            if (!(nextToken instanceof Comma))
+                throw new ParseException("Expected ',' or ']'");
+        }
+        throw new ParseException("Expected ']'");
+    }
+
+    private Parameter readParameter(ListIterator<Token> tokens) throws ParseException {
+        if (tokens.hasNext()) {
+            final Token nextToken = tokens.next();
+            if (nextToken instanceof Identifier) {
+                final Identifier identifier = (Identifier)nextToken;
+                final String name = identifier.getName();
+                return new Parameter(name);
+            }
+        }
+        throw new ParseException("Expected a value here.");
+    }
+
+    /**
+     * Read all parameter values up to the next RBracket (this token is read too).
+     */
+    private List<Value> readParameterValues(ListIterator<Token> tokens) throws ParseException {
         final ArrayList<Value> parameters = new ArrayList<Value>();
 
         if (tokens.hasNext() && tokens.next() instanceof RBracket)
@@ -114,31 +219,44 @@ public class CCSParser implements Parser {
         tokens.previous();
 
         while (tokens.hasNext()) {
+
             Token nextToken = tokens.next();
-            if (nextToken instanceof Identifier) {
-                final Identifier identifier = (Identifier)nextToken;
-                final String name = identifier.getName();
-                if (!identifier.isValidParameter())
-                    throw new ParseException("Invalid parameter: " + name);
-                parameters.add(new ConstantValue(name));
 
-                if (!tokens.hasNext())
-                    throw new ParseException("Expected ']'");
-                nextToken = tokens.next();
+            if (nextToken instanceof RBracket) {
+                parameters.trimToSize();
+                return parameters;
+            }
 
-                if (nextToken instanceof RBracket) {
-                    // save memory
-                    parameters.trimToSize();
-                    return parameters;
-                }
+            final Value nextValue = readValue(nextToken, tokens);
 
-                if (!(nextToken instanceof Comma))
-                    throw new ParseException("Expected ',' or ']'");
-            } else
-                throw new ParseException("Expected identifier");
+            parameters.add(nextValue);
+
+            if (!tokens.hasNext())
+                throw new ParseException("Expected ']'");
+
+            nextToken = tokens.next();
+
+            if (nextToken instanceof RBracket) {
+                parameters.trimToSize();
+                return parameters;
+            }
+            if (!(nextToken instanceof Comma))
+                throw new ParseException("Expected ',' or ']'");
         }
-
         throw new ParseException("Expected ']'");
+    }
+
+    private Value readValue(Token nextToken, ListIterator<Token> tokens) throws ParseException {
+        if (nextToken instanceof Identifier) {
+            final Identifier identifier = (Identifier)nextToken;
+            final String name = identifier.getName();
+            return new ConstantValue(name);
+        }
+        if (nextToken instanceof IntegerToken) {
+            final IntegerToken intToken = (IntegerToken) nextToken;
+            return new IntegerValue(intToken.getValue());
+        }
+        throw new ParseException("Expected a value here.");
     }
 
     /**
@@ -175,34 +293,45 @@ public class CCSParser implements Parser {
     private Set<Action> readActionSet(ListIterator<Token> tokens) throws ParseException {
         final Set<Action> actions = new HashSet<Action>();
 
-        if (tokens.hasNext() && tokens.next() instanceof RBrace)
-            return Collections.emptySet();
-
-        tokens.previous();
+        if (tokens.hasNext()) {
+            if (tokens.next() instanceof RBrace)
+                return Collections.emptySet();
+            tokens.previous();
+        }
 
         while (tokens.hasNext()) {
-            Token nextToken = tokens.next();
-            if (nextToken instanceof Identifier) {
-                final Identifier identifier = (Identifier)nextToken;
-                final Action newAction = Action.newAction(identifier.getName());
-                if (newAction instanceof TauAction)
-                    throw new ParseException("Cannot hide tau action");
-                actions.add(newAction);
 
-                if (!tokens.hasNext())
-                    throw new ParseException("Expected '}'");
-                nextToken = tokens.next();
+            final Action newAction = readAction(tokens, false);
 
-                if (nextToken instanceof RBrace)
-                    return actions;
+            actions.add(newAction);
 
-                if (!(nextToken instanceof Comma))
-                    throw new ParseException("Expected ',' or '}'");
-            } else
-                throw new ParseException("Expected action identifier");
+            if (!tokens.hasNext())
+                throw new ParseException("Expected '}'");
+            final Token nextToken = tokens.next();
+
+            if (nextToken instanceof RBrace)
+                return actions;
+
+            if (!(nextToken instanceof Comma))
+                throw new ParseException("Expected ',' or '}'");
         }
 
         throw new ParseException("Expected '}'");
+    }
+
+    // TODO handle all action stuff. we should introduce tokens for '?' and '!'.
+    private Action readAction(ListIterator<Token> tokens, boolean tauAllowed) throws ParseException {
+        if (tokens.hasNext()) {
+            final Token nextToken = tokens.next();
+            if (nextToken instanceof Identifier) {
+                final Identifier identifier = (Identifier)nextToken;
+                final Action newAction = Action.newAction(identifier.getName());
+                if (!tauAllowed && newAction instanceof TauAction)
+                    throw new ParseException("Tau action not allowed here");
+                return newAction;
+            }
+        }
+        throw new ParseException("Expected action identifier");
     }
 
     /**
@@ -284,7 +413,7 @@ public class CCSParser implements Parser {
                 final Identifier identifier = (Identifier) nextToken;
                 if (tokens.hasNext()) {
                     if (tokens.next() instanceof LBracket) {
-                        final List<Value> parameters = readParameters(tokens);
+                        final List<Value> parameters = readParameterValues(tokens);
                         final UnknownString newExpr = new UnknownString(identifier.getName(), parameters);
                         return Expression.getExpression(newExpr);
                     }

@@ -3,14 +3,17 @@ package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
-import de.unisb.cs.depend.ccs_sem.semantics.types.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
-import de.unisb.cs.depend.ccs_sem.semantics.types.Value;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
+import de.unisb.cs.depend.ccs_sem.semantics.types.value.Value;
 
 
 public class RestrictExpr extends Expression {
@@ -34,8 +37,49 @@ public class RestrictExpr extends Expression {
         final List<Transition> oldTransitions = innerExpr.getTransitions();
         final List<Transition> newTransitions = new ArrayList<Transition>(oldTransitions.size());
 
-        for (final Transition trans: oldTransitions)
-            if (!restricted.contains(trans.getAction())) {
+        // decide if we take the naive way or a more complex one
+        final boolean useComplexWay = restricted.size() > 3;
+
+        if (useComplexWay) {
+            restrictComplex(oldTransitions, newTransitions);
+        } else {
+            restrictNaive(oldTransitions, newTransitions);
+        }
+
+        return newTransitions;
+    }
+
+    private void restrictNaive(final List<Transition> oldTransitions,
+            final List<Transition> newTransitions) {
+        for (final Transition trans: oldTransitions) {
+            for (final Action restrictedAction: restricted) {
+                if (!restrictedAction.restricts(trans.getAction()))
+                    newTransitions.add(trans);
+            }
+        }
+    }
+
+    private void restrictComplex(final List<Transition> oldTransitions,
+            final List<Transition> newTransitions) {
+        // build a mapping from channel (String) to Action(s) to hide on this channel
+        final Map<String, List<Action>> restrictionMap = new HashMap<String, List<Action>>();
+        for (final Action a: restricted) {
+            List<Action> list = restrictionMap.get(a.getChannel());
+            if (list == null)
+                list = restrictionMap.put(a.getChannel(), list = new ArrayList<Action>(2));
+            list.add(a);
+        }
+
+        for (final Transition trans: oldTransitions) {
+            final List<Action> restrList = restrictionMap.get(trans.getAction().getChannel());
+            boolean isRestricted = false;
+            if (restrList != null) {
+                for (final Action restrictedAction: restrList) {
+                    if (restrictedAction.restricts(trans.getAction()))
+                        isRestricted = true;
+                }
+            }
+            if (!isRestricted) {
                 Expression newExpr = new RestrictExpr(trans.getTarget(), restricted);
                 // search if this expression is already known
                 newExpr = Expression.getExpression(newExpr);
@@ -43,8 +87,7 @@ public class RestrictExpr extends Expression {
                 final Transition newTrans = Transition.getTransition(trans.getAction(), newExpr);
                 newTransitions.add(newTrans);
             }
-
-        return newTransitions;
+        }
     }
 
     @Override
@@ -73,20 +116,24 @@ public class RestrictExpr extends Expression {
     @Override
     public Expression instantiate(List<Value> parameters) {
         final Expression newExpr = innerExpr.instantiate(parameters);
-
         if (newExpr.equals(innerExpr))
             return this;
-
         return Expression.getExpression(new RestrictExpr(newExpr, restricted));
     }
 
     @Override
-    public Expression insertParameters(List<Value> parameters) {
+    public Expression insertParameters(List<Parameter> parameters) {
         final Expression newExpr = innerExpr.insertParameters(parameters);
-
         if (newExpr.equals(innerExpr))
             return this;
+        return Expression.getExpression(new RestrictExpr(newExpr, restricted));
+    }
 
+    @Override
+    public Expression instantiateInputValue(Value value) {
+        final Expression newExpr = innerExpr.instantiateInputValue(value);
+        if (newExpr.equals(innerExpr))
+            return this;
         return Expression.getExpression(new RestrictExpr(newExpr, restricted));
     }
 
@@ -119,16 +166,6 @@ public class RestrictExpr extends Expression {
         } else if (!restricted.equals(other.restricted))
             return false;
         return true;
-    }
-
-    @Override
-    public Expression clone() {
-        final RestrictExpr cloned = (RestrictExpr) super.clone();
-        cloned.innerExpr = innerExpr.clone();
-
-        // field restricted doesn't have to be cloned
-
-        return cloned;
     }
 
 }

@@ -1,11 +1,11 @@
-package de.unisb.cs.depend.ccs_sem.semantics.types;
+package de.unisb.cs.depend.ccs_sem.semantics.types.value;
 
 import java.util.List;
 
-import de.unisb.cs.depend.ccs_sem.exceptions.InternalSystemException;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 
 
-public class ConstantValue implements Value {
+public class ConstantValue extends AbstractValue {
 
     private final String value;
 
@@ -13,15 +13,13 @@ public class ConstantValue implements Value {
         this.value = value;
     }
 
-    public String getValue() {
+    public String getStringValue() {
         return value;
     }
 
-    public Value instantiate(List<Value> parameters) {
-        return this;
-    }
-
-    public Value insertParameters(List<Value> parameters) {
+    @Override
+    public Value insertParameters(List<Parameter> parameters) {
+        // TODO match the parameters
         final int index = parameters.indexOf(this);
         if (index == -1)
             return this;
@@ -54,18 +52,6 @@ public class ConstantValue implements Value {
         } else if (!value.equals(other.value))
             return false;
         return true;
-    }
-
-    @Override
-    public Value clone() {
-        Value cloned;
-        try {
-            cloned = (Value) super.clone();
-        } catch (final CloneNotSupportedException e) {
-            throw new InternalSystemException(getClass().getName() + " could not be cloned");
-        }
-
-        return cloned;
     }
 
 }

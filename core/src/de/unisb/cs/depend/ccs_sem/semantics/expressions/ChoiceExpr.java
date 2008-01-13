@@ -7,14 +7,15 @@ import java.util.List;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
-import de.unisb.cs.depend.ccs_sem.semantics.types.Value;
+import de.unisb.cs.depend.ccs_sem.semantics.types.value.Value;
 
 
 public class ChoiceExpr extends Expression {
 
-    private Expression left;
-    private Expression right;
+    private final Expression left;
+    private final Expression right;
 
     public ChoiceExpr(Expression left, Expression right) {
         super();
@@ -77,9 +78,20 @@ public class ChoiceExpr extends Expression {
     }
 
     @Override
-    public Expression insertParameters(List<Value> parameters) {
+    public Expression insertParameters(List<Parameter> parameters) {
         final Expression newLeft = left.insertParameters(parameters);
         final Expression newRight = right.insertParameters(parameters);
+
+        if (newLeft.equals(left) && newRight.equals(right))
+            return this;
+
+        return Expression.getExpression(new ChoiceExpr(newLeft, newRight));
+    }
+
+    @Override
+    public Expression instantiateInputValue(Value value) {
+        final Expression newLeft = left.instantiateInputValue(value);
+        final Expression newRight = right.instantiateInputValue(value);
 
         if (newLeft.equals(left) && newRight.equals(right))
             return this;
@@ -134,15 +146,6 @@ public class ChoiceExpr extends Expression {
         } else if (!right.equals(other.right))
             return false;
         return true;
-    }
-
-    @Override
-    public Expression clone() {
-        final ChoiceExpr cloned = (ChoiceExpr) super.clone();
-        cloned.left = left.clone();
-        cloned.right = right.clone();
-
-        return cloned;
     }
 
 }

@@ -7,15 +7,15 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
-import de.unisb.cs.depend.ccs_sem.exceptions.InternalSystemException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
-import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterRefValue;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
-import de.unisb.cs.depend.ccs_sem.semantics.types.Value;
+import de.unisb.cs.depend.ccs_sem.semantics.types.value.ParameterRefValue;
+import de.unisb.cs.depend.ccs_sem.semantics.types.value.Value;
 
 
-public abstract class Expression implements Cloneable {
+public abstract class Expression {
 
     private static Map<Expression, Expression> repository
         = new HashMap<Expression, Expression>();
@@ -64,22 +64,11 @@ public abstract class Expression implements Cloneable {
         return transitions;
     }
 
-    @Override
-    public Expression clone() {
-        // TODO remove clone method?
-        try {
-            final Expression cloned = (Expression) super.clone();
-            // the clone is typically changed afterwards
-            cloned.transitions = null;
-            return cloned;
-        } catch (final CloneNotSupportedException e) {
-            throw new InternalSystemException("Expression cannot be cloned", e);
-        }
-    }
-
     /**
      * Replaces every {@link UnknownString} either by a {@link PrefixExpr} and
-     * a {@link StopExpr}, or by a {@link RecursiveExpr}.
+     * a {@link StopExpr}, or by a {@link RecursiveExpr}, if a corresponding
+     * Declaration has been found.
+     * Typically delegates to it's subterms.
      * @return either itself or a new created Expression, if something changed
      */
     public abstract Expression replaceRecursion(List<Declaration> declarations) throws ParseException;
@@ -98,6 +87,7 @@ public abstract class Expression implements Cloneable {
      * Is called in the constructor of a {@link RecursiveExpr}.
      * Replaces all {@link ParameterRefValue}s that occure in the expression by
      * the corresponding {@link Value} from the parameter list.
+     * Typically delegates to it's subterms.
      * @param parameters
      * @return
      */
@@ -107,11 +97,14 @@ public abstract class Expression implements Cloneable {
      * Is called in the constructor of a {@link Declaration}.
      * Replaces all {@link Value}s of this expression that also occure in the
      * parameter list by corresponding {@link ParameterRefValue}s.
+     * Typically delegates to it's subterms.
      * @param parameters
      * @return
      */
-    public abstract Expression insertParameters(List<Value> parameters);
+    public abstract Expression insertParameters(List<Parameter> parameters);
 
+    // TODO this is not good, as it changed the transitions of this expression.
+    // Idea: new parameter "minimized"
     public void minimize() {
         assert isEvaluated();
 
@@ -122,6 +115,14 @@ public abstract class Expression implements Cloneable {
                 it.set(newTrans);
         }
     }
+
+    /**
+     * Instantiates this Expression with some Value that is read from an input Action.
+     * Typically delegates to it's subterms.
+     * @param value
+     * @return
+     */
+    public abstract Expression instantiateInputValue(Value value);
 
     // TODO store hashCode
     // TODO minimizeExpression (e.g. push down restriction)

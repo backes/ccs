@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.TauAction;
 
 
 public class Transition {
@@ -66,6 +68,20 @@ public class Transition {
     @Override
     public String toString() {
         return "--" + action + "-> " + target;
+    }
+
+    /**
+     * Called on input transitions to check whether they match to the given
+     * otherTrans, that has to be an output action (getAction().isOutputAction()
+     * has to yield true).
+     *
+     * @param otherTrans the Transition to check against
+     * @return the new Expression that is reached by this Transition if one matches
+     *         with the otherTrans (may be just the target of this trans, but
+     *         doesn't have to); or <code>null</code> if the Transitions can't synchronize
+     */
+    public Expression synchronizeWith(Action otherAction) {
+        return action.synchronizeWith(otherAction, getTarget());
     }
 
     @Override

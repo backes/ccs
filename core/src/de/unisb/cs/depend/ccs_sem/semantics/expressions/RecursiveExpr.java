@@ -7,14 +7,15 @@ import java.util.List;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
-import de.unisb.cs.depend.ccs_sem.semantics.types.Value;
+import de.unisb.cs.depend.ccs_sem.semantics.types.value.Value;
 
 
 public class RecursiveExpr extends Expression {
 
     private final Declaration referencedDeclaration;
-    private List<Value> parameters;
+    private final List<Value> parameters;
     private Expression instantiatedExpression = null;
 
     public RecursiveExpr(Declaration referencedDeclaration, List<Value> parameters) {
@@ -75,11 +76,28 @@ public class RecursiveExpr extends Expression {
     }
 
     @Override
-    public Expression insertParameters(List<Value> params) {
+    public Expression insertParameters(List<Parameter> params) {
         final List<Value> newParameters = new ArrayList<Value>(parameters.size());
         boolean changed = false;
         for (final Value param: parameters) {
             final Value newParam = param.insertParameters(params);
+            if (!changed && !newParam.equals(param))
+                changed = true;
+            newParameters.add(newParam);
+        }
+
+        if (!changed)
+            return this;
+
+        return Expression.getExpression(new RecursiveExpr(referencedDeclaration, newParameters));
+    }
+
+    @Override
+    public Expression instantiateInputValue(Value value) {
+        final List<Value> newParameters = new ArrayList<Value>(parameters.size());
+        boolean changed = false;
+        for (final Value param: parameters) {
+            final Value newParam = param.instantiateInputValue(value);
             if (!changed && !newParam.equals(param))
                 changed = true;
             newParameters.add(newParam);
@@ -134,16 +152,6 @@ public class RecursiveExpr extends Expression {
         } else if (!parameters.equals(other.parameters))
             return false;
         return true;
-    }
-
-    @Override
-    public Expression clone() {
-        final RecursiveExpr cloned = (RecursiveExpr) super.clone();
-        cloned.parameters = new ArrayList<Value>(parameters);
-
-        // referencedDeclaration doesn't have to be cloned
-
-        return cloned;
     }
 
 }

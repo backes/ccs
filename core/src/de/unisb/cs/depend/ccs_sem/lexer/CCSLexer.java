@@ -12,6 +12,7 @@ import de.unisb.cs.depend.ccs_sem.lexer.tokens.Choice;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Comma;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Dot;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Identifier;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.IntegerToken;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.LBrace;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.LBracket;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.LParenthesis;
@@ -112,6 +113,13 @@ public class CCSLexer extends AbstractLexer {
                 tokens.add(new Semicolon(position));
                 break;
 
+            case '1': case '2': case '3': case '4': case '5':
+            case '6': case '7': case '8': case '9':
+                final IntegerToken intToken = readInteger(nextChar, input, tokens, position);
+                tokens.add(intToken);
+                position += intToken.getEndPosition() - intToken.getStartPosition();
+                break;
+
             default:
                 final Identifier id = readIdentifier(nextChar, input, tokens, position);
                 if (id == null)
@@ -161,7 +169,24 @@ public class CCSLexer extends AbstractLexer {
 
         if (name.length() == 0)
             return null;
-        return new Identifier(position, position+name.length()-1, name.toString());
+        // using String.intern() method to save memory if there are a lot of equal identifiers
+        return new Identifier(position, position+name.length()-1, name.toString().intern());
+    }
+
+    private IntegerToken readInteger(int nextChar, PushbackReader input, List<Token> tokens, int position) throws IOException {
+        assert '0' <= nextChar && nextChar <= '9';
+
+        int endPosition = position - 1;
+        int value = 0;
+        while (nextChar >= '0' && nextChar <= '9') {
+            value = 10*value + nextChar - '0';
+            nextChar = input.read();
+            ++endPosition;
+        }
+        if (nextChar != -1)
+            input.unread(nextChar);
+
+        return new IntegerToken(position, endPosition, value);
     }
 
 }

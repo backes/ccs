@@ -1,11 +1,15 @@
-package de.unisb.cs.depend.ccs_sem.semantics.types;
+package de.unisb.cs.depend.ccs_sem.semantics.types.actions;
 
 import java.util.List;
+
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.value.Value;
 
 
 public class SimpleAction extends Action {
 
-    private Value name;
+    private final Value name;
 
     public SimpleAction(Value name) {
         super();
@@ -14,19 +18,7 @@ public class SimpleAction extends Action {
 
     @Override
     public String getLabel() {
-        return name.getValue();
-    }
-
-    @Override
-    public Action getCounterAction() {
-        // there is no countertransition of a simple action
-        return null;
-    }
-
-    @Override
-    public boolean isCounterAction(Action action) {
-        // there is no countertransition of a simple action
-        return false;
+        return name.getStringValue();
     }
 
     @Override
@@ -39,12 +31,41 @@ public class SimpleAction extends Action {
     }
 
     @Override
-    public Action insertParameters(List<Value> parameters) {
+    public Action insertParameters(List<Parameter> parameters) {
         final Value newName = name.insertParameters(parameters);
         if (name.equals(newName))
             return this;
 
         return Action.getAction(new SimpleAction(newName));
+    }
+
+    @Override
+    public String getChannel() {
+        return name.getStringValue();
+    }
+
+    @Override
+    public Value getMessage() {
+        return null;
+    }
+
+    @Override
+    public boolean restricts(Action actionToCheck) {
+        return false;
+    }
+
+    @Override
+    public Expression synchronizeWith(Action otherAction, Expression target) {
+        // this action cannot synchronize
+        return null;
+    }
+
+    @Override
+    public Action instantiateInputValue(Value value) {
+        final Value newValue = name.instantiateInputValue(value);
+        if (newValue.equals(value))
+            return this;
+        return Action.getAction(new SimpleAction(newValue));
     }
 
     @Override
@@ -67,14 +88,6 @@ public class SimpleAction extends Action {
         } else if (!name.equals(other.name))
             return false;
         return true;
-    }
-
-    @Override
-    public Action clone() {
-        final SimpleAction cloned = (SimpleAction) super.clone();
-        cloned.name = name.clone();
-
-        return cloned;
     }
 
 }
