@@ -1,7 +1,8 @@
-package de.unisb.cs.depend.ccs_sem.semantics.types.value;
+package de.unisb.cs.depend.ccs_sem.semantics.types.values;
 
 import java.util.List;
 
+import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 
 
@@ -18,13 +19,17 @@ public class ConstantValue extends AbstractValue {
     }
 
     @Override
-    public Value insertParameters(List<Parameter> parameters) {
-        // TODO match the parameters
-        final int index = parameters.indexOf(this);
-        if (index == -1)
-            return this;
+    public Value insertParameters(List<Parameter> parameters) throws ParseException {
+        for (final Parameter param: parameters) {
+            if (param.getName().equals(value)) {
+                // throws ParseException if they don't match
+                param.match(this);
 
-        return new ParameterRefValue(index);
+                return new ParameterRefValue(param);
+            }
+        }
+
+        return this;
     }
 
     @Override

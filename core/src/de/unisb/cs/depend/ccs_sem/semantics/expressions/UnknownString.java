@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.InternalSystemException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
@@ -11,7 +12,9 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
-import de.unisb.cs.depend.ccs_sem.semantics.types.value.Value;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.SimpleAction;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstChannel;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
 
@@ -54,6 +57,10 @@ public class UnknownString extends Expression {
             + " should never be called. Did you forget to call replaceRecursion?");
     }
 
+    /**
+     * Replaces this {@link UnknownString} by either a {@link RecursiveExpr} or
+     * a {@link PrefixExpr} with a {@link StopExpr} on the right hand side.
+     */
     @Override
     public Expression replaceRecursion(List<Declaration> declarations) throws ParseException {
         for (final Declaration decl: declarations) {
@@ -84,13 +91,13 @@ public class UnknownString extends Expression {
 
             throw new ParseException(sb.toString());
         }
-        final Action prefix = Action.newAction(name);
+        final Action prefix = Action.getAction(new SimpleAction(new ConstChannel(name)));
         final Expression stopExpression = Expression.getExpression(new StopExpr());
         return Expression.getExpression(new PrefixExpr(prefix, stopExpression));
     }
 
     @Override
-    public Expression instantiate(List<Value> params) {
+    public Expression instantiate(Map<Parameter, Value> params) {
         final List<Value> newParameters = new ArrayList<Value>(parameters.size());
         boolean changed = false;
         for (final Value param: parameters) {
@@ -107,24 +114,7 @@ public class UnknownString extends Expression {
     }
 
     @Override
-    public Expression instantiateInputValue(Value value) {
-        final List<Value> newParameters = new ArrayList<Value>(parameters.size());
-        boolean changed = false;
-        for (final Value param: parameters) {
-            final Value newParam = param.instantiateInputValue(value);
-            if (!changed && !newParam.equals(param))
-                changed = true;
-            newParameters.add(newParam);
-        }
-
-        if (!changed)
-            return this;
-
-        return Expression.getExpression(new UnknownString(name, newParameters));
-    }
-
-    @Override
-    public Expression insertParameters(List<Parameter> params) {
+    public Expression insertParameters(List<Parameter> params) throws ParseException {
         final List<Value> newParameters = new ArrayList<Value>(parameters.size());
         boolean changed = false;
         for (final Value param: parameters) {
@@ -146,10 +136,7 @@ public class UnknownString extends Expression {
             return name;
 
         final StringBuilder sb = new StringBuilder(name);
-        sb.append('[');
-        for (int i = 0; i < parameters.size(); ++i)
-            sb.append(i>0 ? "," : "").append(parameters.get(i));
-        sb.append(']');
+        sb.append(parameters);
 
         return sb.toString();
     }

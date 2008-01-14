@@ -11,8 +11,8 @@ import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
-import de.unisb.cs.depend.ccs_sem.semantics.types.value.ParameterRefValue;
-import de.unisb.cs.depend.ccs_sem.semantics.types.value.Value;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterRefValue;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 
 public abstract class Expression {
@@ -88,10 +88,10 @@ public abstract class Expression {
      * Replaces all {@link ParameterRefValue}s that occure in the expression by
      * the corresponding {@link Value} from the parameter list.
      * Typically delegates to it's subterms.
-     * @param parameters
-     * @return
+     * @param parameters the parameters to replace by concrete values
+     * @return either <code>this</code> or a new created Expression
      */
-    public abstract Expression instantiate(List<Value> parameters);
+    public abstract Expression instantiate(Map<Parameter, Value> parameters);
 
     /**
      * Is called in the constructor of a {@link Declaration}.
@@ -99,9 +99,10 @@ public abstract class Expression {
      * parameter list by corresponding {@link ParameterRefValue}s.
      * Typically delegates to it's subterms.
      * @param parameters
-     * @return
+     * @return either <code>this</code> or a new created Expression
+     * @throws ParseException if the types of the parameters to not fit into the expression
      */
-    public abstract Expression insertParameters(List<Parameter> parameters);
+    public abstract Expression insertParameters(List<Parameter> parameters) throws ParseException;
 
     // TODO this is not good, as it changed the transitions of this expression.
     // Idea: new parameter "minimized"
@@ -115,14 +116,6 @@ public abstract class Expression {
                 it.set(newTrans);
         }
     }
-
-    /**
-     * Instantiates this Expression with some Value that is read from an input Action.
-     * Typically delegates to it's subterms.
-     * @param value
-     * @return
-     */
-    public abstract Expression instantiateInputValue(Value value);
 
     // TODO store hashCode
     // TODO minimizeExpression (e.g. push down restriction)

@@ -4,12 +4,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
-import de.unisb.cs.depend.ccs_sem.semantics.types.value.Value;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 
 public class ChoiceExpr extends Expression {
@@ -67,35 +68,20 @@ public class ChoiceExpr extends Expression {
     }
 
     @Override
-    public Expression instantiate(List<Value> parameters) {
+    public Expression instantiate(Map<Parameter, Value> parameters) {
         final Expression newLeft = left.instantiate(parameters);
         final Expression newRight = right.instantiate(parameters);
-
         if (newLeft.equals(left) && newRight.equals(right))
             return this;
-
         return Expression.getExpression(new ChoiceExpr(newLeft, newRight));
     }
 
     @Override
-    public Expression insertParameters(List<Parameter> parameters) {
+    public Expression insertParameters(List<Parameter> parameters) throws ParseException {
         final Expression newLeft = left.insertParameters(parameters);
         final Expression newRight = right.insertParameters(parameters);
-
         if (newLeft.equals(left) && newRight.equals(right))
             return this;
-
-        return Expression.getExpression(new ChoiceExpr(newLeft, newRight));
-    }
-
-    @Override
-    public Expression instantiateInputValue(Value value) {
-        final Expression newLeft = left.instantiateInputValue(value);
-        final Expression newRight = right.instantiateInputValue(value);
-
-        if (newLeft.equals(left) && newRight.equals(right))
-            return this;
-
         return Expression.getExpression(new ChoiceExpr(newLeft, newRight));
     }
 

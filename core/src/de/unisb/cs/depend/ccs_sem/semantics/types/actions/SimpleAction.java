@@ -1,47 +1,50 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types.actions;
 
 import java.util.List;
+import java.util.Map;
 
+import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
-import de.unisb.cs.depend.ccs_sem.semantics.types.value.Value;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 
 public class SimpleAction extends Action {
 
-    private final Value name;
+    private final Channel channel;
 
-    public SimpleAction(Value name) {
+    public SimpleAction(Channel channel) {
         super();
-        this.name = name;
+        this.channel = channel;
     }
 
     @Override
     public String getLabel() {
-        return name.getStringValue();
+        return channel.getStringValue();
     }
 
     @Override
-    public Action instantiate(List<Value> parameters) {
-        final Value newName = name.instantiate(parameters);
-        if (name.equals(newName))
+    public Action instantiate(Map<Parameter, Value> parameters) {
+        final Channel newChannel = channel.instantiate(parameters);
+        if (channel.equals(newChannel))
             return this;
 
-        return Action.getAction(new SimpleAction(newName));
+        return Action.getAction(new SimpleAction(newChannel));
     }
 
     @Override
-    public Action insertParameters(List<Parameter> parameters) {
-        final Value newName = name.insertParameters(parameters);
-        if (name.equals(newName))
+    public Action insertParameters(List<Parameter> parameters) throws ParseException {
+        final Channel newChannel = channel.insertParameters(parameters);
+        if (channel.equals(newChannel))
             return this;
 
-        return Action.getAction(new SimpleAction(newName));
+        return Action.getAction(new SimpleAction(newChannel));
     }
 
     @Override
-    public String getChannel() {
-        return name.getStringValue();
+    public Channel getChannel() {
+        return channel;
     }
 
     @Override
@@ -61,16 +64,8 @@ public class SimpleAction extends Action {
     }
 
     @Override
-    public Action instantiateInputValue(Value value) {
-        final Value newValue = name.instantiateInputValue(value);
-        if (newValue.equals(value))
-            return this;
-        return Action.getAction(new SimpleAction(newValue));
-    }
-
-    @Override
     public int hashCode() {
-        return name.hashCode();
+        return channel.hashCode();
     }
 
     @Override
@@ -82,10 +77,10 @@ public class SimpleAction extends Action {
         if (getClass() != obj.getClass())
             return false;
         final SimpleAction other = (SimpleAction) obj;
-        if (name == null) {
-            if (other.name != null)
+        if (channel == null) {
+            if (other.channel != null)
                 return false;
-        } else if (!name.equals(other.name))
+        } else if (!channel.equals(other.channel))
             return false;
         return true;
     }

@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
@@ -45,9 +44,12 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.actions.InputAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.OutputAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.SimpleAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.TauAction;
-import de.unisb.cs.depend.ccs_sem.semantics.types.value.ConstantValue;
-import de.unisb.cs.depend.ccs_sem.semantics.types.value.IntegerValue;
-import de.unisb.cs.depend.ccs_sem.semantics.types.value.Value;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstChannel;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.IntegerValue;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.TauChannel;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 /**
  * This Parser parses the following grammar:
@@ -95,7 +97,7 @@ public class CCSParser implements Parser {
         try {
             while (index < tokens.size()) {
 
-                final ListIterator<Token> it = tokens.listIterator(index);
+                final ExtendedIterator<Token> it = new ExtendedIterator<Token>(tokens);
                 final Declaration nextDeclaration = readDeclaration(it);
 
                 if (!it.hasNext() || !(it.next() instanceof Semicolon))
@@ -119,7 +121,7 @@ public class CCSParser implements Parser {
         declarations.trimToSize();
 
         // then, read the ccs expression
-        final ListIterator<Token> it = tokens.listIterator(index);
+        final ExtendedIterator<Token> it = new ExtendedIterator<Token>(tokens);
         final Expression expr = readExpression(it);
 
         if (it.hasNext())
@@ -134,7 +136,7 @@ public class CCSParser implements Parser {
         return program;
     }
 
-    private Declaration readDeclaration(ListIterator<Token> tokens) throws ParseException {
+    private Declaration readDeclaration(ExtendedIterator<Token> tokens) throws ParseException {
         Token token1 = null;
         Token token2 = null;
         if (tokens.hasNext())
@@ -168,7 +170,7 @@ public class CCSParser implements Parser {
     /**
      * Read all parameters up to the next RBracket (this token is read too).
      */
-    private List<Parameter> readParameters(ListIterator<Token> tokens) throws ParseException {
+    private List<Parameter> readParameters(ExtendedIterator<Token> tokens) throws ParseException {
         final ArrayList<Parameter> parameters = new ArrayList<Parameter>();
         final Set<String> readParameters = new HashSet<String>();
 
@@ -201,12 +203,14 @@ public class CCSParser implements Parser {
         throw new ParseException("Expected ']'");
     }
 
-    private Parameter readParameter(ListIterator<Token> tokens) throws ParseException {
+    private Parameter readParameter(ExtendedIterator<Token> tokens) throws ParseException {
         if (tokens.hasNext()) {
             final Token nextToken = tokens.next();
             if (nextToken instanceof Identifier) {
                 final Identifier identifier = (Identifier)nextToken;
                 final String name = identifier.getName();
+                if ("i".equals(name))
+                    throw new ParseException("'i' is no valid Parameter name.");
                 return new Parameter(name);
             }
         }
@@ -216,7 +220,7 @@ public class CCSParser implements Parser {
     /**
      * Read all parameter values up to the next RBracket (this token is read too).
      */
-    private List<Value> readParameterValues(ListIterator<Token> tokens) throws ParseException {
+    private List<Value> readParameterValues(ExtendedIterator<Token> tokens) throws ParseException {
         final ArrayList<Value> parameters = new ArrayList<Value>();
 
         if (tokens.hasNext() && tokens.next() instanceof RBracket)
@@ -252,7 +256,7 @@ public class CCSParser implements Parser {
         throw new ParseException("Expected ']'");
     }
 
-    private Value readValue(Token nextToken, ListIterator<Token> tokens) throws ParseException {
+    private Value readValue(Token nextToken, ExtendedIterator<Token> tokens) throws ParseException {
         if (nextToken instanceof Identifier) {
             final Identifier identifier = (Identifier)nextToken;
             final String name = identifier.getName();
@@ -268,7 +272,7 @@ public class CCSParser implements Parser {
     /**
      * Read one "main expression".
      */
-    private Expression readExpression(ListIterator<Token> tokens) throws ParseException {
+    private Expression readExpression(ExtendedIterator<Token> tokens) throws ParseException {
         // the topmost operator is restriction:
         return readRestrictExpression(tokens);
     }
@@ -276,7 +280,7 @@ public class CCSParser implements Parser {
     /**
      * Read one restriction expression.
      */
-    private Expression readRestrictExpression(ListIterator<Token> tokens) throws ParseException {
+    private Expression readRestrictExpression(ExtendedIterator<Token> tokens) throws ParseException {
         Expression expr = readParallelExpression(tokens);
         while (tokens.hasNext()) {
             if (tokens.next() instanceof Restrict) {
@@ -296,7 +300,7 @@ public class CCSParser implements Parser {
     /**
      * Read all actions up to the next RBrace (this token is read too).
      */
-    private Set<Action> readActionSet(ListIterator<Token> tokens) throws ParseException {
+    private Set<Action> readActionSet(ExtendedIterator<Token> tokens) throws ParseException {
         final Set<Action> actions = new HashSet<Action>();
 
         if (tokens.hasNext()) {
@@ -325,40 +329,81 @@ public class CCSParser implements Parser {
         throw new ParseException("Expected '}'");
     }
 
-    // TODO handle all action stuff. we should introduce tokens for '?' and '!'.
-    private Action readAction(ListIterator<Token> tokens, boolean tauAllowed) throws ParseException {
+    private Action readAction(ExtendedIterator<Token> tokens, boolean tauAllowed) throws ParseException {
         if (tokens.hasNext()) {
-            Token nextToken = tokens.next();
+            final Channel channel = readChannel(tokens);
+            if (channel instanceof TauChannel) {
+                if (!tauAllowed)
+                    throw new ParseException("Tau action not allowed here");
+                return TauAction.get();
+            }
+            if (tokens.hasNext()) {
+                final Token nextToken = tokens.next();
+                if (!tokens.hasNext()) {
+                    tokens.previous();
+                } else if (nextToken instanceof QuestionMark) {
+                    if (tokens.peek() instanceof Identifier) {
+                        final Parameter param = readParameter(tokens);
+                        return new InputAction(channel, param);
+                    }
+                    final Value value = readInputValue(tokens);
+                    return Action.getAction(new InputAction(channel, value));
+                } else if (nextToken instanceof Exclamation) {
+                    final Value value = readValue(tokens);
+                    return Action.getAction(new OutputAction(channel, value));
+                }
+                tokens.previous();
+            }
+            return Action.getAction(new SimpleAction(channel));
+        }
+        throw new ParseException("Expected action identifier.");
+    }
+
+    private Value readInputValue(ExtendedIterator<Token> tokens) throws ParseException {
+        if (tokens.hasNext()) {
+            final Token nextToken = tokens.next();
+            if (nextToken instanceof IntegerToken) {
+                final IntegerToken intToken = (IntegerToken) nextToken;
+                return new IntegerValue(intToken.getValue());
+            }
+            tokens.previous();
+        }
+        throw new ParseException("Expected input value.");
+    }
+
+    private Value readValue(ExtendedIterator<Token> tokens) throws ParseException {
+        if (tokens.hasNext()) {
+            final Token nextToken = tokens.next();
             if (nextToken instanceof Identifier) {
                 final Identifier identifier = (Identifier)nextToken;
-                if ("i".equals(identifier.getName())) {
-                    if (!tauAllowed)
-                        throw new ParseException("Tau action not allowed here");
-                    return TauAction.get();
-                }
-                if (tokens.hasNext()) {
-                    nextToken = tokens.next();
-                    if (nextToken instanceof QuestionMark) {
-                        Value value = readInputValue(tokens);
-                        return new InputAction(identifier.getName(), value);
-                    }
-                    if (nextToken instanceof Exclamation) {
-                        Value value = readValue(tokens);
-                        return new OutputAction(identifier.getName(), value);
-                    }
-                    tokens.previous();
-                }
-                Value value = readValue // TODO ??? was ist hier erlaubt?
-                return Action.getAction(new SimpleAction(identifier.getName()));
+                return new ConstantValue(identifier.getName());
+            } else if (nextToken instanceof IntegerToken) {
+                final IntegerToken intToken = (IntegerToken) nextToken;
+                return new IntegerValue(intToken.getValue());
             }
+            tokens.previous();
         }
-        throw new ParseException("Expected action identifier");
+        throw new ParseException("Expected value.");
+    }
+
+    private Channel readChannel(ExtendedIterator<Token> tokens) throws ParseException {
+        if (tokens.hasNext()) {
+            final Token nextToken = tokens.next();
+            if (nextToken instanceof Identifier) {
+                final Identifier identifier = (Identifier)nextToken;
+                if ("i".equals(identifier.getName()))
+                    return TauChannel.get();
+                return new ConstChannel(identifier.getName());
+            }
+            tokens.previous();
+        }
+        throw new ParseException("Expected channel identifier.");
     }
 
     /**
      * Read one parallel expression.
      */
-    private Expression readParallelExpression(ListIterator<Token> tokens) throws ParseException {
+    private Expression readParallelExpression(ExtendedIterator<Token> tokens) throws ParseException {
         Expression expr = readChoiceExpression(tokens);
         while (tokens.hasNext()) {
             if (tokens.next() instanceof Parallel) {
@@ -376,7 +421,7 @@ public class CCSParser implements Parser {
     /**
      * Read one choice expression.
      */
-    private Expression readChoiceExpression(ListIterator<Token> tokens) throws ParseException {
+    private Expression readChoiceExpression(ExtendedIterator<Token> tokens) throws ParseException {
         Expression expr = readPrefixExpression(tokens);
         while (tokens.hasNext()) {
             if (tokens.next() instanceof Choice) {
@@ -394,20 +439,27 @@ public class CCSParser implements Parser {
     /**
      * Read one prefix expression.
      */
-    private Expression readPrefixExpression(ListIterator<Token> tokens) throws ParseException {
+    private Expression readPrefixExpression(ExtendedIterator<Token> tokens) throws ParseException {
         if (tokens.hasNext()) {
-            final Token nextToken = tokens.next();
-            if (nextToken instanceof Identifier && tokens.hasNext()) {
-                final Identifier identifier = (Identifier) nextToken;
-                if (tokens.next() instanceof Dot) {
-                    final Expression postfix = readPrefixExpression(tokens);
-                    final Action action = Action.newAction(identifier.getName());
-                    return Expression.getExpression(new PrefixExpr(action, postfix));
+            // this is not very nice: we have to save the iterator position to
+            // (possibly) reset it (and that's not very nice too :'( )
+            final int oldPosition = tokens.nextIndex();
+            try {
+                final Action action = readAction(tokens, true);
+                if (tokens.hasNext()) {
+                    final Token nextToken = tokens.next();
+                    if (nextToken instanceof Dot) {
+                        final Expression postfix = readPrefixExpression(tokens);
+                        return Expression.getExpression(new PrefixExpr(action, postfix));
+                    }
                 }
-                // else put back the read tokens and let readBaseExpression() do the work
-                tokens.previous();
+            } catch (final ParseException e) {
+                // ignore this
             }
-            tokens.previous();
+
+            // reset to old position
+            while (tokens.nextIndex() > oldPosition)
+                tokens.previous();
         }
 
         return readBaseExpression(tokens);
@@ -416,7 +468,7 @@ public class CCSParser implements Parser {
     /**
      * Read one base expression (stop, expression in parentheses, or an identifier/action).
      */
-    private Expression readBaseExpression(ListIterator<Token> tokens) throws ParseException {
+    private Expression readBaseExpression(ExtendedIterator<Token> tokens) throws ParseException {
         if (tokens.hasNext()) {
             final Token nextToken = tokens.next();
 

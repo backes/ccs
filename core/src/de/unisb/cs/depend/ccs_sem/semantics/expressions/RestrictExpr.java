@@ -13,7 +13,8 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
-import de.unisb.cs.depend.ccs_sem.semantics.types.value.Value;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 
 public class RestrictExpr extends Expression {
@@ -62,7 +63,7 @@ public class RestrictExpr extends Expression {
     private void restrictComplex(final List<Transition> oldTransitions,
             final List<Transition> newTransitions) {
         // build a mapping from channel (String) to Action(s) to hide on this channel
-        final Map<String, List<Action>> restrictionMap = new HashMap<String, List<Action>>();
+        final Map<Channel, List<Action>> restrictionMap = new HashMap<Channel, List<Action>>();
         for (final Action a: restricted) {
             List<Action> list = restrictionMap.get(a.getChannel());
             if (list == null)
@@ -114,7 +115,7 @@ public class RestrictExpr extends Expression {
     }
 
     @Override
-    public Expression instantiate(List<Value> parameters) {
+    public Expression instantiate(Map<Parameter, Value> parameters) {
         final Expression newExpr = innerExpr.instantiate(parameters);
         if (newExpr.equals(innerExpr))
             return this;
@@ -122,16 +123,8 @@ public class RestrictExpr extends Expression {
     }
 
     @Override
-    public Expression insertParameters(List<Parameter> parameters) {
+    public Expression insertParameters(List<Parameter> parameters) throws ParseException {
         final Expression newExpr = innerExpr.insertParameters(parameters);
-        if (newExpr.equals(innerExpr))
-            return this;
-        return Expression.getExpression(new RestrictExpr(newExpr, restricted));
-    }
-
-    @Override
-    public Expression instantiateInputValue(Value value) {
-        final Expression newExpr = innerExpr.instantiateInputValue(value);
         if (newExpr.equals(innerExpr))
             return this;
         return Expression.getExpression(new RestrictExpr(newExpr, restricted));

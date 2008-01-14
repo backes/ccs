@@ -1,18 +1,23 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types.actions;
 
 import java.util.List;
+import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
-import de.unisb.cs.depend.ccs_sem.semantics.types.value.Value;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.TauChannel;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 
 public class TauAction extends Action {
 
     private static TauAction instance = null;
 
+    private final Channel channel;
+
     private TauAction() {
-        // private constructor, nothing to do
+        channel = TauChannel.get();
     }
 
     @Override
@@ -28,7 +33,7 @@ public class TauAction extends Action {
     }
 
     @Override
-    public Action instantiate(List<Value> parameters) {
+    public Action instantiate(Map<Parameter, Value> parameters) {
         return this;
     }
 
@@ -38,18 +43,13 @@ public class TauAction extends Action {
     }
 
     @Override
-    public String getChannel() {
-        return "i";
+    public Channel getChannel() {
+        return channel;
     }
 
     @Override
     public Value getMessage() {
         return null;
-    }
-
-    @Override
-    public Action instantiateInputValue(Value value) {
-        return this;
     }
 
     @Override

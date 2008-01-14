@@ -3,11 +3,12 @@ package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
-import de.unisb.cs.depend.ccs_sem.semantics.types.value.Value;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 
 public class StopExpr extends Expression {
@@ -32,12 +33,7 @@ public class StopExpr extends Expression {
     }
 
     @Override
-    public Expression instantiate(List<Value> parameters) {
-        return this;
-    }
-
-    @Override
-    public Expression instantiateInputValue(Value value) {
+    public Expression instantiate(Map<Parameter, Value> parameters) {
         return this;
     }
 

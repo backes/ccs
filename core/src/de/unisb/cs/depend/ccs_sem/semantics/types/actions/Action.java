@@ -8,44 +8,14 @@ import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
-import de.unisb.cs.depend.ccs_sem.semantics.types.value.ConstantValue;
-import de.unisb.cs.depend.ccs_sem.semantics.types.value.Value;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 
 public abstract class Action {
 
     // caching
     private static Map<Action, Action> repository = new HashMap<Action, Action>();
-
-    // TODO not needed anymore?
-    public static Action newAction(String name) throws ParseException {
-        // TODO distinguish between different types of values
-        Action action;
-        int index;
-        if ("i".equals(name)) {
-            action = TauAction.get();
-        } else if ((index = name.indexOf('?')) != -1) {
-            final String firstPart = name.substring(0, index);
-            final String secondPart = name.substring(index+1);
-            if (firstPart.contains("?") || firstPart.contains("!")
-                    || secondPart.contains("?") || secondPart.contains("!"))
-                throw new ParseException("Illegal action: " + name);
-            action = new InputAction(firstPart,
-                secondPart.isEmpty() ? null : new ConstantValue(secondPart));
-        } else if ((index = name.indexOf('!')) != -1) {
-            final String firstPart = name.substring(0, index);
-            final String secondPart = name.substring(index+1);
-            if (firstPart.contains("?") || firstPart.contains("!")
-                    || secondPart.contains("?") || secondPart.contains("!"))
-                throw new ParseException("Illegal action: " + name);
-            action = new OutputAction(firstPart,
-                secondPart.isEmpty() ? null : new ConstantValue(secondPart));
-        } else {
-            action = new SimpleAction(new ConstantValue(name));
-        }
-
-        return getAction(action);
-    }
 
     public static Action getAction(Action action) {
         final Action foundAction = repository.get(action);
@@ -59,7 +29,7 @@ public abstract class Action {
 
     public abstract String getLabel();
 
-    public abstract String getChannel();
+    public abstract Channel getChannel();
 
     public abstract Value getMessage();
 
@@ -79,9 +49,9 @@ public abstract class Action {
         return false;
     }
 
-    public abstract Action instantiate(List<Value> parameters);
+    public abstract Action instantiate(Map<Parameter, Value> parameters);
 
-    public abstract Action insertParameters(List<Parameter> parameters);
+    public abstract Action insertParameters(List<Parameter> parameters) throws ParseException;
 
     /**
      * @param actionToCheck
@@ -101,7 +71,5 @@ public abstract class Action {
      * @return either the Expression target or a new one that's instantiated using otherAction
      */
     public abstract Expression synchronizeWith(Action otherAction, Expression target);
-
-    public abstract Action instantiateInputValue(Value value);
 
 }

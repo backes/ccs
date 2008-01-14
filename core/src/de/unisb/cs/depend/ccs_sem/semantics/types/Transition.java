@@ -81,6 +81,9 @@ public class Transition {
      *         doesn't have to); or <code>null</code> if the Transitions can't synchronize
      */
     public Expression synchronizeWith(Action otherAction) {
+        // this method should only be called on input actions
+        assert action.isInputAction();
+
         return action.synchronizeWith(otherAction, getTarget());
     }
 

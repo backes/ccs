@@ -3,13 +3,14 @@ package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
-import de.unisb.cs.depend.ccs_sem.semantics.types.value.Value;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 
 public class PrefixExpr extends Expression {
@@ -48,7 +49,7 @@ public class PrefixExpr extends Expression {
     }
 
     @Override
-    public Expression instantiate(List<Value> parameters) {
+    public Expression instantiate(Map<Parameter, Value> parameters) {
         final Action newPrefix = prefix.instantiate(parameters);
         final Expression newPostfix = postfix.instantiate(parameters);
         if (newPrefix.equals(prefix) && newPostfix.equals(postfix))
@@ -57,18 +58,9 @@ public class PrefixExpr extends Expression {
     }
 
     @Override
-    public Expression insertParameters(List<Parameter> parameters) {
+    public Expression insertParameters(List<Parameter> parameters) throws ParseException {
         final Action newPrefix = prefix.insertParameters(parameters);
         final Expression newPostfix = postfix.insertParameters(parameters);
-        if (newPrefix.equals(prefix) && newPostfix.equals(postfix))
-            return this;
-        return Expression.getExpression(new PrefixExpr(newPrefix, newPostfix));
-    }
-
-    @Override
-    public Expression instantiateInputValue(Value value) {
-        final Action newPrefix = prefix.instantiateInputValue(value);
-        final Expression newPostfix = postfix.instantiateInputValue(value);
         if (newPrefix.equals(prefix) && newPostfix.equals(postfix))
             return this;
         return Expression.getExpression(new PrefixExpr(newPrefix, newPostfix));

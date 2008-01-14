@@ -1,10 +1,8 @@
-package de.unisb.cs.depend.ccs_sem.semantics.types.value;
-
-import java.util.List;
-
-import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+package de.unisb.cs.depend.ccs_sem.semantics.types.values;
 
 
+
+// TODO rename in ConstIntegerValue?
 public class IntegerValue extends AbstractValue {
 
     private final int value;
@@ -19,15 +17,6 @@ public class IntegerValue extends AbstractValue {
 
     public String getStringValue() {
         return Integer.toString(value);
-    }
-
-    @Override
-    public Value insertParameters(List<Parameter> parameters) {
-        final int index = parameters.indexOf(this);
-        if (index == -1)
-            return this;
-
-        return new ParameterRefValue(index);
     }
 
     @Override

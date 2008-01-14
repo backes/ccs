@@ -1,18 +1,21 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types.actions;
 
 import java.util.List;
+import java.util.Map;
 
+import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
-import de.unisb.cs.depend.ccs_sem.semantics.types.value.Value;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 
 public class OutputAction extends Action {
 
-    private final String channel;
+    private final Channel channel;
     private final Value message;
 
-    public OutputAction(String channel, Value message) {
+    public OutputAction(Channel channel, Value message) {
         super();
         this.channel = channel;
         this.message = message;
@@ -20,15 +23,17 @@ public class OutputAction extends Action {
 
     @Override
     public String getLabel() {
-        final String value = message == null ? "" : message.getStringValue();
+        final String channelValue = channel.getStringValue();
+        final String messageValue = message.getStringValue();
+
         final StringBuilder sb =
-                new StringBuilder(channel.length() + 1 + value.length());
-        sb.append(channel).append('!').append(value);
+                new StringBuilder(channelValue.length() + 1 + messageValue.length());
+        sb.append(channelValue).append('!').append(messageValue);
         return sb.toString();
     }
 
     @Override
-    public String getChannel() {
+    public Channel getChannel() {
         return channel;
     }
 
@@ -57,25 +62,26 @@ public class OutputAction extends Action {
         return false;
     }
 
-
     @Override
-    public Action instantiate(List<Value> parameters) {
+    public Action instantiate(Map<Parameter, Value> parameters) {
+        final Channel newChannel = channel.instantiate(parameters);
+
+        if (message == null) {
+            if (channel.equals(newChannel))
+                return this;
+            return Action.getAction(new OutputAction(newChannel, null));
+        }
+
         final Value newMessage = message.instantiate(parameters);
-        if (message.equals(newMessage))
+
+        if (channel.equals(newChannel) && message.equals(newMessage))
             return this;
-        return Action.getAction(new OutputAction(channel, newMessage));
+
+        return Action.getAction(new OutputAction(newChannel, newMessage));
     }
 
     @Override
-    public Action instantiateInputValue(Value value) {
-        final Value newMessage = message.instantiateInputValue(value);
-        if (newMessage.equals(message))
-            return this;
-        return Action.getAction(new OutputAction(channel, newMessage));
-    }
-
-    @Override
-    public Action insertParameters(List<Parameter> parameters) {
+    public Action insertParameters(List<Parameter> parameters) throws ParseException {
         final Value newMessage = message.insertParameters(parameters);
         if (message.equals(newMessage))
             return this;

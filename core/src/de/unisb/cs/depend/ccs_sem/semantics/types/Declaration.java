@@ -1,8 +1,11 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types;
 
 import java.util.ArrayDeque;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
@@ -11,7 +14,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.ParallelExpr;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.RecursiveExpr;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.RestrictExpr;
-import de.unisb.cs.depend.ccs_sem.semantics.types.value.Value;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 
 public class Declaration {
@@ -20,11 +23,13 @@ public class Declaration {
     private final List<Parameter> parameters;
     private Expression value;
 
-    public Declaration(String name, List<Parameter> parameters, Expression value) {
+    public Declaration(String name, List<Parameter> parameters,
+            Expression value) throws ParseException {
         this(name, parameters, value, false);
     }
 
-    private Declaration(String name, List<Parameter> parameters, Expression value, boolean expressionReady) {
+    private Declaration(String name, List<Parameter> parameters,
+            Expression value, boolean expressionReady) throws ParseException {
         super();
         this.name = name;
         this.parameters = parameters;
@@ -108,6 +113,7 @@ public class Declaration {
 
     /**
      * Checks if the value list matches the parameters of this declaration.
+     *
      * @param values the list of values to check the parameters against
      * @throws ParseException if the values does not suit the parameters
      */
@@ -115,9 +121,41 @@ public class Declaration {
         // this method is only called if the parameter length matches
         assert parameters.size() == values.size();
 
-        for (int i = 0; i < parameters.size(); ++i)
-            if (!parameters.get(i).matches(values.get(i)))
+        for (int i = 0; i < parameters.size(); ++i) {
+            try {
+                parameters.get(i).match(values.get(i));
+            } catch (final ParseException e) {
                 throw new ParseException("The type of parameter " + i + " does not fit.");
+            }
+        }
+    }
+
+    private boolean checkMatch0(List<Value> values) {
+        try {
+            checkMatch(values);
+            return true;
+        } catch (final ParseException e) {
+            return false;
+        }
+    }
+
+    public Expression instantiate(List<Value> values) {
+        // first, assert that the values fit into the parameters
+        assert checkMatch0(values);
+        assert parameters.size() == values.size();
+
+        // create the mapping from parameters to values
+        Map<Parameter, Value> map = null;
+        if (parameters.size() == 1) {
+            map = Collections.singletonMap(parameters.get(0), values.get(0));
+        } else {
+            map = new HashMap<Parameter, Value>(values.size() * 3 / 2);
+            for (int i = 0; i < parameters.size(); ++i) {
+                map.put(parameters.get(i), values.get(i));
+            }
+        }
+
+        return value.instantiate(map);
     }
 
     @Override
