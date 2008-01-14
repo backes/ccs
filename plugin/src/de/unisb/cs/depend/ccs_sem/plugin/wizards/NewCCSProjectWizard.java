@@ -7,6 +7,7 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -58,6 +59,13 @@ public class NewCCSProjectWizard extends Wizard implements INewWizard {
 	 */
 	@Override
     public boolean performFinish() {
+        // TODO new project
+        IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject("CCS Project");
+        //project.create(null);
+
+        
+        
+        
 		final String containerName = page.getContainerName();
 		final String fileName = page.getFileName();
 		final IRunnableWithProgress op = new IRunnableWithProgress() {

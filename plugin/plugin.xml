@@ -44,8 +44,7 @@
             extensions="ccs"
             icon="icons/sample.gif"
             id="de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor"
-            name="CCS Editor">
-      </editor>
+            name="CCS Editor"/>
    </extension>
    <extension
          point="org.eclipse.ui.newWizards">
@@ -97,7 +96,7 @@
                tooltip="Hello, Eclipse world">
          </action>
          <action
-               class="de.unisb.cs.depend.ccs_sem.plugin.actions.OpenCCSFileAction"
+               class="de.unisb.cs.depend.ccs_sem.plugin.actions.OpenCCSFile"
                icon="icons/sample.gif"
                id="de.unisb.cs.depend.ccs_sem.plugin.actions.OpenCCSFileAction"
                label="&amp;Open File"

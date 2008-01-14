@@ -1,4 +1,6 @@
 X = a.X;
 Y[a,b] = a.Y[b,a];
 
+TEST = in?1.read1 + in?x.readAnything + in?"bla".readBla;
+
 X + begin.Y[in,out]
