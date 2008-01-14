@@ -11,12 +11,14 @@ import de.unisb.cs.depend.ccs_sem.lexer.tokens.Assignment;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Choice;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Comma;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Dot;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Exclamation;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Identifier;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.IntegerToken;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.LBrace;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.LBracket;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.LParenthesis;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Parallel;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.QuestionMark;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.RBrace;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.RBracket;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.RParenthesis;
@@ -111,6 +113,14 @@ public class CCSLexer extends AbstractLexer {
 
             case ';':
                 tokens.add(new Semicolon(position));
+                break;
+                
+            case '?':
+                tokens.add(new QuestionMark(position));
+                break;
+                
+            case '!':
+                tokens.add(new Exclamation(position));
                 break;
 
             case '1': case '2': case '3': case '4': case '5':

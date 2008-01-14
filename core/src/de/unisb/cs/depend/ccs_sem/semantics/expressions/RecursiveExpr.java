@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
@@ -53,7 +52,7 @@ public class RecursiveExpr extends Expression {
     }
 
     @Override
-    public Expression replaceRecursion(List<Declaration> declarations) throws ParseException {
+    public Expression replaceRecursion(List<Declaration> declarations) {
         // nothing to do here
         return this;
     }

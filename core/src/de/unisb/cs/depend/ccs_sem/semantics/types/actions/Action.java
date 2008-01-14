@@ -17,6 +17,7 @@ public abstract class Action {
     // caching
     private static Map<Action, Action> repository = new HashMap<Action, Action>();
 
+    // TODO not needed anymore?
     public static Action newAction(String name) throws ParseException {
         // TODO distinguish between different types of values
         Action action;

@@ -15,12 +15,14 @@ import de.unisb.cs.depend.ccs_sem.lexer.tokens.Assignment;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Choice;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Comma;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Dot;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Exclamation;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Identifier;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.IntegerToken;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.LBrace;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.LBracket;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.LParenthesis;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Parallel;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.QuestionMark;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.RBrace;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.RBracket;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.RParenthesis;
@@ -39,6 +41,9 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.InputAction;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.OutputAction;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.SimpleAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.TauAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.value.ConstantValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.value.IntegerValue;
@@ -62,6 +67,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.value.Value;
  * baseExpression     --> "0"
  *                          | "(" expression ")"
  *                          | recursionVariable
+ *                          | action
  * action             --> identifier ( ("?" | "!") value )?
  * identifier         --> character ( digit | character ) *
  * character          --> "a" | ... | "z" | "A" | ... | "Z" | "_"
@@ -322,13 +328,28 @@ public class CCSParser implements Parser {
     // TODO handle all action stuff. we should introduce tokens for '?' and '!'.
     private Action readAction(ListIterator<Token> tokens, boolean tauAllowed) throws ParseException {
         if (tokens.hasNext()) {
-            final Token nextToken = tokens.next();
+            Token nextToken = tokens.next();
             if (nextToken instanceof Identifier) {
                 final Identifier identifier = (Identifier)nextToken;
-                final Action newAction = Action.newAction(identifier.getName());
-                if (!tauAllowed && newAction instanceof TauAction)
-                    throw new ParseException("Tau action not allowed here");
-                return newAction;
+                if ("i".equals(identifier.getName())) {
+                    if (!tauAllowed)
+                        throw new ParseException("Tau action not allowed here");
+                    return TauAction.get();
+                }
+                if (tokens.hasNext()) {
+                    nextToken = tokens.next();
+                    if (nextToken instanceof QuestionMark) {
+                        Value value = readInputValue(tokens);
+                        return new InputAction(identifier.getName(), value);
+                    }
+                    if (nextToken instanceof Exclamation) {
+                        Value value = readValue(tokens);
+                        return new OutputAction(identifier.getName(), value);
+                    }
+                    tokens.previous();
+                }
+                Value value = readValue // TODO ??? was ist hier erlaubt?
+                return Action.getAction(new SimpleAction(identifier.getName()));
             }
         }
         throw new ParseException("Expected action identifier");
@@ -393,7 +414,7 @@ public class CCSParser implements Parser {
     }
 
     /**
-     * Read one base expression (stop, expression in parentheses, or an identifier).
+     * Read one base expression (stop, expression in parentheses, or an identifier/action).
      */
     private Expression readBaseExpression(ListIterator<Token> tokens) throws ParseException {
         if (tokens.hasNext()) {
@@ -409,6 +430,7 @@ public class CCSParser implements Parser {
                 return expr;
             }
 
+            // TODO readAction
             if (nextToken instanceof Identifier) {
                 final Identifier identifier = (Identifier) nextToken;
                 if (tokens.hasNext()) {
