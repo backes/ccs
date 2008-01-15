@@ -26,7 +26,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 		super(configurer);
 	}
 
-	protected void makeActions(final IWorkbenchWindow window) {
+	@Override
+    protected void makeActions(final IWorkbenchWindow window) {
 		// Creates the actions and registers them.
 		// Registering is needed to ensure that key bindings work.
 		// The corresponding commands keybindings are defined in the plugin.xml
@@ -38,7 +39,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 		register(exitAction);
 	}
 
-	protected void fillMenuBar(IMenuManager menuBar) {
+	@Override
+    protected void fillMenuBar(IMenuManager menuBar) {
 		MenuManager fileMenu = new MenuManager("&File",
 				IWorkbenchActionConstants.M_FILE);
 		menuBar.add(fileMenu);
