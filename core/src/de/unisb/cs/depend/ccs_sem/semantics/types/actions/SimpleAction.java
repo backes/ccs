@@ -64,7 +64,7 @@ public class SimpleAction extends Action {
     }
 
     @Override
-    public Expression manipulateTarget(Expression target) throws ParseException {
+    public Expression manipulateTarget(Expression target) {
         return target;
     }
 

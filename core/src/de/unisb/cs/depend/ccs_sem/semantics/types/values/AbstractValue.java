@@ -19,6 +19,8 @@ public abstract class AbstractValue implements Value {
         return false;
     }
 
+    // ParseException is thrown in some subclasses
+    @SuppressWarnings("unused")
     public Value insertParameters(List<Parameter> parameters) throws ParseException {
         return this;
     }
