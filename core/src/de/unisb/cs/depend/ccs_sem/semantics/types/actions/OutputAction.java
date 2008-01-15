@@ -24,11 +24,14 @@ public class OutputAction extends Action {
     @Override
     public String getLabel() {
         final String channelValue = channel.getStringValue();
-        final String messageValue = message.getStringValue();
+        final String messageValue = message == null ? null : message.getStringValue();
 
-        final StringBuilder sb =
-                new StringBuilder(channelValue.length() + 1 + messageValue.length());
-        sb.append(channelValue).append('!').append(messageValue);
+        final int size = channelValue.length() + 1 +
+            (messageValue == null ? 0 : messageValue.length());
+        final StringBuilder sb = new StringBuilder(size);
+        sb.append(channelValue).append('!');
+        if (messageValue != null)
+            sb.append(messageValue);
         return sb.toString();
     }
 
@@ -43,6 +46,11 @@ public class OutputAction extends Action {
     }
 
     @Override
+    public boolean isOutputAction() {
+        return true;
+    }
+
+    @Override
     public Expression synchronizeWith(Action otherAction, Expression target) {
         // this method should not be called on an output action
         assert false;
@@ -54,9 +62,11 @@ public class OutputAction extends Action {
     public boolean restricts(Action actionToCheck) {
         if (actionToCheck instanceof OutputAction) {
             final OutputAction outputActionToCheck = (OutputAction) actionToCheck;
-            if (channel.equals(outputActionToCheck.channel)
-                    && (message == null) == (outputActionToCheck.message == null))
-                return true;
+            if (channel.equals(outputActionToCheck.channel)) {
+                // TODO distinguish parameters / values
+                if (message == null || message.equals(outputActionToCheck.message))
+                    return true;
+            }
         }
 
         return false;
@@ -89,10 +99,15 @@ public class OutputAction extends Action {
     }
 
     @Override
+    public Expression manipulateTarget(Expression target) throws ParseException {
+        return target;
+    }
+
+    @Override
     public int hashCode() {
         final int PRIME = 31;
         int result = 1;
-        result = PRIME * result + ((channel == null) ? 0 : channel.hashCode());
+        result = PRIME * result + channel.hashCode();
         result = PRIME * result + ((message == null) ? 0 : message.hashCode());
         return result;
     }

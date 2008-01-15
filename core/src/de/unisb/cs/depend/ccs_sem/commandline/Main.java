@@ -67,6 +67,7 @@ public class Main {
             return false;
         } catch (final ParseException e) {
             System.err.println("Error parsing input file: " + e.getMessage());
+            System.err.println("around this context: \"" + e.getEnvironment() + "\"");
             return false;
         }
 

@@ -84,7 +84,7 @@ public class Transition {
         // this method should only be called on input actions
         assert action.isInputAction();
 
-        return action.synchronizeWith(otherAction, getTarget());
+        return action.synchronizeWith(otherAction, target);
     }
 
     @Override

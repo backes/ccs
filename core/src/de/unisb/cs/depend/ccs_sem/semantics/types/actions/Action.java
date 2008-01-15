@@ -59,6 +59,16 @@ public abstract class Action {
      */
     public abstract boolean restricts(Action actionToCheck);
 
+    /**
+     * If this Action is used as Prefix for a PrefixExpression, it may want
+     * to manipulate the target of the PrefixExpression.
+
+     * @param target the original target Expression
+     * @return either <code>target</code> again, or a new Expression
+     * @throws ParseException
+     */
+    public abstract Expression manipulateTarget(Expression target) throws ParseException;
+
     @Override
     public String toString() {
         return getLabel();

@@ -38,8 +38,10 @@ public class RestrictExpr extends Expression {
         final List<Transition> oldTransitions = innerExpr.getTransitions();
         final List<Transition> newTransitions = new ArrayList<Transition>(oldTransitions.size());
 
-        // decide if we take the naive way or a more complex one
-        final boolean useComplexWay = restricted.size() > 3;
+        boolean useComplexWay = restricted.size() > 5;
+
+        // in debug mode switch to complex mode
+        assert (useComplexWay = true) == true;
 
         if (useComplexWay) {
             restrictComplex(oldTransitions, newTransitions);
@@ -52,10 +54,12 @@ public class RestrictExpr extends Expression {
 
     private void restrictNaive(final List<Transition> oldTransitions,
             final List<Transition> newTransitions) {
+        outer:
         for (final Transition trans: oldTransitions) {
             for (final Action restrictedAction: restricted) {
-                if (!restrictedAction.restricts(trans.getAction()))
-                    newTransitions.add(trans);
+                if (restrictedAction.restricts(trans.getAction()))
+                    continue outer;
+                newTransitions.add(trans);
             }
         }
     }
@@ -67,27 +71,24 @@ public class RestrictExpr extends Expression {
         for (final Action a: restricted) {
             List<Action> list = restrictionMap.get(a.getChannel());
             if (list == null)
-                list = restrictionMap.put(a.getChannel(), list = new ArrayList<Action>(2));
+                restrictionMap.put(a.getChannel(), list = new ArrayList<Action>(2));
             list.add(a);
         }
 
+        outer:
         for (final Transition trans: oldTransitions) {
             final List<Action> restrList = restrictionMap.get(trans.getAction().getChannel());
-            boolean isRestricted = false;
-            if (restrList != null) {
-                for (final Action restrictedAction: restrList) {
+            if (restrList != null)
+                for (final Action restrictedAction: restrList)
                     if (restrictedAction.restricts(trans.getAction()))
-                        isRestricted = true;
-                }
-            }
-            if (!isRestricted) {
-                Expression newExpr = new RestrictExpr(trans.getTarget(), restricted);
-                // search if this expression is already known
-                newExpr = Expression.getExpression(newExpr);
-                // search if this transition is already known (otherwise create it)
-                final Transition newTrans = Transition.getTransition(trans.getAction(), newExpr);
-                newTransitions.add(newTrans);
-            }
+                        continue outer;
+
+            Expression newExpr = new RestrictExpr(trans.getTarget(), restricted);
+            // search if this expression is already known
+            newExpr = Expression.getExpression(newExpr);
+            // search if this transition is already known (otherwise create it)
+            final Transition newTrans = Transition.getTransition(trans.getAction(), newExpr);
+            newTransitions.add(newTrans);
         }
     }
 

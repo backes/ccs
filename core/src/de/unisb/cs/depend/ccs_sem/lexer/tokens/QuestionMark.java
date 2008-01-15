@@ -9,7 +9,7 @@ public class QuestionMark extends AbstractToken {
 
     @Override
     public String toString() {
-        return "!";
+        return "?";
     }
 
 }

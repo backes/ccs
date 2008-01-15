@@ -114,11 +114,11 @@ public class CCSLexer extends AbstractLexer {
             case ';':
                 tokens.add(new Semicolon(position));
                 break;
-                
+
             case '?':
                 tokens.add(new QuestionMark(position));
                 break;
-                
+
             case '!':
                 tokens.add(new Exclamation(position));
                 break;
@@ -167,7 +167,7 @@ public class CCSLexer extends AbstractLexer {
         final StringBuilder name = new StringBuilder();
         while ((nextChar >= 'a' && nextChar <= 'z') || (nextChar >= 'A' && nextChar <= 'Z')
                 || (!first && nextChar >= '0' && nextChar <= '9')
-                || (!first && (nextChar == '?' || nextChar == '!'))
+                //|| (!first && (nextChar == '?' || nextChar == '!'))
                 || nextChar == '_') {
             assert 0 <= nextChar && nextChar < 1<<16;
             name.append((char)nextChar);

@@ -16,13 +16,14 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
  */
 public class Parameter {
 
+    // TODO when instantiating a parameter, it has to be copied (i think)
+
     private static enum Type {
         UNKNOWN, CHANNEL, VALUE
     }
 
     // the type is determined while Value.insertParameters() and
     // UnknownString.replaceRecursion
-    // TODO
     private Type type = Type.UNKNOWN;
     private final String name;
     private List<Parameter> connectedParameters = null;
@@ -33,7 +34,7 @@ public class Parameter {
 
     @Override
     public String toString() {
-        return type + "_" + name;
+        return name;
     }
 
     public String getName() {

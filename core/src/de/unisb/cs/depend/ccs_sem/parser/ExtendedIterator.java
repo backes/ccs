@@ -18,7 +18,7 @@ public class ExtendedIterator<E> implements ListIterator<E> {
     public ExtendedIterator(List<E> tokens, int position) {
         super();
         this.list = tokens;
-        this.position = position;
+        setPosition(position);
     }
 
 
@@ -111,6 +111,12 @@ public class ExtendedIterator<E> implements ListIterator<E> {
                 && class3.isInstance(list.get(position+1))
                 && class4.isInstance(list.get(position+1))
                 && class5.isInstance(list.get(position+2)));
+    }
+
+    public void setPosition(int index) {
+        if (position < 0 || position > list.size())
+            throw new IndexOutOfBoundsException();
+        position = index;
     }
 
 }

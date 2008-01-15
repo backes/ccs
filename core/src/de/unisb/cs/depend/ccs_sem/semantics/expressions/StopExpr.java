@@ -13,6 +13,8 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 public class StopExpr extends Expression {
 
+    private static StopExpr instance;
+
     public StopExpr() {
         super();
     }
@@ -55,6 +57,12 @@ public class StopExpr extends Expression {
     @Override
     public boolean equals(Object obj) {
         return obj instanceof StopExpr;
+    }
+
+    public static StopExpr get() {
+        if (instance == null)
+            instance = new StopExpr();
+        return instance;
     }
 
 }

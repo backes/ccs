@@ -64,6 +64,11 @@ public class SimpleAction extends Action {
     }
 
     @Override
+    public Expression manipulateTarget(Expression target) throws ParseException {
+        return target;
+    }
+
+    @Override
     public int hashCode() {
         return channel.hashCode();
     }

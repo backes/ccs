@@ -3,6 +3,7 @@ package de.unisb.cs.depend.ccs_sem.semantics.types.actions;
 import java.util.List;
 import java.util.Map;
 
+import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
@@ -53,6 +54,16 @@ public class TauAction extends Action {
     }
 
     @Override
+    public boolean isInputAction() {
+        return true;
+    }
+
+    @Override
+    public boolean isOutputAction() {
+        return true;
+    }
+
+    @Override
     public boolean restricts(Action actionToCheck) {
         // this method should not be called because TauActions cannot be used in
         // RestrictExpressions
@@ -67,6 +78,11 @@ public class TauAction extends Action {
             return target;
 
         return null;
+    }
+
+    @Override
+    public Expression manipulateTarget(Expression target) throws ParseException {
+        return target;
     }
 
     @Override

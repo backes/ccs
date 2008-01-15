@@ -91,49 +91,68 @@ public class CCSParser implements Parser {
     public Program parse(List<Token> tokens) throws ParseException {
         final ArrayList<Declaration> declarations = new ArrayList<Declaration>();
 
-        int index = 0;
-
-        // first, read the declarations
-        try {
-            while (index < tokens.size()) {
-
-                final ExtendedIterator<Token> it = new ExtendedIterator<Token>(tokens);
-                final Declaration nextDeclaration = readDeclaration(it);
-
-                if (!it.hasNext() || !(it.next() instanceof Semicolon))
-                    throw new ParseException("Expected ';' after this declaration");
-
-                index = it.nextIndex();
-
-                // check if a declaration with the same name and number of parameters is already known
-                for (final Declaration decl: declarations)
-                    if (decl.getName().equals(nextDeclaration.getName())
-                            && decl.getParamNr() == nextDeclaration.getParamNr())
-                        throw new ParseException("Duplicate recursion variable definition ("
-                            + nextDeclaration.getName() + "[" + nextDeclaration.getParamNr() + "]");
-
-                declarations.add(nextDeclaration);
-            }
-        } catch (final ParseException e) {
-            // abort reading declarations, start reading the main expression
-        }
-
-        declarations.trimToSize();
-
-        // then, read the ccs expression
         final ExtendedIterator<Token> it = new ExtendedIterator<Token>(tokens);
-        final Expression expr = readExpression(it);
 
-        if (it.hasNext())
-            throw new ParseException("Syntax error: Unexpected '" + it.next() + "'");
+        try {
+            // first, read the declarations
+            int index = 0;
+            try {
+                while (it.hasNext()) {
 
-        final Program program = new Program(declarations, expr);
+                    final Declaration nextDeclaration = readDeclaration(it);
 
-        if (!program.isRegular()) {
-            throw new ParseException("Your recursive definitions are not regular");
+                    if (!it.hasNext() || !(it.next() instanceof Semicolon))
+                        throw new ParseException("Expected ';' after this declaration");
+
+                    index = it.nextIndex();
+
+                    // check if a declaration with the same name and number of parameters is already known
+                    for (final Declaration decl: declarations)
+                        if (decl.getName().equals(nextDeclaration.getName())
+                                && decl.getParamNr() == nextDeclaration.getParamNr())
+                            throw new ParseException("Duplicate recursion variable definition ("
+                                + nextDeclaration.getName() + "[" + nextDeclaration.getParamNr() + "]");
+
+                    declarations.add(nextDeclaration);
+                }
+            } catch (final ParseException e) {
+                // abort reading declarations, start reading the main expression
+            }
+
+            declarations.trimToSize();
+
+            // then, read the ccs expression
+            it.setPosition(index);
+            final Expression expr = readExpression(it);
+
+            if (it.hasNext())
+                throw new ParseException("Syntax error: Unexpected '" + it.next() + "'");
+
+            final Program program = new Program(declarations, expr);
+
+            if (!program.isRegular()) {
+                throw new ParseException("Your recursive definitions are not regular");
+            }
+
+            return program;
+        } catch (final ParseException e) {
+            e.setEnvironment(getEnvironment(tokens, it.previousIndex(), 5));
+            throw e;
+        }
+    }
+
+    private String getEnvironment(List<Token> tokens, int position, int width) {
+        final int from = position < width ? 0 : position - width;
+        final int to = position > tokens.size() - width ? tokens.size(): position + width;
+
+        final StringBuilder environment = new StringBuilder();
+        for (int i = from; i < to; ++i) {
+            if (i == from)
+                environment.append(' ');
+            environment.append(tokens.get(i));
         }
 
-        return program;
+        return environment.toString();
     }
 
     private Declaration readDeclaration(ExtendedIterator<Token> tokens) throws ParseException {
@@ -282,16 +301,12 @@ public class CCSParser implements Parser {
      */
     private Expression readRestrictExpression(ExtendedIterator<Token> tokens) throws ParseException {
         Expression expr = readParallelExpression(tokens);
-        while (tokens.hasNext()) {
-            if (tokens.next() instanceof Restrict) {
-                if (!(tokens.next() instanceof LBrace))
-                    throw new ParseException("Expected '{'");
-                final Set<Action> restricted = readActionSet(tokens);
-                expr = Expression.getExpression(new RestrictExpr(expr, restricted));
-            } else {
-                tokens.previous();
-                break;
-            }
+        while (tokens.hasNext() && tokens.peek() instanceof Restrict) {
+            tokens.next();
+            if (!tokens.hasNext() || !(tokens.next() instanceof LBrace))
+                throw new ParseException("Expected '{'");
+            final Set<Action> restricted = readActionSet(tokens);
+            expr = Expression.getExpression(new RestrictExpr(expr, restricted));
         }
 
         return expr;
@@ -303,10 +318,9 @@ public class CCSParser implements Parser {
     private Set<Action> readActionSet(ExtendedIterator<Token> tokens) throws ParseException {
         final Set<Action> actions = new HashSet<Action>();
 
-        if (tokens.hasNext()) {
-            if (tokens.next() instanceof RBrace)
-                return Collections.emptySet();
-            tokens.previous();
+        if (tokens.peek() instanceof RBrace) {
+            tokens.next();
+            return Collections.emptySet();
         }
 
         while (tokens.hasNext()) {
@@ -346,10 +360,10 @@ public class CCSParser implements Parser {
                         final Parameter param = readParameter(tokens);
                         return new InputAction(channel, param);
                     }
-                    final Value value = readInputValue(tokens);
+                    final Value value = readInputValue(tokens, true);
                     return Action.getAction(new InputAction(channel, value));
                 } else if (nextToken instanceof Exclamation) {
-                    final Value value = readValue(tokens);
+                    final Value value = readValue(tokens, true);
                     return Action.getAction(new OutputAction(channel, value));
                 }
                 tokens.previous();
@@ -359,19 +373,17 @@ public class CCSParser implements Parser {
         throw new ParseException("Expected action identifier.");
     }
 
-    private Value readInputValue(ExtendedIterator<Token> tokens) throws ParseException {
-        if (tokens.hasNext()) {
-            final Token nextToken = tokens.next();
-            if (nextToken instanceof IntegerToken) {
-                final IntegerToken intToken = (IntegerToken) nextToken;
-                return new IntegerValue(intToken.getValue());
-            }
-            tokens.previous();
+    private Value readInputValue(ExtendedIterator<Token> tokens, boolean allowNull) throws ParseException {
+        if (tokens.peek() instanceof IntegerToken) {
+            final IntegerToken intToken = (IntegerToken) tokens.next();
+            return new IntegerValue(intToken.getValue());
         }
+        if (allowNull)
+            return null;
         throw new ParseException("Expected input value.");
     }
 
-    private Value readValue(ExtendedIterator<Token> tokens) throws ParseException {
+    private Value readValue(ExtendedIterator<Token> tokens, boolean allowNull) throws ParseException {
         if (tokens.hasNext()) {
             final Token nextToken = tokens.next();
             if (nextToken instanceof Identifier) {
@@ -383,6 +395,8 @@ public class CCSParser implements Parser {
             }
             tokens.previous();
         }
+        if (allowNull)
+            return null;
         throw new ParseException("Expected value.");
     }
 
@@ -405,14 +419,10 @@ public class CCSParser implements Parser {
      */
     private Expression readParallelExpression(ExtendedIterator<Token> tokens) throws ParseException {
         Expression expr = readChoiceExpression(tokens);
-        while (tokens.hasNext()) {
-            if (tokens.next() instanceof Parallel) {
-                final Expression newExpr = readChoiceExpression(tokens);
-                expr = Expression.getExpression(new ParallelExpr(expr, newExpr));
-            } else {
-                tokens.previous();
-                break;
-            }
+        while (tokens.hasNext() && tokens.peek() instanceof Parallel) {
+            tokens.next();
+            final Expression newExpr = readChoiceExpression(tokens);
+            expr = Expression.getExpression(new ParallelExpr(expr, newExpr));
         }
 
         return expr;
@@ -423,14 +433,10 @@ public class CCSParser implements Parser {
      */
     private Expression readChoiceExpression(ExtendedIterator<Token> tokens) throws ParseException {
         Expression expr = readPrefixExpression(tokens);
-        while (tokens.hasNext()) {
-            if (tokens.next() instanceof Choice) {
-                final Expression newExpr = readPrefixExpression(tokens);
-                expr = Expression.getExpression(new ChoiceExpr(expr, newExpr));
-            } else {
-                tokens.previous();
-                break;
-            }
+        while (tokens.hasNext() && tokens.peek() instanceof Choice) {
+            tokens.next();
+            final Expression newExpr = readPrefixExpression(tokens);
+            expr = Expression.getExpression(new ChoiceExpr(expr, newExpr));
         }
 
         return expr;
@@ -446,20 +452,32 @@ public class CCSParser implements Parser {
             final int oldPosition = tokens.nextIndex();
             try {
                 final Action action = readAction(tokens, true);
-                if (tokens.hasNext()) {
-                    final Token nextToken = tokens.next();
-                    if (nextToken instanceof Dot) {
-                        final Expression postfix = readPrefixExpression(tokens);
-                        return Expression.getExpression(new PrefixExpr(action, postfix));
+                if (tokens.peek() instanceof Dot) {
+                    tokens.next();
+                    Expression target = readPrefixExpression(tokens);
+                    // allow the action to manipulate the target
+                    target = action.manipulateTarget(target);
+                    return Expression.getExpression(new PrefixExpr(action, target));
+                }
+                // if it was an InputAction or an OutputAction, it must be a
+                // PrefixExpression (followed by Stop)
+                // otherwise try to read the parameters
+                if (action instanceof SimpleAction) {
+                    List<Value> parameters = Collections.emptyList();
+                    if (tokens.peek() instanceof LBracket) {
+                        tokens.next();
+                        parameters = readParameterValues(tokens);
                     }
+                    return Expression.getExpression(new UnknownString(action.getLabel(), parameters));
+                } else {
+                    return Expression.getExpression(new PrefixExpr(action, StopExpr.get()));
                 }
             } catch (final ParseException e) {
                 // ignore this
             }
 
             // reset to old position
-            while (tokens.nextIndex() > oldPosition)
-                tokens.previous();
+            tokens.setPosition(oldPosition);
         }
 
         return readBaseExpression(tokens);
@@ -480,20 +498,6 @@ public class CCSParser implements Parser {
                 if (!tokens.hasNext() || !(tokens.next() instanceof RParenthesis))
                     throw new ParseException("Expected ')'");
                 return expr;
-            }
-
-            // TODO readAction
-            if (nextToken instanceof Identifier) {
-                final Identifier identifier = (Identifier) nextToken;
-                if (tokens.hasNext()) {
-                    if (tokens.next() instanceof LBracket) {
-                        final List<Value> parameters = readParameterValues(tokens);
-                        final UnknownString newExpr = new UnknownString(identifier.getName(), parameters);
-                        return Expression.getExpression(newExpr);
-                    }
-                    tokens.previous();
-                }
-                return Expression.getExpression(new UnknownString(identifier.getName()));
             }
 
             throw new ParseException("Syntax error. Unexpected '" + nextToken + "'");

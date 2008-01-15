@@ -39,9 +39,12 @@ public class InputAction extends Action {
         final String paramValue = param != null ? param.getName()
                         : value != null ? value.getStringValue() : null;
 
-        final StringBuilder sb =
-                new StringBuilder(channelValue.length() + 1 + paramValue.length());
-        sb.append(channelValue).append('?').append(paramValue);
+        final int size = channelValue.length() + 1 +
+            (paramValue == null ? 0 : paramValue.length());
+        final StringBuilder sb = new StringBuilder(size);
+        sb.append(channelValue).append('?');
+        if (paramValue != null)
+            sb.append(paramValue);
         return sb.toString();
     }
 
@@ -54,6 +57,11 @@ public class InputAction extends Action {
     public Value getMessage() {
         // TODO is this right? is this method ever called?
         return value;
+    }
+
+    @Override
+    public boolean isInputAction() {
+        return true;
     }
 
     @Override
@@ -79,17 +87,30 @@ public class InputAction extends Action {
     @Override
     public Action instantiate(Map<Parameter, Value> parameters) {
         final Channel newChannel = channel.instantiate(parameters);
-        if (channel.equals(newChannel))
+
+        if (value == null) {
+            if (channel.equals(newChannel))
+                return this;
+            return Action.getAction(new InputAction(newChannel, value));
+        }
+
+        final Value newValue = value.instantiate(parameters);
+
+        if (channel.equals(newChannel) && value.equals(newValue))
             return this;
-        return Action.getAction(new InputAction(newChannel, param));
+
+        return Action.getAction(new InputAction(newChannel, newValue));
     }
 
     @Override
     public boolean restricts(Action actionToCheck) {
         if (actionToCheck instanceof InputAction) {
             final InputAction inputActionToCheck = (InputAction) actionToCheck;
-            return (channel.equals(inputActionToCheck.channel)
-                    && (param == null) == (inputActionToCheck.param == null));
+            if (channel.equals(inputActionToCheck.channel)) {
+                // TODO distinguish parameters / values
+                if (value == null || value.equals(inputActionToCheck.value))
+                    return true;
+            }
         }
 
         return false;
@@ -106,11 +127,19 @@ public class InputAction extends Action {
     }
 
     @Override
+    public Expression manipulateTarget(Expression target) throws ParseException {
+        if (param == null)
+            return target;
+        return target.insertParameters(Collections.singletonList(param));
+    }
+
+    @Override
     public int hashCode() {
-        final int PRIME = 31;
-        int result = 1;
-        result = PRIME * result + channel.hashCode();
-        result = PRIME * result + ((param == null) ? 0 : param.hashCode());
+        final int prime = 31;
+        int result = 3;
+        result = prime * result + channel.hashCode();
+        result = prime * result + ((param == null) ? 0 : param.hashCode());
+        result = prime * result + ((value == null) ? 0 : value.hashCode());
         return result;
     }
 
@@ -129,6 +158,11 @@ public class InputAction extends Action {
             if (other.param != null)
                 return false;
         } else if (!param.equals(other.param))
+            return false;
+        if (value == null) {
+            if (other.value != null)
+                return false;
+        } else if (!value.equals(other.value))
             return false;
         return true;
     }

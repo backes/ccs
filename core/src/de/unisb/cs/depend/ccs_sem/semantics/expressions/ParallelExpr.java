@@ -65,16 +65,14 @@ public class ParallelExpr extends Expression {
             transitions.add(newTrans);
         }
 
-        // or synchronized:
-        // this is one of the hardest tasks, so it might be useful to use a more
-        // clever way than just iterate nestedly through both transition lists
-        // (however, on a small number of transitions, the naive way is mor efficient)
-
-        // TODO try other values here
-        final boolean useCleverWay =
+        boolean useCleverWay =
                 leftTransitions.size() > 3
                         && rightTransitions.size() > 3
                         && (leftTransitions.size() * rightTransitions.size()) > 20;
+
+        // in debug mode switch to complex mode
+        assert (useCleverWay = true) == true;
+
         if (useCleverWay) {
             combineUsingCleverWay(leftTransitions, rightTransitions, transitions);
         } else {

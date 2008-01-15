@@ -14,7 +14,7 @@ public class ParameterRefValue extends AbstractValue {
     }
 
     public String getStringValue() {
-        return "param_" + param.getName();
+        return param.getName();
     }
 
     public Parameter getParam() {
@@ -29,7 +29,7 @@ public class ParameterRefValue extends AbstractValue {
 
     @Override
     public String toString() {
-        return getStringValue();
+        return param.getName();
     }
 
     @Override
