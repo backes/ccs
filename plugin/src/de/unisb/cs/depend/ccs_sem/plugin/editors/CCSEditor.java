@@ -7,21 +7,23 @@ import de.unisb.cs.depend.ccs_sem.plugin.views.CCSContentOutlinePage;
 
 public class CCSEditor extends TextEditor {
 
-    private ColorManager colorManager;
+    private final ColorManager colorManager;
     private CCSContentOutlinePage fOutlinePage;
 
     public CCSEditor() {
         super();
         colorManager = new ColorManager();
-        setSourceViewerConfiguration(new XMLConfiguration(colorManager));
-        setDocumentProvider(new XMLDocumentProvider());
+        setSourceViewerConfiguration(new CCSConfiguration(colorManager));
+        setDocumentProvider(new CCSDocumentProvider());
     }
 
+    @Override
     public void dispose() {
         colorManager.dispose();
         super.dispose();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Object getAdapter(Class required) {
         if (IContentOutlinePage.class.equals(required)) {

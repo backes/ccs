@@ -3,9 +3,9 @@ package de.unisb.cs.depend.ccs_sem.plugin.editors;
 import org.eclipse.jface.text.rules.*;
 import org.eclipse.jface.text.*;
 
-public class XMLScanner extends RuleBasedScanner {
+public class CCSScanner extends RuleBasedScanner {
 
-	public XMLScanner(ColorManager manager) {
+	public CCSScanner(ColorManager manager) {
 		IToken procInstr =
 			new Token(
 				new TextAttribute(

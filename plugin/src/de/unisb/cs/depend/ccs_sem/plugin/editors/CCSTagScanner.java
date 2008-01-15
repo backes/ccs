@@ -3,9 +3,9 @@ package de.unisb.cs.depend.ccs_sem.plugin.editors;
 import org.eclipse.jface.text.*;
 import org.eclipse.jface.text.rules.*;
 
-public class XMLTagScanner extends RuleBasedScanner {
+public class CCSTagScanner extends RuleBasedScanner {
 
-	public XMLTagScanner(ColorManager manager) {
+	public CCSTagScanner(ColorManager manager) {
 		IToken string =
 			new Token(
 				new TextAttribute(manager.getColor(IXMLColorConstants.STRING)));

@@ -4,34 +4,24 @@
    <extension
          point="org.eclipse.ui.views">
       <category
-            id="de.unisb.cs.depend.ccs_sem.plugin.views.CSS_category"
+            id="de.unisb.cs.depend.ccs_sem.plugin.views.CCS_category"
             name="CCS">
       </category>
       <view
-            category="de.unisb.cs.depend.ccs_sem.plugin.views.CSS_category"
-            class="de.unisb.cs.depend.ccs_sem.plugin.views.CCSEditorView"
-            icon="icons/sample.gif"
-            id="de.unisb.cs.depend.ccs_sem.plugin.views.CCSEditorView"
-            name="CCS Editor">
+            allowMultiple="false"
+            category="de.unisb.cs.depend.ccs_sem.plugin.views.CCS_category"
+            class="de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView"
+            icon="icons/ccs.gif"
+            id="de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView"
+            name="CCSGraphView">
       </view>
-   </extension>
-   <extension
-         point="org.eclipse.ui.perspectiveExtensions">
-      <perspectiveExtension
-            targetID="org.eclipse.ui.resourcePerspective">
-         <view
-               id="de.unisb.cs.depend.ccs_sem.plugin.views.CCSEditorView"
-               ratio="0.5"
-               relationship="right"
-               relative="org.eclipse.ui.views.TaskList">
-         </view>
-      </perspectiveExtension>
    </extension>
    <extension
          point="org.eclipse.ui.perspectives">
       <perspective
             class="de.unisb.cs.depend.ccs_sem.plugin.perspectives.CCSPerspective"
-            icon="icons/sample.gif"
+            fixed="false"
+            icon="icons/ccs.gif"
             id="de.unisb.cs.depend.ccs_sem.plugin.perspectives.CCSPerspective"
             name="de.unisb.cs.depend.ccs_sem.plugin.perspectives.CCSPerspective">
       </perspective>
@@ -40,9 +30,9 @@
          point="org.eclipse.ui.editors">
       <editor
             class="de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor"
-            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            contributorClass="de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditorActionContributor"
             extensions="ccs"
-            icon="icons/sample.gif"
+            icon="icons/ccs.gif"
             id="de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor"
             name="CCS Editor"/>
    </extension>
@@ -86,26 +76,36 @@
             </separator>
          </menu>
          <action
-               class="de.unisb.cs.depend.ccs_sem.plugin.actions.CCSAction"
-               icon="icons/sample.gif"
-               id="de.unisb.cs.depend.ccs_sem.plugin.actions.CCSAction"
-               label="&amp;Sample Action"
-               menubarPath="ccsMenu/ccsGroup"
-               style="push"
-               toolbarPath="ccsGroup"
-               tooltip="Hello, Eclipse world">
-         </action>
-         <action
                class="de.unisb.cs.depend.ccs_sem.plugin.actions.OpenCCSFile"
                icon="icons/sample.gif"
                id="de.unisb.cs.depend.ccs_sem.plugin.actions.OpenCCSFileAction"
                label="&amp;Open File"
-               menubarPath="ccsMenu/ccsGroup"
                style="push"
                toolbarPath="ccsGroup"
                tooltip="Open a ccs file">
          </action>
       </actionSet>
+   </extension>
+   <extension
+         point="org.eclipse.ui.viewActions">
+      <viewContribution
+            id="de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView.Contribution"
+            targetID="de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView">
+         <action
+               class="de.unisb.cs.depend.ccs_sem.plugin.viewsActions.RefreshGraph"
+               disabledIcon="icons/refresh_dis.gif"
+               enablesFor="1"
+               icon="icons/refresh.gif"
+               id="de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView.actions.refresh"
+               label="Refresh"
+               menubarPath="graphFunctions"
+               toolbarPath="graphFunctions"
+               tooltip="Refresh this graph">
+            <selection
+                  class="de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor">
+            </selection>
+         </action>
+      </viewContribution>
    </extension>
 
 

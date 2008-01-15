@@ -10,7 +10,6 @@
  *******************************************************************************/
 package de.unisb.cs.depend.ccs_sem.plugin.perspectives;
 
-import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.ui.IFolderLayout;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPerspectiveFactory;

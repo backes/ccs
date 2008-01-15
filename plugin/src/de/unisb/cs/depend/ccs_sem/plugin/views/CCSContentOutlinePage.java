@@ -17,26 +17,19 @@ import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor;
 
 public class CCSContentOutlinePage implements IContentOutlinePage {
     Composite outerOne;
-    
+
     public CCSContentOutlinePage(IDocumentProvider documentProvider, CCSEditor editor) {
         // TODO Auto-generated constructor stub
     }
 
     public void createControl(Composite parent) {
 
-        //TODO NOOOOOOOOOOOOOO!!!
-        for (Control cur : parent.getChildren()) {
-            cur.dispose();
-        }
-        
-        parent.setLayout(new FillLayout(SWT.VERTICAL));
-        
-        outerOne = new Composite(parent, SWT.None);
-        
+        outerOne = new Composite(parent, SWT.MULTI);
+
         outerOne.setLayout(new FillLayout(SWT.VERTICAL));
-        
-        Text text = new Text(outerOne, SWT.MULTI);
-        text.setText("No text.");
+
+        final Text text = new Text(outerOne, SWT.MULTI);
+        text.setText("No text.....");
         // TODO Auto-generated method stub
 
     }
@@ -79,7 +72,7 @@ public class CCSContentOutlinePage implements IContentOutlinePage {
         // TODO Auto-generated method stub
 
     }
-    
+
     public void setInput(IEditorInput input) {
         // TODO Auto-generated method stub
     }
