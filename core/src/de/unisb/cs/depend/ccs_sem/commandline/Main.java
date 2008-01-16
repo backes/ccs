@@ -16,6 +16,7 @@ import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.exporters.AiSeeGraphExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.ETMCCExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.Exporter;
+import de.unisb.cs.depend.ccs_sem.exporters.bcg.BCGExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.helpers.StateNumerator;
 import de.unisb.cs.depend.ccs_sem.exporters.helpers.TransitionCounter;
 import de.unisb.cs.depend.ccs_sem.lexer.CCSLexer;
@@ -193,6 +194,14 @@ public class Main {
             exporters.add(new AiSeeGraphExporter(new File(filename)));
         } else if ("etmcc".equalsIgnoreCase(format) || "tra".equalsIgnoreCase(format)) {
             exporters.add(new ETMCCExporter(new File(filename)));
+        } else if ("bcg".equalsIgnoreCase(format)) {
+            try {
+                exporters.add(new BCGExporter(new File(filename)));
+            } catch (final ExportException e) {
+                System.err.println("Error initializing exporter for '"
+                    + filename + "': " + e.getMessage());
+                System.exit(-1);
+            }
         } else {
             System.err.println("Unknown format: \"" + format + "\"");
             System.exit(-1);
