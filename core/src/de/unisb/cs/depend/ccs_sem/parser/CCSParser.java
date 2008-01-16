@@ -452,7 +452,7 @@ public class CCSParser implements Parser {
             final int oldPosition = tokens.nextIndex();
             try {
                 final Action action = readAction(tokens, true);
-                if (tokens.peek() instanceof Dot) {
+                if (tokens.hasNext() && tokens.peek() instanceof Dot) {
                     tokens.next();
                     Expression target = readPrefixExpression(tokens);
                     // allow the action to manipulate the target
@@ -464,7 +464,7 @@ public class CCSParser implements Parser {
                 // otherwise try to read the parameters
                 if (action instanceof SimpleAction) {
                     List<Value> parameters = Collections.emptyList();
-                    if (tokens.peek() instanceof LBracket) {
+                    if (tokens.hasNext() && tokens.peek() instanceof LBracket) {
                         tokens.next();
                         parameters = readParameterValues(tokens);
                     }

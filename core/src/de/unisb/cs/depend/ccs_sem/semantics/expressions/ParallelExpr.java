@@ -2,6 +2,7 @@ package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,9 @@ public class ParallelExpr extends Expression {
     protected List<Transition> evaluate0() {
         final List<Transition> leftTransitions = left.getTransitions();
         final List<Transition> rightTransitions = right.getTransitions();
+        
+        if (leftTransitions.isEmpty() && rightTransitions.isEmpty())
+            return Collections.emptyList();
 
         final List<Transition> transitions =
                 new ArrayList<Transition>(

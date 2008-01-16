@@ -58,6 +58,8 @@ public class ETMCCExporter implements Exporter {
         while (!queue.isEmpty()) {
             final Expression e = queue.poll();
             final Collection<Transition> transitions = e.getTransitions();
+            if (transitions.isEmpty())
+                continue;
             final PriorityQueue<Transition> transQueue =
                     new PriorityQueue<Transition>(transitions.size(),
                             new TransitionsTargetNumberComparator(stateNumbers));

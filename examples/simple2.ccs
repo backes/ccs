@@ -1,0 +1,5 @@
+X=a.b.go?.X;
+Y=go!.Y;
+
+X|Y \ {go!, go?}
+

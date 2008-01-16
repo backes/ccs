@@ -92,10 +92,18 @@ public class OutputAction extends Action {
 
     @Override
     public Action insertParameters(List<Parameter> parameters) throws ParseException {
+        final Channel newChannel = channel.insertParameters(parameters);
+        
+        if (message == null) {
+            if (channel.equals(newChannel))
+                return this;
+            return Action.getAction(new OutputAction(newChannel, message));
+        }
+        
         final Value newMessage = message.insertParameters(parameters);
-        if (message.equals(newMessage))
+        if (channel.equals(newChannel) && message.equals(newMessage))
             return this;
-        return Action.getAction(new OutputAction(channel, newMessage));
+        return Action.getAction(new OutputAction(newChannel, newMessage));
     }
 
     @Override

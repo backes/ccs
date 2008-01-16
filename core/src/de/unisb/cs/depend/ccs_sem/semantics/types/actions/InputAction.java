@@ -73,7 +73,7 @@ public class InputAction extends Action {
             return null;
 
         if (param == null) {
-            if (value == null ? otherAction.getMessage() != null : value.equals(otherAction.getMessage()))
+            if (value == null ? otherAction.getMessage() == null : value.equals(otherAction.getMessage()))
                 return target;
 
             return null;
@@ -119,11 +119,17 @@ public class InputAction extends Action {
     @Override
     public Action insertParameters(List<Parameter> parameters) throws ParseException {
         final Channel newChannel = channel.insertParameters(parameters);
-
-        if (channel.equals(newChannel))
+        
+        if (value == null) {
+            if (channel.equals(newChannel))
+                return this;
+            return Action.getAction(new InputAction(newChannel, param));
+        }
+        
+        final Value newValue = value.insertParameters(parameters);
+        if (channel.equals(newChannel) && value.equals(newValue))
             return this;
-
-        return Action.getAction(new InputAction(newChannel, param));
+        return Action.getAction(new OutputAction(newChannel, newValue));
     }
 
     @Override
