@@ -1,14 +1,23 @@
 package de.unisb.cs.depend.ccs_sem.plugin.editors;
 
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
+import de.unisb.cs.depend.ccs_sem.evalutators.Evaluator;
+import de.unisb.cs.depend.ccs_sem.evalutators.ParallelEvaluator;
+import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
+import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
+import de.unisb.cs.depend.ccs_sem.parser.CCSParser;
 import de.unisb.cs.depend.ccs_sem.plugin.views.CCSContentOutlinePage;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 
 public class CCSEditor extends TextEditor {
 
     private final ColorManager colorManager;
     private CCSContentOutlinePage fOutlinePage;
+    private Program ccsProgram = null;
+    private final Evaluator evaluator = new ParallelEvaluator();
 
     public CCSEditor() {
         super();
@@ -35,6 +44,32 @@ public class CCSEditor extends TextEditor {
             return fOutlinePage;
         }
         return super.getAdapter(required);
+    }
+
+    public IDocument getDocument() {
+        return getSourceViewer().getDocument();
+    }
+
+    public String getText() {
+        return getDocument().get();
+    }
+
+    public Program getCCSProgram(boolean evaluate) throws ParseException, LexException {
+        // TODO watch for changes in the source code
+        ccsProgram = null;
+
+
+        if (ccsProgram == null) {
+            ccsProgram = new CCSParser().parse(getText());
+        }
+
+        if (evaluate) {
+            synchronized (evaluator ) {
+                ccsProgram.evaluate(evaluator);
+            }
+        }
+
+        return ccsProgram;
     }
 
 }

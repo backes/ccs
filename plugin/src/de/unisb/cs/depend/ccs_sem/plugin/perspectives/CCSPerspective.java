@@ -48,10 +48,11 @@ public class CCSPerspective implements IPerspectiveFactory {
             factory.createFolder(
                 "bottom",
                 IPageLayout.BOTTOM,
-                0.8f,
+                0.7f,
                 factory.getEditorArea());
         bottom.addView(IPageLayout.ID_PROBLEM_VIEW);
-        bottom.addPlaceholder(IConsoleConstants.ID_CONSOLE_VIEW);
+        //bottom.addPlaceholder(IConsoleConstants.ID_CONSOLE_VIEW);
+        bottom.addView(IConsoleConstants.ID_CONSOLE_VIEW);
 
         final IFolderLayout center =
             factory.createFolder(
@@ -66,15 +67,10 @@ public class CCSPerspective implements IPerspectiveFactory {
         //topLeft.addView(IPageLayout.ID_RES_NAV);
         topLeft.addView(IPageLayout.ID_OUTLINE);
 
-        /*
-        final IFolderLayout topRight =
-            factory.createFolder("topRight", IPageLayout.RIGHT, 0.75f, factory.getEditorArea());
-        topRight.addView(IPageLayout.ID_OUTLINE);
-        */
 	}
 
 	private void addActionSets() {
-		factory.addActionSet(IPageLayout.ID_NAVIGATE_ACTION_SET); //NON-NLS-1
+		//factory.addActionSet(IPageLayout.ID_NAVIGATE_ACTION_SET); //NON-NLS-1
 	}
 
 	private void addPerspectiveShortcuts() {
@@ -86,7 +82,7 @@ public class CCSPerspective implements IPerspectiveFactory {
 	}
 
 	private void addViewShortcuts() {
-		//factory.addShowViewShortcut(IConsoleConstants.ID_CONSOLE_VIEW);
+		factory.addShowViewShortcut(IConsoleConstants.ID_CONSOLE_VIEW);
 	}
 
 }

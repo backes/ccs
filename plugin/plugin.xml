@@ -11,7 +11,7 @@
             allowMultiple="false"
             category="de.unisb.cs.depend.ccs_sem.plugin.views.CCS_category"
             class="de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView"
-            icon="icons/ccs.gif"
+            icon="resources/icons/ccs.gif"
             id="de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView"
             name="CCSGraphView">
       </view>
@@ -21,7 +21,7 @@
       <perspective
             class="de.unisb.cs.depend.ccs_sem.plugin.perspectives.CCSPerspective"
             fixed="false"
-            icon="icons/ccs.gif"
+            icon="resources/icons/ccs.gif"
             id="de.unisb.cs.depend.ccs_sem.plugin.perspectives.CCSPerspective"
             name="de.unisb.cs.depend.ccs_sem.plugin.perspectives.CCSPerspective">
       </perspective>
@@ -32,7 +32,7 @@
             class="de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor"
             contributorClass="de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditorActionContributor"
             extensions="ccs"
-            icon="icons/ccs.gif"
+            icon="resources/icons/ccs_file.gif"
             id="de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor"
             name="CCS Editor"/>
    </extension>
@@ -46,7 +46,7 @@
             category="de.unisb.cs.depend.ccs_sem.plugin.CCS_category"
             class="de.unisb.cs.depend.ccs_sem.plugin.wizards.NewCCSFileWizard"
             hasPages="true"
-            icon="icons/sample.gif"
+            icon="resources/icons/ccs_file.gif"
             id="de.unisb.cs.depend.ccs_sem.plugin.wizards.NewCCSFileWizard"
             name="CCS File"
             project="false">
@@ -56,7 +56,7 @@
             class="de.unisb.cs.depend.ccs_sem.plugin.wizards.NewCCSProjectWizard"
             finalPerspective="de.unisb.cs.depend.ccs_sem.plugin.perspectives.CCSPerspective"
             hasPages="true"
-            icon="icons/sample.gif"
+            icon="resources/icons/ccs.gif"
             id="de.unisb.cs.depend.ccs_sem.plugin.wizards.NewCCSProjectWizard"
             name="CCS Project"
             project="true">
@@ -77,12 +77,12 @@
          </menu>
          <action
                class="de.unisb.cs.depend.ccs_sem.plugin.actions.OpenCCSFile"
-               icon="icons/sample.gif"
+               icon="resources/icons/sample.gif"
                id="de.unisb.cs.depend.ccs_sem.plugin.actions.OpenCCSFileAction"
                label="&amp;Open File"
                style="push"
                toolbarPath="ccsGroup"
-               tooltip="Open a ccs file">
+               tooltip="Open a ccs file...">
          </action>
       </actionSet>
    </extension>
@@ -93,19 +93,50 @@
             targetID="de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView">
          <action
                class="de.unisb.cs.depend.ccs_sem.plugin.viewsActions.RefreshGraph"
-               disabledIcon="icons/refresh_dis.gif"
-               enablesFor="1"
-               icon="icons/refresh.gif"
+               disabledIcon="resources/icons/refresh_dis.gif"
+               icon="resources/icons/refresh.gif"
                id="de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView.actions.refresh"
                label="Refresh"
                menubarPath="graphFunctions"
                toolbarPath="graphFunctions"
                tooltip="Refresh this graph">
-            <selection
-                  class="de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor">
-            </selection>
          </action>
       </viewContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.editorActions">
+      <editorContribution
+            id="de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor.editorActions"
+            targetID="de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor">
+         <action
+               class="de.unisb.cs.depend.ccs_sem.plugin.actions.ShowGraph"
+               disabledIcon="resources/icons/refresh_dis.gif"
+               icon="resources/icons/refresh.gif"
+               id="de.unisb.cs.depend.ccs_sem.plugin.actions.ShowGraphAction"
+               label="Show Graph"
+               style="push"
+               toolbarPath="ccsGroup"
+               tooltip="Open the Graph view and displays the CCS Graph">
+         </action>
+         <action
+               class="de.unisb.cs.depend.ccs_sem.plugin.actions.SaveAsCCSFile"
+               icon="resources/icons/saveas.gif"
+               id="de.unisb.cs.depend.ccs_sem.plugin.editorActions.SaveAsCCSFileAction"
+               label="&amp;Save As..."
+               style="push"
+               toolbarPath="ccsGroup"
+               tooltip="Save As...">
+         </action>
+         <action
+               class="de.unisb.cs.depend.ccs_sem.plugin.actions.SaveCCSFile"
+               icon="resources/icons/save.gif"
+               id="de.unisb.cs.depend.ccs_sem.plugin.editorActions.SaveCCSFileAction"
+               label="&amp;Save File"
+               style="push"
+               toolbarPath="ccsGroup"
+               tooltip="Save file">
+         </action>
+      </editorContribution>
    </extension>
 
 

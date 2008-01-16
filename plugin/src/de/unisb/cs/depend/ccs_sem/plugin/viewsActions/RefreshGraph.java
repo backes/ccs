@@ -5,17 +5,20 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 
+import de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView;
+
 
 public class RefreshGraph implements IViewActionDelegate {
 
-    public void init(IViewPart view) {
-        // TODO Auto-generated method stub
+    private IViewPart view;
 
+    public void init(IViewPart view) {
+        this.view = view;
     }
 
     public void run(IAction action) {
-        // TODO Auto-generated method stub
-
+        if (view instanceof CCSGraphView)
+            ((CCSGraphView)view).update();
     }
 
     public void selectionChanged(IAction action, ISelection selection) {

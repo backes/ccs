@@ -6,5 +6,5 @@ Bundle-Version: 1.0.0
 Bundle-Activator: ccs_semantics_rcp.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
- de.unisb.cs.depend.ccs_sem.plugin
+ de.unisb.cs.depend.ccs_sem.plugin;visibility:=reexport
 Eclipse-LazyStart: true
