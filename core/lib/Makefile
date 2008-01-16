@@ -14,13 +14,13 @@ CXX_INCL     = $(foreach inc,$(wildcard /usr/lib/sun*jdk*/include) \
                  ,-I$(inc))
 
 # you may want to set another jdk path here (if jni.h is not found)
-CXX_INCL    += -I/cygdrive/e/Java/jdk1.6.0_01/include
-CXX_INCL    += -I/cygdrive/e/Java/jdk1.6.0_01/include/win32
+#CXX_INCL    += -I/cygdrive/e/Java/jdk1.6.0_01/include
+#CXX_INCL    += -I/cygdrive/e/Java/jdk1.6.0_01/include/win32
 
 CXXFLAGS     = -fPIC -DPIC
 
 # and another cygwin workaround:
-CXXFLAGS    += "-D__int64=long long"
+#CXXFLAGS    += "-D__int64=long long"
 
 
 # default target: all
