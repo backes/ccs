@@ -21,16 +21,16 @@ public class BCGWriter {
         }
     }
 
-    public static void open(String filename, int noInitialState) throws ExportException {
+    public static void open(String filename, int noInitialState, String comment) throws ExportException {
         if (isOpen)
             throw new ExportException("BCG file is already open.");
 
         isOpen = true;
         lastStateNr = Integer.MIN_VALUE;
-        open0(filename, noInitialState);
+        open0(filename, noInitialState, comment);
     }
 
-    private static native void open0(String filename, int noInitialState);
+    private static native void open0(String filename, int noInitialState, String comment);
 
     public static void writeTransition(int fromState, int toState,
             String label) throws ExportException {

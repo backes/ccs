@@ -19,10 +19,17 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 public class BCGExporter implements Exporter {
 
     final File bcgFile;
+    private static final String DEFAULT_COMMENT = "created from a CCS term";
+    private final String comment;
 
     public BCGExporter(File bcgFile) throws ExportException {
+        this(bcgFile, DEFAULT_COMMENT);
+    }
+
+    public BCGExporter(File bcgFile, String comment) throws ExportException {
         super();
         this.bcgFile = bcgFile;
+        this.comment = comment;
         if (!BCGWriter.initialize()) {
             throw new ExportException("Could not initialize BCG library.");
         }
@@ -34,7 +41,7 @@ public class BCGExporter implements Exporter {
             final Map<Expression, Integer> stateNumbers =
                     StateNumerator.numerateStates(expr, 1);
 
-            BCGWriter.open(bcgFile.getAbsolutePath(), 0);
+            BCGWriter.open(bcgFile.getAbsolutePath(), 0, comment);
 
             // write the transitions
             final PriorityQueue<Expression> queue =
