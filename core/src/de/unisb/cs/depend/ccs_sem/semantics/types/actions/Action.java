@@ -1,8 +1,8 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types.actions;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
@@ -15,16 +15,12 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 public abstract class Action {
 
     // caching
-    private static Map<Action, Action> repository = new HashMap<Action, Action>();
+    private static ConcurrentHashMap<Action, Action> repository
+        = new ConcurrentHashMap<Action, Action>();
 
     public static Action getAction(Action action) {
-        final Action foundAction = repository.get(action);
-        if (foundAction != null)
-            return foundAction;
-
-        repository.put(action, action);
-
-        return action;
+        final Action foundAction = repository.putIfAbsent(action, action);
+        return foundAction == null ? action : foundAction;
     }
 
     public abstract String getLabel();
