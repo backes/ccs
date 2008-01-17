@@ -37,20 +37,22 @@ public class GrappaFrame extends Composite {
     private final GrappaPanel grappaPanel;
     private final Graph graph = new Graph("CSS-Graph");
     private final CCSEditor ccsEditor;
-    private final Composite graphPanel;
 
     public GrappaFrame(Composite parent, int style, CCSEditor editor) {
-        super(parent, style);
+        super(parent, style | SWT.EMBEDDED);
         this.ccsEditor = editor;
         setLayout(new FillLayout(SWT.VERTICAL));
-        graphPanel = new Composite(this, SWT.EMBEDDED);
-        final Frame grappaFrame = SWT_AWT.new_Frame(graphPanel);
+
+        final Frame grappaFrame = SWT_AWT.new_Frame(this);
         grappaPanel = new GrappaPanel(graph);
         grappaPanel.setScaleToFit(true);
         grappaFrame.setLayout(new GridLayout(1, 1));
         grappaFrame.add(grappaPanel);
 
-        update();
+        final Node node = new Node(graph, "warn_node");
+        graph.addNode(node);
+        node.setAttribute("label", "Not initialized...");
+        graph.repaint();
     }
 
     @Override
@@ -141,6 +143,14 @@ public class GrappaFrame extends Composite {
             return false;
         }
         return GrappaSupport.filterGraph(graph, dotFilter);
+    }
+
+    public Graph getGraph() {
+        return graph;
+    }
+
+    public CCSEditor getCcsEditor() {
+        return ccsEditor;
     }
 
 }

@@ -27,7 +27,7 @@ public class ShowGraph implements IWorkbenchWindowActionDelegate, IEditorActionD
     public void run(IAction action) {
         try {
             PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(GRAPH_VIEW_ID);
-            CCSGraphView.showGraphFor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor());
+            CCSGraphView.showGraphFor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor(), true);
         } catch (final PartInitException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

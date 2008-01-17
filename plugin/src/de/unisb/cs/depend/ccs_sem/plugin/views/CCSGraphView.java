@@ -7,13 +7,13 @@ import java.util.Map;
 
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.part.PageBook;
 import org.eclipse.ui.part.ViewPart;
 
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor;
@@ -25,7 +25,7 @@ public class CCSGraphView extends ViewPart implements ISelectionListener {
     private static List<CCSGraphView> views = new ArrayList<CCSGraphView>(1);
 
 
-    private Composite myComp;
+    private PageBook myPages;
 
 
     private Text defaultText;
@@ -43,29 +43,25 @@ public class CCSGraphView extends ViewPart implements ISelectionListener {
     @Override
     public void createPartControl(Composite parent) {
 
-        myComp = new Composite(parent, SWT.None);
+        myPages = new PageBook(parent, SWT.None);
 
-        myComp.setLayout(new FillLayout(SWT.VERTICAL));
-
-        defaultText = new Text(myComp, SWT.None);
+        defaultText = new Text(myPages, SWT.None);
         defaultText.setText("No Graph to display...");
         defaultText.setEditable(false);
 
-        currentView = defaultText;
+        myPages.showPage(currentView = defaultText);
 
         getSite().getPage().addSelectionListener(this);
-
-        selectionChanged(getSite().getPart(), null);
     }
 
     @Override
     public void setFocus() {
-        myComp.setFocus();
+        myPages.setFocus();
     }
 
     public void selectionChanged(IWorkbenchPart part, ISelection selection) {
         if (part instanceof IEditorPart)
-            showGraphFor0((IEditorPart) part);
+            showGraphFor0((IEditorPart) part, false);
     }
 
     public static void updateViews() {
@@ -79,24 +75,23 @@ public class CCSGraphView extends ViewPart implements ISelectionListener {
         }
     }
 
-    public static void showGraphFor(IEditorPart activeEditor) {
+    public static void showGraphFor(IEditorPart activeEditor, boolean updateGraph) {
         for (final CCSGraphView view: views)
-            view.showGraphFor0(activeEditor);
+            view.showGraphFor0(activeEditor, updateGraph);
     }
 
-    private void showGraphFor0(IEditorPart activeEditor) {
+    private void showGraphFor0(IEditorPart activeEditor, boolean updateGraph) {
         if (activeEditor instanceof CCSEditor) {
             final CCSEditor editor = (CCSEditor) activeEditor;
             GrappaFrame gFrame = frames.get(editor);
             if (gFrame == null)
-                frames.put(editor, gFrame = new GrappaFrame(myComp, SWT.None, editor));
-            //currentView.setVisible(false);
-            currentView = gFrame;
-            currentView.setVisible(true);
+                frames.put(editor, gFrame = new GrappaFrame(myPages, SWT.None, editor));
+
+            myPages.showPage(currentView = gFrame);
+            if (updateGraph)
+                gFrame.update();
         } else {
-            //currentView.setVisible(false);
-            currentView = defaultText;
-            currentView.setVisible(true);
+            myPages.showPage(currentView = defaultText);
         }
     }
 

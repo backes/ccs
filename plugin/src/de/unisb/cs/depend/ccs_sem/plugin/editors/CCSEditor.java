@@ -5,7 +5,7 @@ import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 import de.unisb.cs.depend.ccs_sem.evalutators.Evaluator;
-import de.unisb.cs.depend.ccs_sem.evalutators.ParallelEvaluator;
+import de.unisb.cs.depend.ccs_sem.evalutators.SequentialEvaluator;
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.parser.CCSParser;
@@ -17,7 +17,7 @@ public class CCSEditor extends TextEditor {
     private final ColorManager colorManager;
     private CCSContentOutlinePage fOutlinePage;
     private Program ccsProgram = null;
-    private final Evaluator evaluator = new ParallelEvaluator();
+    private final Evaluator evaluator = new SequentialEvaluator();
 
     public CCSEditor() {
         super();
