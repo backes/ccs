@@ -86,7 +86,7 @@ public class TauAction extends Action {
 
     @Override
     public int hashCode() {
-        return 0;
+        return 11;
     }
 
     @Override

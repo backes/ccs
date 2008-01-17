@@ -2,9 +2,12 @@ package de.unisb.cs.depend.ccs_sem.plugin.grappa;
 
 import java.awt.Frame;
 import java.awt.GridLayout;
+import java.io.IOException;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -17,6 +20,7 @@ import org.eclipse.swt.widgets.Composite;
 import att.grappa.Edge;
 import att.grappa.Graph;
 import att.grappa.GrappaPanel;
+import att.grappa.GrappaSupport;
 import att.grappa.Node;
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
@@ -28,16 +32,21 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 
 public class GrappaFrame extends Composite {
 
+    // TODO ask user
+    private static final String DOT_EXECUTABLE = "E:\\Graphviz2.17\\bin\\dot.exe";
     private final GrappaPanel grappaPanel;
     private final Graph graph = new Graph("CSS-Graph");
     private final CCSEditor ccsEditor;
+    private final Composite graphPanel;
 
     public GrappaFrame(Composite parent, int style, CCSEditor editor) {
-        super(parent, style | SWT.EMBEDDED);
+        super(parent, style);
         this.ccsEditor = editor;
         setLayout(new FillLayout(SWT.VERTICAL));
-        final Frame grappaFrame = SWT_AWT.new_Frame(this);
+        graphPanel = new Composite(this, SWT.EMBEDDED);
+        final Frame grappaFrame = SWT_AWT.new_Frame(graphPanel);
         grappaPanel = new GrappaPanel(graph);
+        grappaPanel.setScaleToFit(true);
         grappaFrame.setLayout(new GridLayout(1, 1));
         grappaFrame.add(grappaPanel);
 
@@ -61,7 +70,9 @@ public class GrappaFrame extends Composite {
         graph.reset();
 
         if (warning != null) {
-            graph.addNode(new Node(graph, warning));
+            final Node node = new Node(graph, "warn_node");
+            graph.addNode(node);
+            node.setAttribute("label", warning);
             graph.repaint();
             return;
         }
@@ -108,7 +119,28 @@ public class GrappaFrame extends Composite {
             }
         }
 
+        if (!filterGraph(graph)) {
+            System.err.println("Could not layout graph.");
+            // TODO
+        }
         graph.repaint();
+    }
+
+    private boolean filterGraph(Graph graph) {
+        // start dot
+        final List<String> command = new ArrayList<String>();
+        command.add(DOT_EXECUTABLE);
+
+        final ProcessBuilder pb = new ProcessBuilder(command);
+        Process dotFilter;
+        try {
+            dotFilter = pb.start();
+        } catch (final IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return false;
+        }
+        return GrappaSupport.filterGraph(graph, dotFilter);
     }
 
 }

@@ -104,9 +104,9 @@ public class ChoiceExpr extends Expression {
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode0() {
         final int PRIME = 31;
-        int result = 1;
+        int result = 2;
         result = PRIME * result + ((left == null) ? 0 : left.hashCode());
         result = PRIME * result + ((right == null) ? 0 : right.hashCode());
         return result;

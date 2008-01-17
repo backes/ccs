@@ -39,7 +39,7 @@ public class ParallelExpr extends Expression {
     protected List<Transition> evaluate0() {
         final List<Transition> leftTransitions = left.getTransitions();
         final List<Transition> rightTransitions = right.getTransitions();
-        
+
         if (leftTransitions.isEmpty() && rightTransitions.isEmpty())
             return Collections.emptyList();
 
@@ -249,9 +249,9 @@ public class ParallelExpr extends Expression {
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode0() {
         final int PRIME = 31;
-        int result = 1;
+        int result = 3;
         result = PRIME * result + ((left == null) ? 0 : left.hashCode());
         result = PRIME * result + ((right == null) ? 0 : right.hashCode());
         return result;

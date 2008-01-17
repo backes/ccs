@@ -3,11 +3,13 @@ package de.unisb.cs.depend.ccs_sem.commandline;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import de.unisb.cs.depend.ccs_sem.evalutators.EvaluationMonitor;
 import de.unisb.cs.depend.ccs_sem.evalutators.Evaluator;
 import de.unisb.cs.depend.ccs_sem.evalutators.ParallelEvaluator;
 import de.unisb.cs.depend.ccs_sem.exceptions.ExportException;
@@ -59,7 +61,16 @@ public class Main {
         final Program program;
         try {
             log("Lexing...");
-            final List<Token> tokens = new CCSLexer().lex(inputFileReader);
+            final List<Token> tokens;
+            try {
+                tokens = new CCSLexer().lex(inputFileReader);
+            } finally {
+                try {
+                    inputFileReader.close();
+                } catch (final IOException e) {
+                    // ignore
+                }
+            }
             log("Parsing...");
             program = new CCSParser().parse(tokens);
         } catch (final LexException e) {
@@ -73,7 +84,27 @@ public class Main {
         }
 
         log("Evaluating...");
-        program.evaluate(evaluator);
+        final EvaluationMonitor monitor = new EvaluationMonitor() {
+
+            public int transitions = 0;
+            public int states = 0;
+
+            public synchronized void newTransitions(int size) {
+                transitions += size;
+            }
+
+            public synchronized void newState() {
+                ++states;
+                if (states % 10000 == 0)
+                    log(states + " states, " + transitions + " transitions so far...");
+            }
+
+            public void ready() {
+                log("Evaluated " + states + " states and " + transitions + " transitions.");
+            }
+
+        };
+        program.evaluate(evaluator, monitor);
 
         log("Counting...");
         int stateCount = StateNumerator.numerateStates(program.getMainExpression()).size();
@@ -116,6 +147,7 @@ public class Main {
         }
         if (evaluator == null) {
             evaluator = new ParallelEvaluator();
+            //evaluator = new SequentialEvaluator();
         }
     }
 
@@ -162,7 +194,7 @@ public class Main {
                         break;
                     }
                 }
-            } else if (!arg.isEmpty() && !arg.startsWith("-") && inputFile == null) {
+            } else if (arg.length()> 0 && !arg.startsWith("-") && inputFile == null) {
                 inputFile = new File(arg);
             } else {
                 System.err.println("Illegal parameter: \"" + arg + "\"");
@@ -212,7 +244,7 @@ public class Main {
         out.println("usage: java " + getClass().getName() + " <parameter> <input file>");
     }
 
-    private void log(String output) {
+    protected void log(String output) {
         final long newTime = System.currentTimeMillis();
         if (oldTime == 0)
             oldTime = newTime;

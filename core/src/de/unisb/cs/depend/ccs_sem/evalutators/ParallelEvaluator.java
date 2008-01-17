@@ -28,6 +28,8 @@ public class ParallelEvaluator implements Evaluator {
 
     protected final Object readyLock = new Object();
 
+    protected EvaluationMonitor monitor;
+
     public ParallelEvaluator(int numThreads) {
         this.numThreads = numThreads;
     }
@@ -37,21 +39,30 @@ public class ParallelEvaluator implements Evaluator {
     }
 
     public void evaluate(Expression expr) {
+        evaluate(expr, null);
+    }
+
+    public void evaluate(Expression expr, EvaluationMonitor monitor) {
         if (expr.isEvaluated())
             return;
 
-        evaluate0(expr, false);
+        evaluate0(expr, false, monitor);
     }
 
     public void evaluateAll(Expression expr) {
-        evaluate0(expr, true);
+        evaluateAll(expr, null);
     }
 
-    private void evaluate0(Expression expr, boolean evaluateSuccessors) {
-        initialize(evaluateSuccessors);
+    public void evaluateAll(Expression expr, EvaluationMonitor monitor) {
+        evaluate0(expr, true, monitor);
+    }
+
+    private void evaluate0(Expression expr, boolean evaluateSuccessors, EvaluationMonitor monitor) {
+        initialize(evaluateSuccessors, monitor);
 
         synchronized (readyLock) {
             // the EvaluatorJob executes itself automatically
+            evaluatedSuccessors.add(expr);
             new EvaluatorJob(expr, evaluateSuccessors);
 
             try {
@@ -65,9 +76,10 @@ public class ParallelEvaluator implements Evaluator {
         shutdown();
     }
 
-    private void initialize(boolean evaluateSuccessors) {
+    private void initialize(boolean evaluateSuccessors, EvaluationMonitor monitor2) {
         assert executor == null;
         assert currentlyEvaluating == null;
+        assert monitor == null;
 
         final int threadsToInstantiate = numThreads == null
             ? Runtime.getRuntime().availableProcessors() + 1
@@ -79,6 +91,8 @@ public class ParallelEvaluator implements Evaluator {
 
         if (evaluateSuccessors)
             evaluatedSuccessors = new ConcurrentSet<Expression>(threadsToInstantiate);
+
+        monitor = monitor2;
     }
 
     private void shutdown() {
@@ -147,7 +161,8 @@ public class ParallelEvaluator implements Evaluator {
         protected class EvaluateSingleExpressionJob implements Runnable {
 
             public void run() {
-                System.out.println("Evaluating " + expr);
+
+                //System.out.println("Evaluating " + expr + " (" + expr.hashCode() + ", " + System.identityHashCode(expr) + ")");
                 expr.evaluate();
 
                 synchronized (expr) {
@@ -157,6 +172,11 @@ public class ParallelEvaluator implements Evaluator {
                 }
 
                 if (evaluateSuccessors) {
+                    if (monitor != null) {
+                        monitor.newState();
+                        monitor.newTransitions(expr.getTransitions().size());
+                    }
+
                     for (final Transition trans: expr.getTransitions()) {
                         final Expression succ = trans.getTarget();
                         if (evaluatedSuccessors.add(succ)) {
@@ -171,6 +191,8 @@ public class ParallelEvaluator implements Evaluator {
                 currentlyEvaluating.remove(expr);
                 if (currentlyEvaluating.isEmpty()) {
                     synchronized (readyLock) {
+                        if (monitor != null)
+                            monitor.ready();
                         readyLock.notify();
                     }
                 }

@@ -50,8 +50,8 @@ public class StopExpr extends Expression {
     }
 
     @Override
-    public int hashCode() {
-        return 0;
+    public int hashCode0() {
+        return 7;
     }
 
     @Override

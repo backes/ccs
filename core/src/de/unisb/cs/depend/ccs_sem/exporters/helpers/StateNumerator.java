@@ -30,21 +30,23 @@ public class StateNumerator {
             return lastStateNumbers;
 
         final Map<Expression, Integer> numbers = new HashMap<Expression, Integer>();
+        numbers.put(mainExpression, startIndex);
 
-        final Queue<Expression> toNumerate = new ArrayDeque<Expression>();
-        toNumerate.add(mainExpression);
+        final Queue<Expression> numerateSuccessors = new ArrayDeque<Expression>();
+        numerateSuccessors.add(mainExpression);
 
         int nextIndex = startIndex;
 
-        while (!toNumerate.isEmpty()) {
-            final Expression expr = toNumerate.poll();
-            numbers.put(expr, nextIndex++);
+        while (!numerateSuccessors.isEmpty()) {
+            final Expression expr = numerateSuccessors.poll();
 
             assert expr.isEvaluated();
             for (final Transition trans: expr.getTransitions()) {
                 final Expression succ = trans.getTarget();
-                if (!numbers.containsKey(succ))
-                    toNumerate.add(succ);
+                if (!numbers.containsKey(succ)) {
+                    numbers.put(succ, ++nextIndex);
+                    numerateSuccessors.add(succ);
+                }
             }
         }
 

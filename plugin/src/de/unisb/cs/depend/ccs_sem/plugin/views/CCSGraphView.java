@@ -90,11 +90,11 @@ public class CCSGraphView extends ViewPart implements ISelectionListener {
             GrappaFrame gFrame = frames.get(editor);
             if (gFrame == null)
                 frames.put(editor, gFrame = new GrappaFrame(myComp, SWT.None, editor));
-            currentView.setVisible(false);
-            gFrame.setVisible(true);
+            //currentView.setVisible(false);
             currentView = gFrame;
+            currentView.setVisible(true);
         } else {
-            currentView.setVisible(false);
+            //currentView.setVisible(false);
             currentView = defaultText;
             currentView.setVisible(true);
         }

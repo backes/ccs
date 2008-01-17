@@ -2,10 +2,11 @@ package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
@@ -17,10 +18,13 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 public abstract class Expression {
 
-    private static Map<Expression, Expression> repository
-        = new HashMap<Expression, Expression>();
+    private static ConcurrentHashMap<Expression, Expression> repository
+        = new ConcurrentHashMap<Expression, Expression>();
 
     private volatile List<Transition> transitions = null;
+
+    // stores the hashcode of this expression
+    private int hash = 0;
 
     protected Expression() {
         // nothing to do
@@ -40,6 +44,7 @@ public abstract class Expression {
             final ArrayList<Transition> list = (ArrayList<Transition>) transitions;
             list.trimToSize();
         }
+        transitions = Collections.unmodifiableList(transitions);
     }
 
     public boolean isEvaluated() {
@@ -74,13 +79,8 @@ public abstract class Expression {
     public abstract Expression replaceRecursion(List<Declaration> declarations) throws ParseException;
 
     public static Expression getExpression(Expression expr) {
-        final Expression foundExpr = repository.get(expr);
-        if (foundExpr != null)
-            return foundExpr;
-
-        repository.put(expr, expr);
-
-        return expr;
+        final Expression foundExpr = repository.putIfAbsent(expr, expr);
+        return foundExpr == null ? expr : foundExpr;
     }
 
     /**
@@ -117,6 +117,23 @@ public abstract class Expression {
         }
     }
 
-    // TODO store hashCode
+    // we store the hashCode so that we only compute it once
+    @Override
+    public final int hashCode() {
+        int h = this.hash;
+        if (h == 0) {
+            synchronized (this) {
+                if (h == 0)
+                    h = hashCode0();
+            }
+            // we don't allow "0" as hashCode
+            this.hash = h == 0 ? 1 : h;
+        }
+
+        return h;
+    }
+
+    protected abstract int hashCode0();
+
     // TODO minimizeExpression (e.g. push down restriction)
 }

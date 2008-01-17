@@ -108,9 +108,9 @@ public class RecursiveExpr extends Expression {
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode0() {
         final int PRIME = 31;
-        int result = 1;
+        int result = 5;
         result = PRIME * result + ((referencedDeclaration == null) ? 0 : referencedDeclaration.hashCode());
         result = PRIME * result + ((parameters == null) ? 0 : parameters.hashCode());
         return result;

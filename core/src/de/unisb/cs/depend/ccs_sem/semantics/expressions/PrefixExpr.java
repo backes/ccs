@@ -80,9 +80,9 @@ public class PrefixExpr extends Expression {
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode0() {
         final int PRIME = 31;
-        int result = 1;
+        int result = 4;
         result = PRIME * result + target.hashCode();
         result = PRIME * result + prefix.hashCode();
         return result;

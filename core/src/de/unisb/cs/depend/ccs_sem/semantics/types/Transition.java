@@ -1,8 +1,7 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
@@ -14,8 +13,8 @@ public class Transition {
     private final Action action;
     private final Expression target;
 
-    private static Map<Action, Map<Expression, Transition>> repository
-        = new HashMap<Action, Map<Expression,Transition>>();
+    private static ConcurrentHashMap<Action, ConcurrentHashMap<Expression, Transition>> repository
+        = new ConcurrentHashMap<Action, ConcurrentHashMap<Expression,Transition>>();
 
     public Transition(Action action, Expression target) {
         super();
@@ -50,16 +49,21 @@ public class Transition {
     }
 
     public static Transition getTransition(Action action, Expression target) {
-        Map<Expression, Transition> map = repository.get(action);
+        ConcurrentHashMap<Expression, Transition> map = repository.get(action);
         if (map == null) {
-            map = new HashMap<Expression, Transition>();
-            repository.put(action, map);
+            map = new ConcurrentHashMap<Expression, Transition>();
+            final ConcurrentHashMap<Expression, Transition> result =
+                repository.putIfAbsent(action, map);
+            if (result != null)
+                map = result;
         }
 
         Transition trans = map.get(target);
         if (trans == null) {
             trans = new Transition(action, target);
-            map.put(target, trans);
+            final Transition result = map.putIfAbsent(target, trans);
+            if (result != null)
+                trans = result;
         }
 
         return trans;

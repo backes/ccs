@@ -22,7 +22,7 @@ public class SequentialEvaluator implements Evaluator {
         expr.evaluate();
     }
 
-    public void evaluateAll(Expression expr) {
+    public void evaluateAll(Expression expr, EvaluationMonitor monitor) {
         final Queue<Expression> toEvaluate = new ArrayDeque<Expression>();
         toEvaluate.add(expr);
 
@@ -31,13 +31,20 @@ public class SequentialEvaluator implements Evaluator {
 
         while (!toEvaluate.isEmpty()) {
             final Expression e = toEvaluate.poll();
+            if (monitor != null)
+                monitor.newState();
             evaluate(e);
+            if (monitor != null)
+                monitor.newTransitions(e.getTransitions().size());
             for (final Transition trans: e.getTransitions()) {
                 final Expression succ = trans.getTarget();
                 if (seen.add(succ))
                     toEvaluate.add(succ);
             }
         }
+
+        if (monitor != null)
+            monitor.ready();
     }
 
 }

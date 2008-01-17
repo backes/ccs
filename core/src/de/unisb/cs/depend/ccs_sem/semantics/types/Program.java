@@ -2,6 +2,7 @@ package de.unisb.cs.depend.ccs_sem.semantics.types;
 
 import java.util.List;
 
+import de.unisb.cs.depend.ccs_sem.evalutators.EvaluationMonitor;
 import de.unisb.cs.depend.ccs_sem.evalutators.Evaluator;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
@@ -53,7 +54,11 @@ public class Program {
     }
 
     public void evaluate(Evaluator eval) {
-        eval.evaluateAll(mainExpression);
+        evaluate(eval, null);
+    }
+
+    public void evaluate(Evaluator eval, EvaluationMonitor monitor) {
+        eval.evaluateAll(mainExpression, monitor);
     }
 
     public List<Transition> getTransitions() {

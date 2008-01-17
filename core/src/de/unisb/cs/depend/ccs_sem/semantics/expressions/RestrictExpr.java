@@ -132,9 +132,9 @@ public class RestrictExpr extends Expression {
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode0() {
         final int PRIME = 31;
-        int result = 1;
+        int result = 6;
         result = PRIME * result + ((innerExpr == null) ? 0 : innerExpr.hashCode());
         result = PRIME * result + ((restricted == null) ? 0 : restricted.hashCode());
         return result;

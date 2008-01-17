@@ -14,7 +14,8 @@ public interface Evaluator {
      * Evaluates an expression and all successor expressions, i.e. expressions
      * that are available through transitions (recursively).
      * @param expr
+     * @param monitor
      */
-    void evaluateAll(Expression expr);
+    void evaluateAll(Expression expr, EvaluationMonitor monitor);
 
 }

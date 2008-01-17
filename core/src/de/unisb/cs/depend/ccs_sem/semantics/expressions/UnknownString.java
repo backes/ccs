@@ -142,9 +142,9 @@ public class UnknownString extends Expression {
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode0() {
         final int PRIME = 31;
-        int result = 1;
+        int result = 8;
         result = PRIME * result + ((name == null) ? 0 : name.hashCode());
         result = PRIME * result + ((parameters == null) ? 0 : parameters.hashCode());
         return result;
