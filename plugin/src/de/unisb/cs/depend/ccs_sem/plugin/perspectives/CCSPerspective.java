@@ -15,6 +15,8 @@ import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPerspectiveFactory;
 import org.eclipse.ui.console.IConsoleConstants;
 
+import de.unisb.cs.depend.ccs_sem.plugin.Global;
+
 
 /**
  *  This class is meant to serve as an example for how various contributions
@@ -60,7 +62,7 @@ public class CCSPerspective implements IPerspectiveFactory {
                 IPageLayout.BOTTOM,
                 0.5f,
                 factory.getEditorArea());
-        center.addPlaceholder("de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView");
+        center.addPlaceholder(Global.getGraphViewId());
 
         final IFolderLayout topLeft =
             factory.createFolder("topLeft", IPageLayout.LEFT, 0.2f, factory.getEditorArea());

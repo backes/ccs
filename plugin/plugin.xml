@@ -138,6 +138,20 @@
          </action>
       </editorContribution>
    </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="de.unisb.cs.depend.ccs_sem.plugin.preferencePage.CCSPreferencePage"
+            id="de.unisb.cs.depend.ccs_sem.plugin.preferencePage.CCSPreferencePage"
+            name="CCS">
+      </page>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="de.unisb.cs.depend.ccs_sem.plugin.preferencePage.PreferenceInitializer">
+      </initializer>
+   </extension>
 
 
 </plugin>

@@ -56,25 +56,40 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
  *
  * program            --> (declaration ";")*  expression
  * declaration        --> recursionVariable = expression
- * recursionVariable  --> identifier ( "[" ( ( identifier "," )* identifier)? "]"  )?
- * expression         --> restrictExpression
- * restrictExpression --> parallelExpression
+ * recursionVariable  --> identifier ( "[" ( ( value "," )* value)? "]"  )?
+ *
+ * expression          --> restrictExpression
+ * restrictExpression  --> parallelExpression
  *                          | restrictExpression "\" "{" ( ( identidier "," )* identifier )? "}"
- * parallelExpression --> choiceExpression
+ * parallelExpression  --> choiceExpression
  *                          | parallelExpression "|" choiceExpression
- * choiceExpression   --> prefixExpression
+ * choiceExpression    --> prefixExpression
  *                          | choiceExpression "+" prefixExpression
- * prefixExpression   --> baseExpression
+ * prefixExpression    --> baseExpression
  *                          | action "." prefixExpression
- * baseExpression     --> "0"
+ * baseExpression      --> "0"
  *                          | "(" expression ")"
  *                          | recursionVariable
  *                          | action
- * action             --> identifier ( ("?" | "!") value )?
- * identifier         --> character ( digit | character ) *
- * character          --> "a" | ... | "z" | "A" | ... | "Z" | "_"
- * digit              --> "0" | ... | "9"
- * value              --> digit+ | identifier
+ *
+ * action              --> identifier ( ("?" | "!") value' )?
+ * identifier          --> character ( digit | character ) *
+ * character           --> "a" | ... | "z" | "A" | ... | "Z" | "_"
+ * digit               --> "0" | ... | "9"
+ * value               --> digit+ | arithExpression
+ * value'              --> digit+ | identifier | "(" arithExpression ")"
+ *
+ * arithExpression     --> arithCondBranch
+ * arithCond           --> arithOr | arithOr "?" arithCond ":" arithCond
+ * arithOr             --> arithAnd | arithOr "||" arithAnd
+ * arithAnd            --> arithEq | arithAnd "&&" arithEq
+ * arithEq             --> arithComp | arithComp ("==" | "!=" | "=") arithComp
+ * arithComp           --> arithShift | arithShift ("<" | "<=" | ">" | ">=") arithShift
+ * arithShift          --> arithAdd | arithShift (">>" | "<<") arithAdd
+ * arithAdd            --> arithMult | arithAdd ("+" | "-") arithMult
+ * arithMult           --> arithNot | arithMult ("*" | "/" | "%" | "mod") arithNot
+ * arithNot            --> arithBase | "!" arithNot
+ * arithBase           --> digit+ | "true" | "false" | "(" arithExpression ")" | identifier
  *
  *
  * @author Clemens Hammacher

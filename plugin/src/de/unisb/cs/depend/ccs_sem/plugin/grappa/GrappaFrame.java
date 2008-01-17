@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
 import org.eclipse.swt.layout.FillLayout;
@@ -24,6 +25,7 @@ import att.grappa.GrappaSupport;
 import att.grappa.Node;
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
+import de.unisb.cs.depend.ccs_sem.plugin.Global;
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
@@ -32,8 +34,6 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 
 public class GrappaFrame extends Composite {
 
-    // TODO ask user
-    private static final String DOT_EXECUTABLE = "E:\\Graphviz2.17\\bin\\dot.exe";
     private final GrappaPanel grappaPanel;
     private final Graph graph = new Graph("CSS-Graph");
     private final CCSEditor ccsEditor;
@@ -52,6 +52,7 @@ public class GrappaFrame extends Composite {
         final Node node = new Node(graph, "warn_node");
         graph.addNode(node);
         node.setAttribute("label", "Not initialized...");
+        filterGraph(graph);
         graph.repaint();
     }
 
@@ -75,6 +76,7 @@ public class GrappaFrame extends Composite {
             final Node node = new Node(graph, "warn_node");
             graph.addNode(node);
             node.setAttribute("label", warning);
+            filterGraph(graph);
             graph.repaint();
             return;
         }
@@ -131,18 +133,29 @@ public class GrappaFrame extends Composite {
     private boolean filterGraph(Graph graph) {
         // start dot
         final List<String> command = new ArrayList<String>();
-        command.add(DOT_EXECUTABLE);
+        command.add(getDotExecutablePath());
 
         final ProcessBuilder pb = new ProcessBuilder(command);
         Process dotFilter;
         try {
             dotFilter = pb.start();
         } catch (final IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            if (MessageDialog.openQuestion(getShell(), "Error layouting graph",
+                "The graph could not be layout, because the 'dot' tool could not be started.\n" +
+                "Do you want to configure the path for this tool now?")) {
+
+                // TODO show preferences page
+                // now, try again
+                return filterGraph(graph);
+            }
             return false;
         }
         return GrappaSupport.filterGraph(graph, dotFilter);
+    }
+
+    private String getDotExecutablePath() {
+        final String dotExecutable = Global.getPreferenceDot();
+        return dotExecutable;
     }
 
     public Graph getGraph() {
