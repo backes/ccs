@@ -16,7 +16,7 @@ public class Equals extends AbstractToken {
     
     @Override
     public String toString() {
-        return "=";
+        return comp ? "==" : "=";
     }
 
 }
