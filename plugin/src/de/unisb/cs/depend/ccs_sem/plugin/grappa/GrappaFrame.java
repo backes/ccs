@@ -21,6 +21,8 @@ import org.eclipse.swt.widgets.Composite;
 
 import att.grappa.Edge;
 import att.grappa.Graph;
+import att.grappa.Grappa;
+import att.grappa.GrappaAdapter;
 import att.grappa.GrappaConstants;
 import att.grappa.GrappaPanel;
 import att.grappa.GrappaSupport;
@@ -50,9 +52,14 @@ public class GrappaFrame extends Composite {
 
         final Frame grappaFrame = SWT_AWT.new_Frame(this);
         grappaPanel = new GrappaPanel(graph);
+        grappaPanel.addGrappaListener(new GrappaAdapter());
         grappaPanel.setScaleToFit(true);
         grappaFrame.setLayout(new GridLayout(1, 1));
         grappaFrame.add(grappaPanel);
+
+        Grappa.antiAliasText = true;
+        Grappa.useAntiAliasing = true;
+        Grappa.elementSelection = GrappaConstants.NODE | GrappaConstants.EDGE;
 
         final Node node = new Node(graph, "warn_node");
         graph.addNode(node);
