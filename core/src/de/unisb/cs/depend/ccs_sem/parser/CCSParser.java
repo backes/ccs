@@ -7,19 +7,25 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.swing.text.StyledEditorKit.BoldAction;
+
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
+import de.unisb.cs.depend.ccs_sem.exporters.Exporter;
 import de.unisb.cs.depend.ccs_sem.lexer.CCSLexer;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Equals;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Minus;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Colon;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Comma;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Dot;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Else;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Equals;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Exclamation;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.False;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Identifier;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.IntegerToken;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.LBrace;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.LBracket;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.LParenthesis;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Minus;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Parallel;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.QuestionMark;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.RBrace;
@@ -28,8 +34,12 @@ import de.unisb.cs.depend.ccs_sem.lexer.tokens.RParenthesis;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Restrict;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Semicolon;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Stop;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Then;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Token;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.True;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.When;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.ChoiceExpr;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.ConditionalExpression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.ParallelExpr;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.PrefixExpr;
@@ -44,10 +54,15 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.actions.InputAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.OutputAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.SimpleAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.TauAction;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.BooleanValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstBooleanValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstChannel;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstIntegerValue;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstStringValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.IntegerValue;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.NotValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.TauChannel;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
@@ -61,8 +76,9 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
  * expression          --> restrictExpression
  * restrictExpression  --> parallelExpression
  *                          | restrictExpression "\" "{" ( ( identidier "," )* identifier )? "}"
- * parallelExpression  --> choiceExpression
- *                          | parallelExpression "|" choiceExpression
+ * parallelExpression  --> whenExpression
+ *                          | parallelExpression "|" whenExpression
+ * whenExpression      --> choiceExpression | "when" arithExpression whenExpression
  * choiceExpression    --> prefixExpression
  *                          | choiceExpression "+" prefixExpression
  * prefixExpression    --> baseExpression
@@ -72,14 +88,15 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
  *                          | recursionVariable
  *                          | action
  *
- * action              --> identifier ( ("?" | "!") value' )?
+ * action              --> identifier ( "?" inputValue | "!" outputValue )?
  * identifier          --> character ( digit | character ) *
  * character           --> "a" | ... | "z" | "A" | ... | "Z" | "_"
  * digit               --> "0" | ... | "9"
- * value               --> digit+ | arithExpression
- * value'              --> digit+ | identifier | "(" arithExpression ")"
+ * inputValue          --> identifier | digit+
+ * value               --> arithExpression
+ * outputValue         --> identifier | "(" arithExpression ")"
  *
- * arithExpression     --> arithCondBranch
+ * arithExpression     --> arithCond
  * arithCond           --> arithOr | arithOr "?" arithCond ":" arithCond
  * arithOr             --> arithAnd | arithOr "||" arithAnd
  * arithAnd            --> arithEq | arithAnd "&&" arithEq
@@ -264,21 +281,20 @@ public class CCSParser implements Parser {
 
         while (tokens.hasNext()) {
 
-            Token nextToken = tokens.next();
-
-            if (nextToken instanceof RBracket) {
+            if (tokens.peek() instanceof RBracket) {
+                tokens.next();
                 parameters.trimToSize();
                 return parameters;
             }
 
-            final Value nextValue = readValue(nextToken, tokens);
+            final Value nextValue = readValue(tokens, false);
 
             parameters.add(nextValue);
 
             if (!tokens.hasNext())
                 throw new ParseException("Expected ']'");
 
-            nextToken = tokens.next();
+            final Token nextToken = tokens.next();
 
             if (nextToken instanceof RBracket) {
                 parameters.trimToSize();
@@ -290,17 +306,19 @@ public class CCSParser implements Parser {
         throw new ParseException("Expected ']'");
     }
 
-    private Value readValue(Token nextToken, ExtendedIterator<Token> tokens) throws ParseException {
-        if (nextToken instanceof Identifier) {
-            final Identifier identifier = (Identifier)nextToken;
-            final String name = identifier.getName();
-            return new ConstantValue(name);
+    private Value readValue(ExtendedIterator<Token> tokens, boolean allowNull) throws ParseException {
+        // if allowNull is true, we first try to read a value, an on a
+        // ParseException, we reset the Iterator and return null
+        if (allowNull) {
+            final int oldPosition = tokens.nextIndex();
+            try {
+                return readArithmeticExpression(tokens);
+            } catch (final ParseException e) {
+                tokens.setPosition(oldPosition);
+                return null;
+            }
         }
-        if (nextToken instanceof IntegerToken) {
-            final IntegerToken intToken = (IntegerToken) nextToken;
-            return new IntegerValue(intToken.getValue());
-        }
-        throw new ParseException("Expected a value here.");
+        return readArithmeticExpression(tokens);
     }
 
     /**
@@ -333,7 +351,7 @@ public class CCSParser implements Parser {
     private Set<Action> readActionSet(ExtendedIterator<Token> tokens) throws ParseException {
         final Set<Action> actions = new HashSet<Action>();
 
-        if (tokens.peek() instanceof RBrace) {
+        if (tokens.hasNext() && tokens.peek() instanceof RBrace) {
             tokens.next();
             return Collections.emptySet();
         }
@@ -376,7 +394,7 @@ public class CCSParser implements Parser {
                     final Value value = readInputValue(tokens, true);
                     return new InputAction(channel, value);
                 } else if (tokens.hasNext() && nextToken instanceof Exclamation) {
-                    final Value value = readValue(tokens, true);
+                    final Value value = readOutputValue(tokens, true);
                     return new OutputAction(channel, value);
                 }
                 tokens.previous();
@@ -387,24 +405,32 @@ public class CCSParser implements Parser {
     }
 
     private Value readInputValue(ExtendedIterator<Token> tokens, boolean allowNull) throws ParseException {
-        if (tokens.peek() instanceof IntegerToken) {
-            final IntegerToken intToken = (IntegerToken) tokens.next();
-            return new IntegerValue(intToken.getValue());
+        if (tokens.hasNext()) {
+            if (tokens.peek() instanceof IntegerToken) {
+                final IntegerToken intToken = (IntegerToken) tokens.next();
+                return new ConstIntegerValue(intToken.getValue());
+            } else if (tokens.peek() instanceof True) {
+                return ConstBooleanValue.get(true);
+            } else if (tokens.peek() instanceof False) {
+                return ConstBooleanValue.get(false);
+            }
         }
         if (allowNull)
             return null;
         throw new ParseException("Expected input value.");
     }
 
-    private Value readValue(ExtendedIterator<Token> tokens, boolean allowNull) throws ParseException {
+    private Value readOutputValue(ExtendedIterator<Token> tokens, boolean allowNull) throws ParseException {
         if (tokens.hasNext()) {
             final Token nextToken = tokens.next();
             if (nextToken instanceof Identifier) {
                 final Identifier identifier = (Identifier)nextToken;
-                return new ConstantValue(identifier.getName());
-            } else if (nextToken instanceof IntegerToken) {
-                final IntegerToken intToken = (IntegerToken) nextToken;
-                return new IntegerValue(intToken.getValue());
+                return new ConstStringValue(identifier.getName());
+            } else if (nextToken instanceof LParenthesis) {
+                final Value value = readValue(tokens, allowNull);
+                if (!tokens.hasNext() || !(tokens.peek() instanceof RParenthesis))
+                    throw new ParseException("Expected ')'");
+                return value;
             }
             tokens.previous();
         }
@@ -431,14 +457,48 @@ public class CCSParser implements Parser {
      * Read one parallel expression.
      */
     private Expression readParallelExpression(ExtendedIterator<Token> tokens) throws ParseException {
-        Expression expr = readChoiceExpression(tokens);
+        Expression expr = readWhenExpression(tokens);
         while (tokens.hasNext() && tokens.peek() instanceof Parallel) {
             tokens.next();
-            final Expression newExpr = readChoiceExpression(tokens);
+            final Expression newExpr = readWhenExpression(tokens);
             expr = Expression.getExpression(new ParallelExpr(expr, newExpr));
         }
 
         return expr;
+    }
+
+    private Expression readWhenExpression(ExtendedIterator<Token> tokens) throws ParseException {
+        if (tokens.hasNext() && tokens.peek() instanceof When) {
+            tokens.next();
+            final Value condition = readArithmeticExpression(tokens);
+            if (!(condition instanceof BooleanValue))
+                throw new ParseException("Expected boolean expression after 'when'");
+
+            // if there is a "then" now, ignore it
+            if (tokens.hasNext() && tokens.peek() instanceof Then)
+                tokens.next();
+            final Expression consequence = readWhenExpression(tokens);
+
+            final Expression condExpr = Expression.getExpression(
+                new ConditionalExpression((BooleanValue) condition, consequence));
+
+            // we allow an "else" here to declare an alternative, but internally,
+            // it is mapped to a "(when (x) <consequence>) + (when (!x) <alternative>)"
+            if (tokens.hasNext() && tokens.peek() instanceof Else) {
+                tokens.next();
+                final Expression alternative = readWhenExpression(tokens);
+                // build negated condition
+                final BooleanValue negatedCondition = condition instanceof NotValue
+                    ? ((NotValue)condition).getNegatedValue()
+                    : new NotValue((BooleanValue)condition);
+                final Expression alternative = Expression.getExpression(
+                    new ConditionalExpression(negatedCondition, alternative));
+                final Expression condExpr = Expression.getExpression(
+                    new ChoiceExpr(condExpr, alternative));
+            }
+            return condExpr;
+        }
+        return readChoiceExpression(tokens);
     }
 
     /**
@@ -517,6 +577,33 @@ public class CCSParser implements Parser {
         }
 
         throw new ParseException("Unexpected end of file");
+    }
+
+    private Value readArithmeticExpression(ExtendedIterator<Token> tokens) {
+        return readArithmeticConditionalExpression(tokens);
+    }
+
+    private Value readArithmeticConditionalExpression(ExtendedIterator<Token> tokens) {
+        Value orValue = readArithmeticOrExpression(tokens);
+        if (tokens.hasNext() && tokens.peek() instanceof QuestionMark) {
+            tokens.next();
+            if (!(orValue instanceof BooleanValue))
+                throw new ParseException("Boolean expression required before '?:' construct.");
+            Value thenValue = readArithmeticConditionalExpression(tokens);
+            if (!tokens.hasNext() || !(tokens.next() instanceof Colon))
+                throw new ParseException("Expected ':'");
+            Value elseValue = readArithmeticConditionalExpression(tokens);
+            if (thenValue instanceof IntegerValue && elseValue instanceof IntegerValue)
+                return IntegerCondValue.create((BooleanValue)orValue,
+                    (IntegerValue)thenValue, (IntegerValue)elseValue);
+            else if (thenValue instanceof BooleanValue && elseValue instanceof BooleanValue)
+                return BooleanCondValue.create((BooleanValue)orValue,
+                    (BooleanValue)thenValue, (BooleanValue)elseValue);
+            else
+
+        }
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }

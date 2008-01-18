@@ -39,6 +39,10 @@ public class ParameterRefChannel extends AbstractValue implements Channel {
         return this;
     }
 
+    public boolean isConstant() {
+        return false;
+    }
+
     @Override
     public String toString() {
         return getStringValue();

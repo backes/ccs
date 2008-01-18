@@ -6,15 +6,19 @@ import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 
 
-public class ConstantValue extends AbstractValue {
+public class ConstStringValue extends AbstractValue implements ConstantValue {
 
     private final String value;
 
-    public ConstantValue(String value) {
+    public ConstStringValue(String value) {
         this.value = value;
     }
 
     public String getStringValue() {
+        return value;
+    }
+
+    public String getValue() {
         return value;
     }
 
@@ -23,7 +27,7 @@ public class ConstantValue extends AbstractValue {
         for (final Parameter param: parameters) {
             if (param.getName().equals(value)) {
                 // throws ParseException if they don't match
-                param.match(this);
+                param.ensureValue();
 
                 return new ParameterRefValue(param);
             }
@@ -50,7 +54,7 @@ public class ConstantValue extends AbstractValue {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        final ConstantValue other = (ConstantValue) obj;
+        final ConstStringValue other = (ConstStringValue) obj;
         if (value == null) {
             if (other.value != null)
                 return false;

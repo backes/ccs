@@ -7,7 +7,7 @@ import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 
 
-public class ConstChannel extends AbstractValue implements Channel {
+public class ConstChannel extends AbstractValue implements Channel, ConstantValue {
 
     private final String value;
 

@@ -1,22 +1,36 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types.values;
 
+import java.util.List;
+import java.util.Map;
+
+import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 
 
-// TODO rename in ConstIntegerValue?
-public class IntegerValue extends AbstractValue {
+public class ConstIntegerValue extends IntegerValue implements ConstantValue {
 
     private final int value;
 
-    public IntegerValue(int value) {
+    public ConstIntegerValue(int value) {
         this.value = value;
     }
 
+    @Override
     public int getValue() {
         return value;
     }
 
     public String getStringValue() {
         return Integer.toString(value);
+    }
+
+    @Override
+    public IntegerValue insertParameters(List<Parameter> parameters) {
+        return this;
+    }
+
+    @Override
+    public IntegerValue instantiate(Map<Parameter, Value> parameters) {
+        return this;
     }
 
     @Override
@@ -37,7 +51,7 @@ public class IntegerValue extends AbstractValue {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        final IntegerValue other = (IntegerValue) obj;
+        final ConstIntegerValue other = (ConstIntegerValue) obj;
         if (value != other.value)
             return false;
         return true;

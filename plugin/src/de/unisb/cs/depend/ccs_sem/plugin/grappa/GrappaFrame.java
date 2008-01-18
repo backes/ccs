@@ -94,6 +94,8 @@ public class GrappaFrame extends Composite {
             node.setAttribute(GrappaConstants.LABEL_ATTR, warning);
             node.setAttribute(GrappaConstants.STYLE_ATTR, "filled");
             node.setAttribute(GrappaConstants.FILLCOLOR_ATTR, warnNodeColor);
+            node.setAttribute(GrappaConstants.TIP_ATTR,
+                "The graph could not be built. This is the reason why.");
             filterGraph(graph);
             graph.repaint();
             return;
@@ -118,6 +120,7 @@ public class GrappaFrame extends Composite {
                 node.setAttribute(GrappaConstants.STYLE_ATTR, "filled");
                 node.setAttribute(GrappaConstants.FILLCOLOR_ATTR, startNodeColor);
             }
+            node.setAttribute(GrappaConstants.TIP_ATTR, "Node: " + e.toString());
             nodes.put(e, node);
             graph.addNode(node);
             for (final Transition trans: e.getTransitions())
@@ -138,7 +141,9 @@ public class GrappaFrame extends Composite {
             for (final Transition trans: e.getTransitions()) {
                 final Node headNode = nodes.get(trans.getTarget());
                 final Edge edge = new Edge(graph, tailNode, headNode, "edge_" + cnt++);
-                edge.setAttribute(GrappaConstants.LABEL_ATTR, trans.getAction().getLabel());
+                final String label = trans.getAction().getLabel();
+                edge.setAttribute(GrappaConstants.LABEL_ATTR, label);
+                edge.setAttribute(GrappaConstants.TIP_ATTR, "Transition: " + label);
                 graph.addEdge(edge);
                 if (written.add(trans.getTarget()))
                     queue.add(trans.getTarget());

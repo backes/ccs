@@ -34,6 +34,10 @@ public class TauChannel extends AbstractValue implements Channel {
         return this;
     }
 
+    public boolean isConstant() {
+        return true;
+    }
+
     @Override
     public String toString() {
         return "i";

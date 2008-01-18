@@ -27,6 +27,10 @@ public class ParameterRefValue extends AbstractValue {
         return myValue == null ? this : myValue;
     }
 
+    public boolean isConstant() {
+        return false;
+    }
+
     @Override
     public String toString() {
         return param.getName();
