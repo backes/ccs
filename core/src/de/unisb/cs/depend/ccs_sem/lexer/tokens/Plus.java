@@ -1,9 +1,9 @@
 package de.unisb.cs.depend.ccs_sem.lexer.tokens;
 
 
-public class Choice extends AbstractToken {
+public class Plus extends AbstractToken {
 
-    public Choice(int startPosition) {
+    public Plus(int startPosition) {
         super(startPosition, startPosition);
     }
 

@@ -2,15 +2,15 @@ package de.unisb.cs.depend.ccs_sem.lexer.tokens;
 
 
 
-public class Dot extends AbstractToken {
+public class Greater extends AbstractToken {
 
-    public Dot(int position) {
+    public Greater(int position) {
         super(position, position);
     }
 
     @Override
     public String toString() {
-        return ".";
+        return ">";
     }
 
 }

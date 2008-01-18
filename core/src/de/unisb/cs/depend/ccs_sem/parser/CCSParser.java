@@ -10,8 +10,8 @@ import java.util.Set;
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.lexer.CCSLexer;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Assignment;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Choice;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Equals;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Minus;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Comma;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Dot;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Exclamation;
@@ -187,12 +187,12 @@ public class CCSParser implements Parser {
             throw new ParseException("Expected declaration");
         identifier = (Identifier) token1;
 
-        if (token2 instanceof Assignment) {
+        if (token2 instanceof Equals) {
             expr = readExpression(tokens);
             parameters = Collections.emptyList();
         } else if (token2 instanceof LBracket) {
             parameters = readParameters(tokens);
-            if (!tokens.hasNext() || !(tokens.next() instanceof Assignment))
+            if (!tokens.hasNext() || !(tokens.next() instanceof Equals))
                 throw new ParseException("Expected declaration");
             expr = readExpression(tokens);
         } else {
@@ -446,7 +446,7 @@ public class CCSParser implements Parser {
      */
     private Expression readChoiceExpression(ExtendedIterator<Token> tokens) throws ParseException {
         Expression expr = readPrefixExpression(tokens);
-        while (tokens.hasNext() && tokens.peek() instanceof Choice) {
+        while (tokens.hasNext() && tokens.peek() instanceof Minus) {
             tokens.next();
             final Expression newExpr = readPrefixExpression(tokens);
             expr = Expression.getExpression(new ChoiceExpr(expr, newExpr));
