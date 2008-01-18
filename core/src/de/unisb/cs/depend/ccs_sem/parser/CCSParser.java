@@ -368,22 +368,20 @@ public class CCSParser implements Parser {
             }
             if (tokens.hasNext()) {
                 final Token nextToken = tokens.next();
-                if (!tokens.hasNext()) {
-                    tokens.previous();
-                } else if (nextToken instanceof QuestionMark) {
+                if (tokens.hasNext() && nextToken instanceof QuestionMark) {
                     if (tokens.peek() instanceof Identifier) {
                         final Parameter param = readParameter(tokens);
                         return new InputAction(channel, param);
                     }
                     final Value value = readInputValue(tokens, true);
-                    return Action.getAction(new InputAction(channel, value));
-                } else if (nextToken instanceof Exclamation) {
+                    return new InputAction(channel, value);
+                } else if (tokens.hasNext() && nextToken instanceof Exclamation) {
                     final Value value = readValue(tokens, true);
-                    return Action.getAction(new OutputAction(channel, value));
+                    return new OutputAction(channel, value);
                 }
                 tokens.previous();
             }
-            return Action.getAction(new SimpleAction(channel));
+            return new SimpleAction(channel);
         }
         throw new ParseException("Expected action identifier.");
     }

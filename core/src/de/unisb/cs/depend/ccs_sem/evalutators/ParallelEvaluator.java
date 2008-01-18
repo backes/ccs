@@ -62,7 +62,8 @@ public class ParallelEvaluator implements Evaluator {
 
         synchronized (readyLock) {
             // the EvaluatorJob executes itself automatically
-            evaluatedSuccessors.add(expr);
+            if (evaluateSuccessors)
+                evaluatedSuccessors.add(expr);
             new EvaluatorJob(expr, evaluateSuccessors);
 
             try {
@@ -125,7 +126,7 @@ public class ParallelEvaluator implements Evaluator {
 
         private synchronized void addWaiter(Informable info) {
             if (waiters == null)
-                waiters = new ArrayList<Informable>(1);
+                waiters = new ArrayList<Informable>(2);
             waiters.add(info);
         }
 

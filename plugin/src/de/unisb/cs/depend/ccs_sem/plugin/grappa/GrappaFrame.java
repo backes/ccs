@@ -1,5 +1,6 @@
 package de.unisb.cs.depend.ccs_sem.plugin.grappa;
 
+import java.awt.Color;
 import java.awt.Frame;
 import java.awt.GridLayout;
 import java.io.IOException;
@@ -20,6 +21,7 @@ import org.eclipse.swt.widgets.Composite;
 
 import att.grappa.Edge;
 import att.grappa.Graph;
+import att.grappa.GrappaConstants;
 import att.grappa.GrappaPanel;
 import att.grappa.GrappaSupport;
 import att.grappa.Node;
@@ -33,6 +35,9 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 
 
 public class GrappaFrame extends Composite {
+
+    private static final Color startNodeColor = Color.LIGHT_GRAY;
+    private static final Color warnNodeColor = Color.RED;
 
     private final GrappaPanel grappaPanel;
     private final Graph graph = new Graph("CSS-Graph");
@@ -51,7 +56,9 @@ public class GrappaFrame extends Composite {
 
         final Node node = new Node(graph, "warn_node");
         graph.addNode(node);
-        node.setAttribute("label", "Not initialized...");
+        node.setAttribute(GrappaConstants.LABEL_ATTR, "Not initialized...");
+        node.setAttribute(GrappaConstants.STYLE_ATTR, "filled");
+        node.setAttribute(GrappaConstants.COLOR_ATTR, warnNodeColor);
         filterGraph(graph);
         graph.repaint();
     }
@@ -64,10 +71,12 @@ public class GrappaFrame extends Composite {
         String warning = null;
         try {
             ccsProgram = ccsEditor.getCCSProgram(true);
-        } catch (final ParseException e) {
-            warning = "Error lexing: " + e.getMessage();
         } catch (final LexException e) {
-            warning = "Error parsing: " + e.getMessage();
+            warning = "Error lexing: " + e.getMessage()
+                + " (around this context: " + e.getEnvironment() + ")";
+        } catch (final ParseException e) {
+            warning = "Error parsing: " + e.getMessage()
+                + " (around this context: " + e.getEnvironment() + ")";
         }
 
         graph.reset();
@@ -75,7 +84,9 @@ public class GrappaFrame extends Composite {
         if (warning != null) {
             final Node node = new Node(graph, "warn_node");
             graph.addNode(node);
-            node.setAttribute("label", warning);
+            node.setAttribute(GrappaConstants.LABEL_ATTR, warning);
+            node.setAttribute(GrappaConstants.STYLE_ATTR, "filled");
+            node.setAttribute(GrappaConstants.FILLCOLOR_ATTR, warnNodeColor);
             filterGraph(graph);
             graph.repaint();
             return;
@@ -95,7 +106,11 @@ public class GrappaFrame extends Composite {
         while (!queue.isEmpty()) {
             final Expression e = queue.poll();
             final Node node = new Node(graph, "node_" + cnt++);
-            node.setAttribute("label", e.toString());
+            node.setAttribute(GrappaConstants.LABEL_ATTR, e.toString());
+            if (cnt == 1) {
+                node.setAttribute(GrappaConstants.STYLE_ATTR, "filled");
+                node.setAttribute(GrappaConstants.FILLCOLOR_ATTR, startNodeColor);
+            }
             nodes.put(e, node);
             graph.addNode(node);
             for (final Transition trans: e.getTransitions())
@@ -111,12 +126,12 @@ public class GrappaFrame extends Composite {
 
         while (!queue.isEmpty()) {
             final Expression e = queue.poll();
-            final Node headNode = nodes.get(e);
+            final Node tailNode = nodes.get(e);
 
             for (final Transition trans: e.getTransitions()) {
-                final Node tailNode = nodes.get(trans.getTarget());
+                final Node headNode = nodes.get(trans.getTarget());
                 final Edge edge = new Edge(graph, tailNode, headNode, "edge_" + cnt++);
-                edge.setAttribute("label", trans.getAction().getLabel());
+                edge.setAttribute(GrappaConstants.LABEL_ATTR, trans.getAction().getLabel());
                 graph.addEdge(edge);
                 if (written.add(trans.getTarget()))
                     queue.add(trans.getTarget());

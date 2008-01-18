@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
@@ -40,8 +41,8 @@ public class RestrictExpr extends Expression {
 
         boolean useComplexWay = restricted.size() > 5;
 
-        // in debug mode switch to complex mode
-        assert (useComplexWay = true) == true;
+        // in debug mode switch between the two modes
+        assert (useComplexWay = new Random().nextBoolean()) || true;
 
         if (useComplexWay) {
             restrictComplex(oldTransitions, newTransitions);
@@ -56,11 +57,15 @@ public class RestrictExpr extends Expression {
             final List<Transition> newTransitions) {
         outer:
         for (final Transition trans: oldTransitions) {
-            for (final Action restrictedAction: restricted) {
+            for (final Action restrictedAction: restricted)
                 if (restrictedAction.restricts(trans.getAction()))
                     continue outer;
-                newTransitions.add(trans);
-            }
+            Expression newExpr = new RestrictExpr(trans.getTarget(), restricted);
+            // search if this expression is already known
+            newExpr = Expression.getExpression(newExpr);
+            // search if this transition is already known (otherwise create it)
+            final Transition newTrans = new Transition(trans.getAction(), newExpr);
+            newTransitions.add(newTrans);
         }
     }
 
@@ -87,7 +92,7 @@ public class RestrictExpr extends Expression {
             // search if this expression is already known
             newExpr = Expression.getExpression(newExpr);
             // search if this transition is already known (otherwise create it)
-            final Transition newTrans = Transition.getTransition(trans.getAction(), newExpr);
+            final Transition newTrans = new Transition(trans.getAction(), newExpr);
             newTransitions.add(newTrans);
         }
     }

@@ -37,7 +37,7 @@ public class PrefixExpr extends Expression {
 
     @Override
     protected List<Transition> evaluate0() {
-        return Collections.singletonList(Transition.getTransition(prefix, target));
+        return Collections.singletonList(new Transition(prefix, target));
     }
 
     @Override

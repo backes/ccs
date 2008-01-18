@@ -44,6 +44,7 @@ public abstract class Expression {
             final ArrayList<Transition> list = (ArrayList<Transition>) transitions;
             list.trimToSize();
         }
+
         transitions = Collections.unmodifiableList(transitions);
     }
 

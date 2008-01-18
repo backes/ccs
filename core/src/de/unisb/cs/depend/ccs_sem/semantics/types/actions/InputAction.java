@@ -91,7 +91,7 @@ public class InputAction extends Action {
         if (value == null) {
             if (channel.equals(newChannel))
                 return this;
-            return Action.getAction(new InputAction(newChannel, value));
+            return new InputAction(newChannel, value);
         }
 
         final Value newValue = value.instantiate(parameters);
@@ -99,7 +99,7 @@ public class InputAction extends Action {
         if (channel.equals(newChannel) && value.equals(newValue))
             return this;
 
-        return Action.getAction(new InputAction(newChannel, newValue));
+        return new InputAction(newChannel, newValue);
     }
 
     @Override
@@ -119,17 +119,17 @@ public class InputAction extends Action {
     @Override
     public Action insertParameters(List<Parameter> parameters) throws ParseException {
         final Channel newChannel = channel.insertParameters(parameters);
-        
+
         if (value == null) {
             if (channel.equals(newChannel))
                 return this;
-            return Action.getAction(new InputAction(newChannel, param));
+            return new InputAction(newChannel, param);
         }
-        
+
         final Value newValue = value.insertParameters(parameters);
         if (channel.equals(newChannel) && value.equals(newValue))
             return this;
-        return Action.getAction(new OutputAction(newChannel, newValue));
+        return new InputAction(newChannel, newValue);
     }
 
     @Override

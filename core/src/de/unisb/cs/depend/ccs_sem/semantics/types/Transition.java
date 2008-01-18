@@ -1,7 +1,6 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types;
 
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
@@ -12,9 +11,6 @@ public class Transition {
 
     private final Action action;
     private final Expression target;
-
-    private static ConcurrentHashMap<Action, ConcurrentHashMap<Expression, Transition>> repository
-        = new ConcurrentHashMap<Action, ConcurrentHashMap<Expression,Transition>>();
 
     public Transition(Action action, Expression target) {
         super();
@@ -48,27 +44,6 @@ public class Transition {
         return this;
     }
 
-    public static Transition getTransition(Action action, Expression target) {
-        ConcurrentHashMap<Expression, Transition> map = repository.get(action);
-        if (map == null) {
-            map = new ConcurrentHashMap<Expression, Transition>();
-            final ConcurrentHashMap<Expression, Transition> result =
-                repository.putIfAbsent(action, map);
-            if (result != null)
-                map = result;
-        }
-
-        Transition trans = map.get(target);
-        if (trans == null) {
-            trans = new Transition(action, target);
-            final Transition result = map.putIfAbsent(target, trans);
-            if (result != null)
-                trans = result;
-        }
-
-        return trans;
-    }
-
     @Override
     public String toString() {
         return "--" + action + "-> " + target;
@@ -95,8 +70,8 @@ public class Transition {
     public int hashCode() {
         final int PRIME = 31;
         int result = 1;
-        result = PRIME * result + ((action == null) ? 0 : action.hashCode());
-        result = PRIME * result + ((target == null) ? 0 : target.hashCode());
+        result = PRIME * result + action.hashCode();
+        result = PRIME * result + target.hashCode();
         return result;
     }
 
@@ -109,15 +84,9 @@ public class Transition {
         if (getClass() != obj.getClass())
             return false;
         final Transition other = (Transition) obj;
-        if (action == null) {
-            if (other.action != null)
-                return false;
-        } else if (!action.equals(other.action))
+        if (!action.equals(other.action))
             return false;
-        if (target == null) {
-            if (other.target != null)
-                return false;
-        } else if (!target.equals(other.target))
+        if (!target.equals(other.target))
             return false;
         return true;
     }

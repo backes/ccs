@@ -30,7 +30,7 @@ public class SimpleAction extends Action {
         if (channel.equals(newChannel))
             return this;
 
-        return Action.getAction(new SimpleAction(newChannel));
+        return new SimpleAction(newChannel);
     }
 
     @Override
@@ -39,7 +39,7 @@ public class SimpleAction extends Action {
         if (channel.equals(newChannel))
             return this;
 
-        return Action.getAction(new SimpleAction(newChannel));
+        return new SimpleAction(newChannel);
     }
 
     @Override

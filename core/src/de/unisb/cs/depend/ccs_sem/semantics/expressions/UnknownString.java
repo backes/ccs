@@ -91,7 +91,7 @@ public class UnknownString extends Expression {
 
             throw new ParseException(sb.toString());
         }
-        final Action prefix = Action.getAction(new SimpleAction(new ConstChannel(name)));
+        final Action prefix = new SimpleAction(new ConstChannel(name));
         final Expression stopExpression = Expression.getExpression(new StopExpr());
         return Expression.getExpression(new PrefixExpr(prefix, stopExpression));
     }

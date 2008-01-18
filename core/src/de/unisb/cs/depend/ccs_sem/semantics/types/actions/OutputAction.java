@@ -79,7 +79,7 @@ public class OutputAction extends Action {
         if (message == null) {
             if (channel.equals(newChannel))
                 return this;
-            return Action.getAction(new OutputAction(newChannel, null));
+            return new OutputAction(newChannel, null);
         }
 
         final Value newMessage = message.instantiate(parameters);
@@ -87,23 +87,23 @@ public class OutputAction extends Action {
         if (channel.equals(newChannel) && message.equals(newMessage))
             return this;
 
-        return Action.getAction(new OutputAction(newChannel, newMessage));
+        return new OutputAction(newChannel, newMessage);
     }
 
     @Override
     public Action insertParameters(List<Parameter> parameters) throws ParseException {
         final Channel newChannel = channel.insertParameters(parameters);
-        
+
         if (message == null) {
             if (channel.equals(newChannel))
                 return this;
-            return Action.getAction(new OutputAction(newChannel, message));
+            return new OutputAction(newChannel, message);
         }
-        
+
         final Value newMessage = message.insertParameters(parameters);
         if (channel.equals(newChannel) && message.equals(newMessage))
             return this;
-        return Action.getAction(new OutputAction(newChannel, newMessage));
+        return new OutputAction(newChannel, newMessage);
     }
 
     @Override

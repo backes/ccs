@@ -1,6 +1,8 @@
 package de.unisb.cs.depend.ccs_sem.plugin.editors;
 
+import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
@@ -12,12 +14,13 @@ import de.unisb.cs.depend.ccs_sem.parser.CCSParser;
 import de.unisb.cs.depend.ccs_sem.plugin.views.CCSContentOutlinePage;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 
-public class CCSEditor extends TextEditor {
+public class CCSEditor extends TextEditor implements IDocumentListener {
 
     private final ColorManager colorManager;
     private CCSContentOutlinePage fOutlinePage;
     private Program ccsProgram = null;
     private final Evaluator evaluator = new SequentialEvaluator();
+    private boolean listenerAdded = false;
 
     public CCSEditor() {
         super();
@@ -55,9 +58,10 @@ public class CCSEditor extends TextEditor {
     }
 
     public Program getCCSProgram(boolean evaluate) throws ParseException, LexException {
-        // TODO watch for changes in the source code
-        ccsProgram = null;
-
+        if (!listenerAdded) {
+            getDocument().addDocumentListener(this);
+            listenerAdded = true;
+        }
 
         if (ccsProgram == null) {
             ccsProgram = new CCSParser().parse(getText());
@@ -70,6 +74,14 @@ public class CCSEditor extends TextEditor {
         }
 
         return ccsProgram;
+    }
+
+    public void documentAboutToBeChanged(DocumentEvent event) {
+        // not very interesting
+    }
+
+    public void documentChanged(DocumentEvent event) {
+        ccsProgram = null;
     }
 
 }
