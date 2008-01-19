@@ -198,6 +198,9 @@ public class CCSParser implements Parser {
         return environment.toString();
     }
 
+    /**
+     * @return <code>null</code>, if there is no more declaration
+     */
     private Declaration readDeclaration(ExtendedIterator<Token> tokens) throws ParseException {
         Token token1 = null;
         Token token2 = null;
@@ -213,7 +216,7 @@ public class CCSParser implements Parser {
         List<Parameter> parameters;
         Expression expr;
         if (!(token1 instanceof Identifier))
-            throw new ParseException("Expected declaration");
+            return null;
         identifier = (Identifier) token1;
 
         if (token2 instanceof Equals) {
@@ -232,6 +235,7 @@ public class CCSParser implements Parser {
 
     /**
      * Read all parameters up to the next RBracket (this token is read too).
+     * @return <code>null</code> if there was an error
      */
     private List<Parameter> readParameters(ExtendedIterator<Token> tokens) throws ParseException {
         final ArrayList<Parameter> parameters = new ArrayList<Parameter>();
@@ -245,10 +249,22 @@ public class CCSParser implements Parser {
 
         while (tokens.hasNext()) {
 
+            // read one parameter
+            final Token nextToken = tokens.next();
+            if (nextToken instanceof Identifier) {
+                final Identifier identifier = (Identifier)nextToken;
+                final String name = identifier.getName();
+                if ("i".equals(name))
+                    throw new ParseException("'i' is no valid Parameter name.");
+                return new Parameter(name);
+            }
+        }
+            throw new ParseException("Expected a value here.");
             final Parameter nextParameter = readParameter(tokens);
 
             if (!readParameters.add(nextParameter.getName()))
-                throw new ParseException("Duplicated parameter name: " + nextParameter.getName());
+                // duplicate parameter name
+                return null;
             parameters.add(nextParameter);
 
             if (!tokens.hasNext())
@@ -299,7 +315,7 @@ public class CCSParser implements Parser {
                 return parameters;
             }
 
-            final Value nextValue = readValue(tokens, false);
+            final Value nextValue = readParameterValue(tokens, false);
 
             parameters.add(nextValue);
 
@@ -318,7 +334,7 @@ public class CCSParser implements Parser {
         throw new ParseException("Expected ']'");
     }
 
-    private Value readValue(ExtendedIterator<Token> tokens, boolean allowNull) throws ParseException {
+    private Value readParameterValue(ExtendedIterator<Token> tokens, boolean allowNull) throws ParseException {
         // if allowNull is true, we first try to read a value, an on a
         // ParseException, we reset the Iterator and return null
         if (allowNull) {
@@ -350,7 +366,7 @@ public class CCSParser implements Parser {
             tokens.next();
             if (!tokens.hasNext() || !(tokens.next() instanceof LBrace))
                 throw new ParseException("Expected '{'");
-            final Set<Action> restricted = readActionSet(tokens);
+            final Set<Action> restricted = readRestrictionActionSet(tokens);
             expr = Expression.getExpression(new RestrictExpr(expr, restricted));
         }
 
@@ -360,7 +376,7 @@ public class CCSParser implements Parser {
     /**
      * Read all actions up to the next RBrace (this token is read too).
      */
-    private Set<Action> readActionSet(ExtendedIterator<Token> tokens) throws ParseException {
+    private Set<Action> readRestrictionActionSet(ExtendedIterator<Token> tokens) throws ParseException {
         final Set<Action> actions = new HashSet<Action>();
 
         if (tokens.hasNext() && tokens.peek() instanceof RBrace) {
@@ -388,25 +404,26 @@ public class CCSParser implements Parser {
         throw new ParseException("Expected '}'");
     }
 
-    private Action readAction(ExtendedIterator<Token> tokens, boolean tauAllowed) throws ParseException {
+    private Action readAction(ExtendedIterator<Token> tokens) throws ParseException {
         if (tokens.hasNext()) {
             final Channel channel = readChannel(tokens);
-            if (channel instanceof TauChannel) {
-                if (!tauAllowed)
-                    throw new ParseException("Tau action not allowed here");
-                return TauAction.get();
-            }
+            if (channel instanceof TauChannel)
+                throw new ParseException("Tau action not allowed here");
             if (tokens.hasNext()) {
                 final Token nextToken = tokens.next();
                 if (tokens.hasNext() && nextToken instanceof QuestionMark) {
-                    if (tokens.peek() instanceof Identifier) {
-                        final Parameter param = readParameter(tokens);
-                        return new InputAction(channel, param);
+                    tokens.next();
+                    final Value value = readValue(tokens, true);
+                    return new InputAction(channel, value);
+                    if (tokens.hasNext()) {
                     }
+                    if (allowNull)
+                        return null;
+                    throw new ParseException("Expected input value.");
                     final Value value = readInputValue(tokens, true);
                     return new InputAction(channel, value);
                 } else if (tokens.hasNext() && nextToken instanceof Exclamation) {
-                    final Value value = readOutputValue(tokens, true);
+                    final Value value = readValue(tokens, true);
                     return new OutputAction(channel, value);
                 }
                 tokens.previous();
@@ -416,23 +433,7 @@ public class CCSParser implements Parser {
         throw new ParseException("Expected action identifier.");
     }
 
-    private Value readInputValue(ExtendedIterator<Token> tokens, boolean allowNull) throws ParseException {
-        if (tokens.hasNext()) {
-            if (tokens.peek() instanceof IntegerToken) {
-                final IntegerToken intToken = (IntegerToken) tokens.next();
-                return new ConstIntegerValue(intToken.getValue());
-            } else if (tokens.peek() instanceof True) {
-                return ConstBooleanValue.get(true);
-            } else if (tokens.peek() instanceof False) {
-                return ConstBooleanValue.get(false);
-            }
-        }
-        if (allowNull)
-            return null;
-        throw new ParseException("Expected input value.");
-    }
-
-    private Value readOutputValue(ExtendedIterator<Token> tokens, boolean allowNull) throws ParseException {
+    private Value readValue(ExtendedIterator<Token> tokens, boolean allowNull) throws ParseException {
         if (tokens.hasNext()) {
             final Token nextToken = tokens.next();
             if (nextToken instanceof Identifier) {

@@ -56,6 +56,7 @@ public class InputAction extends Action {
     @Override
     public Value getMessage() {
         // TODO is this right? is this method ever called?
+        assert false;
         return value;
     }
 
@@ -107,7 +108,8 @@ public class InputAction extends Action {
         if (actionToCheck instanceof InputAction) {
             final InputAction inputActionToCheck = (InputAction) actionToCheck;
             if (channel.equals(inputActionToCheck.channel)) {
-                // TODO distinguish parameters / values
+                if (param != null)
+                    return true;
                 if (value == null || value.equals(inputActionToCheck.value))
                     return true;
             }

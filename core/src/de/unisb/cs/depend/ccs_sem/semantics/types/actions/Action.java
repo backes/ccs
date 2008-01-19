@@ -64,7 +64,8 @@ public abstract class Action {
      * See {@link Transition#synchronizeWith(Action)}
      * @param otherAction the Action that we want to synchronize with
      * @param our target Expression before synchronizing
-     * @return either the Expression target or a new one that's instantiated using otherAction
+     * @return <code>null</code> if we can't synchronize, otherwise either the
+     *         Expression target or a new one that's instantiated using otherAction
      */
     public abstract Expression synchronizeWith(Action otherAction, Expression target);
 
