@@ -1,19 +1,15 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types.values;
 
-import java.util.List;
 import java.util.Map;
 
-import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 
 
 public class OrValue extends BooleanValue {
 
-    // we use the general type Value here. it could be a BooleanValue or a
-    // ParameterRefValue
+    // the types are checked by the parser
     private final Value left;
     private final Value right;
-
 
     private OrValue(Value left, Value right) {
         super();
@@ -24,18 +20,6 @@ public class OrValue extends BooleanValue {
     public static BooleanValue create(Value left, Value right) {
         if (left instanceof ConstBooleanValue && right instanceof ConstBooleanValue)
             return ConstBooleanValue.get(((ConstBooleanValue)left).getValue() || ((ConstBooleanValue)right).getValue());
-        if ((left instanceof ParameterRefValue || left instanceof BooleanValue)
-                && (right instanceof ParameterRefValue || right instanceof BooleanValue))
-            return new OrValue(left, right);
-        throw new IllegalArgumentException("Only BooleanValue or ParameterRefValue allowed");
-    }
-
-    @Override
-    public BooleanValue insertParameters(List<Parameter> parameters) throws ParseException {
-        final Value newLeft = left.insertParameters(parameters);
-        final Value newRight = right.insertParameters(parameters);
-        if (left.equals(newLeft) && right.equals(newRight))
-            return this;
         return new OrValue(left, right);
     }
 
@@ -49,10 +33,8 @@ public class OrValue extends BooleanValue {
     }
 
     public String getStringValue() {
-        final boolean needParenthesisLeft = left instanceof OrValue
-            || left instanceof IntegerCondValue;
-        final boolean needParenthesisRight = right instanceof OrValue
-            || right instanceof IntegerCondValue;
+        final boolean needParenthesisLeft = left instanceof ConditionalValue;
+        final boolean needParenthesisRight = right instanceof ConditionalValue;
         final String leftStr = left.toString();
         final String rightStr = right.toString();
         final StringBuilder sb = new StringBuilder(leftStr.length() + rightStr.length() + 6);

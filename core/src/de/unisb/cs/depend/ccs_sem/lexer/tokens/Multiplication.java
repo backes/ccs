@@ -2,9 +2,9 @@ package de.unisb.cs.depend.ccs_sem.lexer.tokens;
 
 
 
-public class Multiplikation extends AbstractToken {
+public class Multiplication extends AbstractToken {
 
-    public Multiplikation(int position) {
+    public Multiplication(int position) {
         super(position, position);
     }
 

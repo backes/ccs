@@ -1,9 +1,7 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types.actions;
 
-import java.util.List;
 import java.util.Map;
 
-import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
@@ -88,27 +86,6 @@ public class OutputAction extends Action {
             return this;
 
         return new OutputAction(newChannel, newMessage);
-    }
-
-    @Override
-    public Action insertParameters(List<Parameter> parameters) throws ParseException {
-        final Channel newChannel = channel.insertParameters(parameters);
-
-        if (message == null) {
-            if (channel.equals(newChannel))
-                return this;
-            return new OutputAction(newChannel, message);
-        }
-
-        final Value newMessage = message.insertParameters(parameters);
-        if (channel.equals(newChannel) && message.equals(newMessage))
-            return this;
-        return new OutputAction(newChannel, newMessage);
-    }
-
-    @Override
-    public Expression manipulateTarget(Expression target) {
-        return target;
     }
 
     @Override

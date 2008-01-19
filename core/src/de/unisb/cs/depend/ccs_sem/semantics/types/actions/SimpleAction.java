@@ -1,9 +1,7 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types.actions;
 
-import java.util.List;
 import java.util.Map;
 
-import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
@@ -34,15 +32,6 @@ public class SimpleAction extends Action {
     }
 
     @Override
-    public Action insertParameters(List<Parameter> parameters) throws ParseException {
-        final Channel newChannel = channel.insertParameters(parameters);
-        if (channel.equals(newChannel))
-            return this;
-
-        return new SimpleAction(newChannel);
-    }
-
-    @Override
     public Channel getChannel() {
         return channel;
     }
@@ -61,11 +50,6 @@ public class SimpleAction extends Action {
     public Expression synchronizeWith(Action otherAction, Expression target) {
         // this action cannot synchronize
         return null;
-    }
-
-    @Override
-    public Expression manipulateTarget(Expression target) {
-        return target;
     }
 
     @Override

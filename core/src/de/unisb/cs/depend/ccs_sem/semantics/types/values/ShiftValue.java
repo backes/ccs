@@ -5,39 +5,44 @@ import java.util.Map;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 
 
-public class AndValue extends BooleanValue {
+public class ShiftValue extends IntegerValue {
 
     // the types are checked by the parser
     private final Value left;
     private final Value right;
+    private final boolean isRightShift;
 
 
-    private AndValue(Value left, Value right) {
+    private ShiftValue(Value left, Value right, boolean isRightShift) {
         super();
         this.left = left;
         this.right = right;
+        this.isRightShift = isRightShift;
     }
 
-    public static BooleanValue create(Value left, Value right) {
-        if (left instanceof ConstBooleanValue && right instanceof ConstBooleanValue)
-            return ConstBooleanValue.get(((ConstBooleanValue)left).getValue() && ((ConstBooleanValue)right).getValue());
-        return new AndValue(left, right);
+    public static IntegerValue create(Value left, Value right, boolean isRightShift) {
+        if (left instanceof ConstIntegerValue && right instanceof ConstIntegerValue) {
+            final int leftVal = ((ConstIntegerValue)left).getValue();
+            final int rightVal = ((ConstIntegerValue)right).getValue();
+            final int value = isRightShift ? (leftVal >> rightVal) : (leftVal << rightVal);
+            return new ConstIntegerValue(value);
+        }
+        return new ShiftValue(left, right, isRightShift);
     }
 
     @Override
-    public BooleanValue instantiate(Map<Parameter, Value> parameters) {
+    public IntegerValue instantiate(Map<Parameter, Value> parameters) {
         final Value newLeft = left.instantiate(parameters);
         final Value newRight = right.instantiate(parameters);
         if (left.equals(newLeft) && right.equals(newRight))
             return this;
-        return create(left, right);
+        return create(left, right, isRightShift);
     }
 
     public String getStringValue() {
-        final boolean needParenthesisLeft = left instanceof OrValue
-            || left instanceof ConditionalValue;
-        final boolean needParenthesisRight = right instanceof OrValue
-            || right instanceof ConditionalValue;
+        final boolean needParenthesisLeft = left instanceof ConditionalValue;
+        final boolean needParenthesisRight = right instanceof ConditionalValue
+            || right instanceof ShiftValue;
         final String leftStr = left.toString();
         final String rightStr = right.toString();
         final StringBuilder sb = new StringBuilder(leftStr.length() + rightStr.length() + 6);
@@ -45,7 +50,7 @@ public class AndValue extends BooleanValue {
             sb.append('(').append(leftStr).append(')');
         else
             sb.append(leftStr);
-        sb.append(" && ");
+        sb.append(isRightShift ? " >> " : " << ");
         if (needParenthesisRight)
             sb.append('(').append(rightStr).append(')');
         else

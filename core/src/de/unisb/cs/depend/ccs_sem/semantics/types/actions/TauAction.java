@@ -1,6 +1,5 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types.actions;
 
-import java.util.List;
 import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
@@ -34,11 +33,6 @@ public class TauAction extends Action {
 
     @Override
     public Action instantiate(Map<Parameter, Value> parameters) {
-        return this;
-    }
-
-    @Override
-    public Action insertParameters(List<Parameter> parameters) {
         return this;
     }
 
@@ -77,11 +71,6 @@ public class TauAction extends Action {
             return target;
 
         return null;
-    }
-
-    @Override
-    public Expression manipulateTarget(Expression target) {
-        return target;
     }
 
     @Override

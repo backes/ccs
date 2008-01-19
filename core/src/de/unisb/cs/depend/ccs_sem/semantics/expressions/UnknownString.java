@@ -114,23 +114,6 @@ public class UnknownString extends Expression {
     }
 
     @Override
-    public Expression insertParameters(List<Parameter> params) throws ParseException {
-        final List<Value> newParameters = new ArrayList<Value>(parameters.size());
-        boolean changed = false;
-        for (final Value param: parameters) {
-            final Value newParam = param.insertParameters(params);
-            if (!changed && !newParam.equals(param))
-                changed = true;
-            newParameters.add(newParam);
-        }
-
-        if (!changed)
-            return this;
-
-        return Expression.getExpression(new UnknownString(name, newParameters));
-    }
-
-    @Override
     public String toString() {
         if (parameters.size() == 0)
             return name;

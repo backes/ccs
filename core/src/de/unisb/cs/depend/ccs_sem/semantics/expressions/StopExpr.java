@@ -40,11 +40,6 @@ public class StopExpr extends Expression {
     }
 
     @Override
-    public Expression insertParameters(List<Parameter> parameters) {
-        return this;
-    }
-
-    @Override
     public String toString() {
         return "0";
     }

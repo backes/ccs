@@ -141,28 +141,6 @@ public class Parameter {
         connectedParameters.add(param);
     }
 
-    /**
-     * Ensures that this
-     * @throws ParseException
-     */
-    public void ensureValue() throws ParseException {
-        switch (type) {
-        case CHANNEL:
-            throw new ParseException("Parameter already has type " + type + ", cannot be used as VALUE");
-        case UNKNOWN:
-            break;
-        case VALUE:
-        case BOOLEANVALUE:
-        case INTEGERVALUE:
-        case STRINGVALUE:
-            type = Type.VALUE;
-            break;
-
-        default:
-            break;
-        }
-    }
-
     // hashCode and equals are not overridden (only identical Parameters are equal)
 
 }

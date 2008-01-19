@@ -1,9 +1,7 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types.values;
 
-import java.util.List;
 import java.util.Map;
 
-import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 
 
@@ -21,20 +19,6 @@ public class ConstChannel extends AbstractValue implements Channel, ConstantValu
 
     public String getValue() {
         return value;
-    }
-
-    @Override
-    public Channel insertParameters(List<Parameter> parameters) throws ParseException {
-        for (final Parameter param: parameters) {
-            if (param.getName().equals(value)) {
-                // throws ParseException if they don't match
-                param.match(this);
-
-                return new ParameterRefChannel(param);
-            }
-        }
-
-        return this;
     }
 
     @Override

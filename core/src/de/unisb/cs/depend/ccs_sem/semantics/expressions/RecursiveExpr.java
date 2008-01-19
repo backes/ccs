@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
@@ -65,23 +64,6 @@ public class RecursiveExpr extends Expression {
         boolean changed = false;
         for (final Value param: parameters) {
             final Value newParam = param.instantiate(params);
-            if (!changed && !newParam.equals(param))
-                changed = true;
-            newParameters.add(newParam);
-        }
-
-        if (!changed)
-            return this;
-
-        return Expression.getExpression(new RecursiveExpr(referencedDeclaration, newParameters));
-    }
-
-    @Override
-    public Expression insertParameters(List<Parameter> params) throws ParseException {
-        final List<Value> newParameters = new ArrayList<Value>(parameters.size());
-        boolean changed = false;
-        for (final Value param: parameters) {
-            final Value newParam = param.insertParameters(params);
             if (!changed && !newParam.equals(param))
                 changed = true;
             newParameters.add(newParam);

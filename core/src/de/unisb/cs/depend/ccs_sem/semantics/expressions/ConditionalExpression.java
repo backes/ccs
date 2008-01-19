@@ -49,16 +49,6 @@ public class ConditionalExpression extends Expression {
     }
 
     @Override
-    public Expression insertParameters(List<Parameter> parameters)
-            throws ParseException {
-        final Value newCondition = condition.insertParameters(parameters);
-        final Expression newConsequence = consequence.insertParameters(parameters);
-        if (condition.equals(newCondition) && consequence.equals(newConsequence))
-            return this;
-        return new ConditionalExpression(newCondition, newConsequence);
-    }
-
-    @Override
     public Expression instantiate(Map<Parameter, Value> parameters) {
         final Value newCondition = condition.instantiate(parameters);
         final Expression newConsequence = consequence.instantiate(parameters);

@@ -94,17 +94,6 @@ public abstract class Expression {
      */
     public abstract Expression instantiate(Map<Parameter, Value> parameters);
 
-    /**
-     * Is called in the constructor of a {@link Declaration}.
-     * Replaces all {@link Value}s of this expression that also occure in the
-     * parameter list by corresponding {@link ParameterRefValue}s.
-     * Typically delegates to it's subterms.
-     * @param parameters
-     * @return either <code>this</code> or a new created Expression
-     * @throws ParseException if the types of the parameters to not fit into the expression
-     */
-    public abstract Expression insertParameters(List<Parameter> parameters) throws ParseException;
-
     // TODO this is not good, as it changed the transitions of this expression.
     // Idea: new parameter "minimized"
     public void minimize() {

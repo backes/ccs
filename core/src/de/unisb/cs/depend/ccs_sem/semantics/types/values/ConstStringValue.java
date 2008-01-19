@@ -1,9 +1,5 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types.values;
 
-import java.util.List;
-
-import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
-import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 
 
 public class ConstStringValue extends AbstractValue implements ConstantValue {
@@ -20,20 +16,6 @@ public class ConstStringValue extends AbstractValue implements ConstantValue {
 
     public String getValue() {
         return value;
-    }
-
-    @Override
-    public Value insertParameters(List<Parameter> parameters) throws ParseException {
-        for (final Parameter param: parameters) {
-            if (param.getName().equals(value)) {
-                // throws ParseException if they don't match
-                param.ensureValue();
-
-                return new ParameterRefValue(param);
-            }
-        }
-
-        return this;
     }
 
     @Override

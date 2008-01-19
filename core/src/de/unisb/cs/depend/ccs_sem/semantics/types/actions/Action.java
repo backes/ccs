@@ -1,9 +1,7 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types.actions;
 
-import java.util.List;
 import java.util.Map;
 
-import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
@@ -37,23 +35,11 @@ public abstract class Action {
 
     public abstract Action instantiate(Map<Parameter, Value> parameters);
 
-    public abstract Action insertParameters(List<Parameter> parameters) throws ParseException;
-
     /**
      * @param actionToCheck
      * @return true iff <b>this</b> Action restrict the Action actionToCheck.
      */
     public abstract boolean restricts(Action actionToCheck);
-
-    /**
-     * If this Action is used as Prefix for a PrefixExpression, it may want
-     * to manipulate the target of the PrefixExpression.
-
-     * @param target the original target Expression
-     * @return either <code>target</code> again, or a new Expression
-     * @throws ParseException
-     */
-    public abstract Expression manipulateTarget(Expression target) throws ParseException;
 
     @Override
     public String toString() {

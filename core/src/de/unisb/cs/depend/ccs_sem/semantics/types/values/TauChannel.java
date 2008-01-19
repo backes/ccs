@@ -1,6 +1,5 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types.values;
 
-import java.util.List;
 import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
@@ -22,11 +21,6 @@ public class TauChannel extends AbstractValue implements Channel {
 
     public String getStringValue() {
         return "i";
-    }
-
-    @Override
-    public Channel insertParameters(List<Parameter> parameters) {
-        return this;
     }
 
     @Override

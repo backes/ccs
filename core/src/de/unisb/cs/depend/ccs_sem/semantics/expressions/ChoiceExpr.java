@@ -77,15 +77,6 @@ public class ChoiceExpr extends Expression {
     }
 
     @Override
-    public Expression insertParameters(List<Parameter> parameters) throws ParseException {
-        final Expression newLeft = left.insertParameters(parameters);
-        final Expression newRight = right.insertParameters(parameters);
-        if (newLeft.equals(left) && newRight.equals(right))
-            return this;
-        return Expression.getExpression(new ChoiceExpr(newLeft, newRight));
-    }
-
-    @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
         if (left instanceof RestrictExpr || left instanceof ParallelExpr) {

@@ -24,16 +24,11 @@ public class Declaration {
     private Expression value;
 
     public Declaration(String name, List<Parameter> parameters,
-            Expression value) throws ParseException {
-        this(name, parameters, value, false);
-    }
-
-    private Declaration(String name, List<Parameter> parameters,
-            Expression value, boolean expressionReady) throws ParseException {
+            Expression value) {
         super();
         this.name = name;
         this.parameters = parameters;
-        this.value = expressionReady ? value : value.insertParameters(parameters);
+        this.value = value;
     }
 
     /**
@@ -163,7 +158,7 @@ public class Declaration {
         return name + parameters + " = " + value;
     }
 
-    // TODO really?
+    // TODO really? then caching doesn't make much sense
     // NO HASHCODE COMPUTATION HERE. ONLY THE SAME DECLARATIONS ARE EQUAL!!
     /*
     @Override

@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
@@ -21,9 +20,9 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 public class RestrictExpr extends Expression {
 
     private Expression innerExpr;
-    private final Set<Action> restricted;
+    private final List<Action> restricted;
 
-    public RestrictExpr(Expression innerExpr, Set<Action> restricted) {
+    public RestrictExpr(Expression innerExpr, List<Action> restricted) {
         super();
         this.innerExpr = innerExpr;
         this.restricted = restricted;
@@ -123,14 +122,6 @@ public class RestrictExpr extends Expression {
     @Override
     public Expression instantiate(Map<Parameter, Value> parameters) {
         final Expression newExpr = innerExpr.instantiate(parameters);
-        if (newExpr.equals(innerExpr))
-            return this;
-        return Expression.getExpression(new RestrictExpr(newExpr, restricted));
-    }
-
-    @Override
-    public Expression insertParameters(List<Parameter> parameters) throws ParseException {
-        final Expression newExpr = innerExpr.insertParameters(parameters);
         if (newExpr.equals(innerExpr))
             return this;
         return Expression.getExpression(new RestrictExpr(newExpr, restricted));

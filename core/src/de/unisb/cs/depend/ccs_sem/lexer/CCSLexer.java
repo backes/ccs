@@ -27,7 +27,7 @@ import de.unisb.cs.depend.ccs_sem.lexer.tokens.Leq;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Less;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Minus;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Modulo;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Multiplikation;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Multiplication;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Neq;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Or;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Parallel;
@@ -96,7 +96,7 @@ public class CCSLexer extends AbstractLexer {
                 break;
                 
             case '*':
-                tokens.add(new Multiplikation(position));
+                tokens.add(new Multiplication(position));
                 break;
                 
             case '/':

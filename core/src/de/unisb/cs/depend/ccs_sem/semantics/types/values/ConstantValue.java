@@ -7,7 +7,6 @@ package de.unisb.cs.depend.ccs_sem.semantics.types.values;
  * @author Clemens Hammacher
  *
  */
-// TODO do we need this interface?
 public interface ConstantValue {
     // no new methods here
 }

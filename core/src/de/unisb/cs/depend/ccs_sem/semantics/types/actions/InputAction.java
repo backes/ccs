@@ -1,10 +1,8 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types.actions;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
-import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
@@ -58,6 +56,10 @@ public class InputAction extends Action {
         // TODO is this right? is this method ever called?
         assert false;
         return value;
+    }
+
+    public Parameter getParameter() {
+        return param;
     }
 
     @Override
@@ -116,29 +118,6 @@ public class InputAction extends Action {
         }
 
         return false;
-    }
-
-    @Override
-    public Action insertParameters(List<Parameter> parameters) throws ParseException {
-        final Channel newChannel = channel.insertParameters(parameters);
-
-        if (value == null) {
-            if (channel.equals(newChannel))
-                return this;
-            return new InputAction(newChannel, param);
-        }
-
-        final Value newValue = value.insertParameters(parameters);
-        if (channel.equals(newChannel) && value.equals(newValue))
-            return this;
-        return new InputAction(newChannel, newValue);
-    }
-
-    @Override
-    public Expression manipulateTarget(Expression target) throws ParseException {
-        if (param == null)
-            return target;
-        return target.insertParameters(Collections.singletonList(param));
     }
 
     @Override

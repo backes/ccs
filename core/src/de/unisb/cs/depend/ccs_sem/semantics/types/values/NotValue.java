@@ -1,16 +1,13 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types.values;
 
-import java.util.List;
 import java.util.Map;
 
-import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 
 
 public class NotValue extends BooleanValue {
 
-    // we use the general type Value here. it could be a BooleanValue or a
-    // ParameterRefValue
+    // the type is checked by the parser
     private final Value negatedValue;
 
     private NotValue(Value negatedValue) {
@@ -25,17 +22,9 @@ public class NotValue extends BooleanValue {
     public static BooleanValue create(Value negatedValue) {
         if (negatedValue instanceof ConstBooleanValue)
             return ConstBooleanValue.get(!((ConstBooleanValue)negatedValue).getValue());
-        if (negatedValue instanceof ParameterRefValue || negatedValue instanceof BooleanValue)
-            return new NotValue(negatedValue);
-        throw new IllegalArgumentException("Only BooleanValue or ParameterRefValue allowed");
-    }
-
-    @Override
-    public BooleanValue insertParameters(List<Parameter> parameters) throws ParseException {
-        final Value newNegatedValue = negatedValue.insertParameters(parameters);
-        if (negatedValue.equals(newNegatedValue))
-            return this;
-        return new NotValue(newNegatedValue);
+        if (negatedValue instanceof NotValue)
+            return (BooleanValue) ((NotValue)negatedValue).getNegatedValue();
+        return new NotValue(negatedValue);
     }
 
     @Override

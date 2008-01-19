@@ -58,15 +58,6 @@ public class PrefixExpr extends Expression {
     }
 
     @Override
-    public Expression insertParameters(List<Parameter> parameters) throws ParseException {
-        final Action newPrefix = prefix.insertParameters(parameters);
-        final Expression newTarget = target.insertParameters(parameters);
-        if (newPrefix.equals(prefix) && newTarget.equals(target))
-            return this;
-        return Expression.getExpression(new PrefixExpr(newPrefix, newTarget));
-    }
-
-    @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
         sb.append(prefix).append('.');
