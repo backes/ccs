@@ -21,7 +21,7 @@ public class Parameter {
 
     // TODO when instantiating a parameter, it has to be copied (i think)
 
-    private static enum Type {
+    public static enum Type {
         UNKNOWN, CHANNEL, VALUE, STRINGVALUE, BOOLEANVALUE, INTEGERVALUE
     }
 
@@ -88,7 +88,13 @@ public class Parameter {
         }
     }
 
-    private void setType(Type newType) throws ParseException {
+    /**
+     * Tries to set a new type, which has to be more specific than the old one.
+     * Otherwise (if they clash), a ParseException is thrown.
+     * @param newType the new type to set this parameter to.
+     * @throws ParseException if the old type and the new type don't fit together
+     */
+    public void setType(Type newType) throws ParseException {
         assert newType != Type.UNKNOWN;
         if (type == newType)
             return;
@@ -114,7 +120,8 @@ public class Parameter {
         case BOOLEANVALUE:
         case INTEGERVALUE:
         case STRINGVALUE:
-            throw new ParseException("Parameter already has type " + type + ", cannot be used as " + newType);
+            if (newType != Type.VALUE)
+                throw new ParseException("Parameter already has type " + type + ", cannot be used as " + newType);
         default:
             assert false;
         }

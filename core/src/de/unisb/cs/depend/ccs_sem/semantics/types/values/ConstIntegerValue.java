@@ -14,7 +14,6 @@ public class ConstIntegerValue extends IntegerValue implements ConstantValue {
         this.value = value;
     }
 
-    @Override
     public int getValue() {
         return value;
     }

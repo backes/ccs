@@ -11,16 +11,19 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.BooleanValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstBooleanValue;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterRefValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 
 public class ConditionalExpression extends Expression {
 
-    private final BooleanValue condition;
+    private final Value condition;
     private final Expression consequence;
 
-    public ConditionalExpression(BooleanValue condition, Expression consequence) {
+    public ConditionalExpression(Value condition, Expression consequence) {
         super();
+        if (!(condition instanceof BooleanValue || condition instanceof ParameterRefValue))
+            throw new IllegalArgumentException("Only BooleanValue or ParameterRefValue allowed");
         this.condition = condition;
         this.consequence = consequence;
     }
@@ -48,7 +51,7 @@ public class ConditionalExpression extends Expression {
     @Override
     public Expression insertParameters(List<Parameter> parameters)
             throws ParseException {
-        final BooleanValue newCondition = condition.insertParameters(parameters);
+        final Value newCondition = condition.insertParameters(parameters);
         final Expression newConsequence = consequence.insertParameters(parameters);
         if (condition.equals(newCondition) && consequence.equals(newConsequence))
             return this;
@@ -57,7 +60,7 @@ public class ConditionalExpression extends Expression {
 
     @Override
     public Expression instantiate(Map<Parameter, Value> parameters) {
-        final BooleanValue newCondition = condition.instantiate(parameters);
+        final Value newCondition = condition.instantiate(parameters);
         final Expression newConsequence = consequence.instantiate(parameters);
         if (condition.equals(newCondition) && consequence.equals(newConsequence))
             return this;

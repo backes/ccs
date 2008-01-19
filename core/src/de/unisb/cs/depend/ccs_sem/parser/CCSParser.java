@@ -1,11 +1,14 @@
 package de.unisb.cs.depend.ccs_sem.parser;
 
 import java.io.Reader;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Stack;
 
 import javax.swing.text.StyledEditorKit.BoldAction;
 
@@ -63,6 +66,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstStringValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.IntegerValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.NotValue;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterRefValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.TauChannel;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
@@ -113,6 +117,10 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
  */
 public class CCSParser implements Parser {
 
+    // List of the currently read parameters, it's increased and decreased by
+    // the read... methods
+    private Deque<Parameter> parameters;
+
     public Program parse(Reader input) throws ParseException, LexException {
         return parse(new CCSLexer().lex(input));
     }
@@ -120,8 +128,11 @@ public class CCSParser implements Parser {
     public Program parse(String input) throws ParseException, LexException {
         return parse(new CCSLexer().lex(input));
     }
-    public Program parse(List<Token> tokens) throws ParseException {
+
+    // synchronized to make sure that this method is only called once at a time
+    public synchronized Program parse(List<Token> tokens) throws ParseException {
         final ArrayList<Declaration> declarations = new ArrayList<Declaration>();
+        parameters = new ArrayDeque<Parameter>();
 
         final ExtendedIterator<Token> it = new ExtendedIterator<Token>(tokens);
 
@@ -195,7 +206,8 @@ public class CCSParser implements Parser {
         if (tokens.hasNext())
             token2 = tokens.next();
         if (token1 == null || token2 == null)
-            throw new ParseException("Expected declaration");
+            // there is no declaration
+            return null;
 
         Identifier identifier;
         List<Parameter> parameters;
@@ -471,7 +483,9 @@ public class CCSParser implements Parser {
         if (tokens.hasNext() && tokens.peek() instanceof When) {
             tokens.next();
             final Value condition = readArithmeticExpression(tokens);
-            if (!(condition instanceof BooleanValue))
+            if (condition instanceof ParameterRefValue)
+                ((ParameterRefValue)condition).getParam().setType(Parameter.Type.BOOLEANVALUE);
+            else if (!(condition instanceof BooleanValue))
                 throw new ParseException("Expected boolean expression after 'when'");
 
             // if there is a "then" now, ignore it
@@ -479,21 +493,21 @@ public class CCSParser implements Parser {
                 tokens.next();
             final Expression consequence = readWhenExpression(tokens);
 
-            final Expression condExpr = Expression.getExpression(
-                new ConditionalExpression((BooleanValue) condition, consequence));
+            Expression condExpr = Expression.getExpression(
+                new ConditionalExpression(condition, consequence));
 
             // we allow an "else" here to declare an alternative, but internally,
             // it is mapped to a "(when (x) <consequence>) + (when (!x) <alternative>)"
             if (tokens.hasNext() && tokens.peek() instanceof Else) {
                 tokens.next();
-                final Expression alternative = readWhenExpression(tokens);
+                Expression alternative = readWhenExpression(tokens);
                 // build negated condition
-                final BooleanValue negatedCondition = condition instanceof NotValue
+                final Value negatedCondition = condition instanceof NotValue
                     ? ((NotValue)condition).getNegatedValue()
-                    : new NotValue((BooleanValue)condition);
-                final Expression alternative = Expression.getExpression(
+                    : NotValue.create(condition);
+                alternative = Expression.getExpression(
                     new ConditionalExpression(negatedCondition, alternative));
-                final Expression condExpr = Expression.getExpression(
+                condExpr = Expression.getExpression(
                     new ChoiceExpr(condExpr, alternative));
             }
             return condExpr;
@@ -593,13 +607,22 @@ public class CCSParser implements Parser {
             if (!tokens.hasNext() || !(tokens.next() instanceof Colon))
                 throw new ParseException("Expected ':'");
             Value elseValue = readArithmeticConditionalExpression(tokens);
-            if (thenValue instanceof IntegerValue && elseValue instanceof IntegerValue)
-                return IntegerCondValue.create((BooleanValue)orValue,
-                    (IntegerValue)thenValue, (IntegerValue)elseValue);
+            if ((thenValue instanceof IntegerValue && elseValue instanceof IntegerValue)
+                    || (thenValue instanceof BooleanValue && elseValue instanceof BooleanValue)
+                if (elseValue instanceof ParameterRefValue)
+                    ((ParameterRefValue)elseValue).getParam().setType(Parameter.Type.INTEGERVALUE);
+                else if (!(elseValue instanceof IntegerValue))
+                    throw new ParseException("IntegerExpression")
+                    return IntegerCondValue.create((BooleanValue)orValue,
+                        thenValue, elseValue);
+                    return IntegerCondValue.create((BooleanValue)orValue,
+                        thenValue, elseValue);
+                }
             else if (thenValue instanceof BooleanValue && elseValue instanceof BooleanValue)
                 return BooleanCondValue.create((BooleanValue)orValue,
                     (BooleanValue)thenValue, (BooleanValue)elseValue);
             else
+
 
         }
         // TODO Auto-generated method stub
