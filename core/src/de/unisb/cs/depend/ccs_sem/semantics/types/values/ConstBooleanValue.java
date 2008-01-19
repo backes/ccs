@@ -34,4 +34,14 @@ public class ConstBooleanValue extends BooleanValue implements ConstantValue {
         return Boolean.toString(value);
     }
 
+    @Override
+    public int hashCode() {
+        return value ? 41*31 : 42*31;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return this == obj;
+    }
+
 }

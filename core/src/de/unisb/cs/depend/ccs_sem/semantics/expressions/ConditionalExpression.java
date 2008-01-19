@@ -9,9 +9,7 @@ import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.BooleanValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstBooleanValue;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterRefValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 
@@ -20,12 +18,16 @@ public class ConditionalExpression extends Expression {
     private final Value condition;
     private final Expression consequence;
 
-    public ConditionalExpression(Value condition, Expression consequence) {
+    private ConditionalExpression(Value condition, Expression consequence) {
         super();
-        if (!(condition instanceof BooleanValue || condition instanceof ParameterRefValue))
-            throw new IllegalArgumentException("Only BooleanValue or ParameterRefValue allowed");
         this.condition = condition;
         this.consequence = consequence;
+    }
+
+    public static Expression create(Value condition, Expression consequence) {
+        if (condition instanceof ConstBooleanValue)
+            return ((ConstBooleanValue)condition).getValue() ? consequence : StopExpr.get();
+        return Expression.getExpression(new ConditionalExpression(condition, consequence));
     }
 
     @Override
@@ -49,12 +51,17 @@ public class ConditionalExpression extends Expression {
     }
 
     @Override
+    public Collection<Expression> getSubTerms() {
+        return Collections.singleton(consequence);
+    }
+
+    @Override
     public Expression instantiate(Map<Parameter, Value> parameters) {
         final Value newCondition = condition.instantiate(parameters);
         final Expression newConsequence = consequence.instantiate(parameters);
         if (condition.equals(newCondition) && consequence.equals(newConsequence))
             return this;
-        return new ConditionalExpression(newCondition, newConsequence);
+        return create(newCondition, newConsequence);
     }
 
     @Override
@@ -67,9 +74,18 @@ public class ConditionalExpression extends Expression {
     }
 
     @Override
+    public String toString() {
+        final String conditionString = condition.toString();
+        final String consequenceString = consequence.toString();
+        final StringBuilder sb = new StringBuilder(conditionString.length() + consequenceString.length() + 6);
+        sb.append("when ").append(conditionString).append(' ').append(consequenceString);
+        return sb.toString();
+    }
+
+    @Override
     protected int hashCode0() {
         final int prime = 31;
-        int result = super.hashCode();
+        int result = 9;
         result = prime * result + condition.hashCode();
         result = prime * result + consequence.hashCode();
         return result;

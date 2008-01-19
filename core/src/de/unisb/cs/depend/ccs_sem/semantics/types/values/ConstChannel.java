@@ -27,11 +27,6 @@ public class ConstChannel extends AbstractValue implements Channel, ConstantValu
     }
 
     @Override
-    public String toString() {
-        return value;
-    }
-
-    @Override
     public int hashCode() {
         return value.hashCode();
     }

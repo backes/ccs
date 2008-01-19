@@ -33,11 +33,6 @@ public class TauChannel extends AbstractValue implements Channel {
     }
 
     @Override
-    public String toString() {
-        return "i";
-    }
-
-    @Override
     public int hashCode() {
         return 4711;
     }

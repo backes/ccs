@@ -57,24 +57,27 @@ public class ParallelEvaluator implements Evaluator {
         evaluate0(expr, true, monitor);
     }
 
-    private void evaluate0(Expression expr, boolean evaluateSuccessors, EvaluationMonitor monitor) {
+    // synchronized s.t. it can only be called once at a time
+    private synchronized void evaluate0(Expression expr, boolean evaluateSuccessors, EvaluationMonitor monitor) {
         initialize(evaluateSuccessors, monitor);
 
-        synchronized (readyLock) {
-            // the EvaluatorJob executes itself automatically
-            if (evaluateSuccessors)
-                evaluatedSuccessors.add(expr);
-            new EvaluatorJob(expr, evaluateSuccessors);
+        try {
+            synchronized (readyLock) {
+                // the EvaluatorJob executes itself automatically
+                if (evaluateSuccessors)
+                    evaluatedSuccessors.add(expr);
+                new EvaluatorJob(expr, evaluateSuccessors);
 
-            try {
-                readyLock.wait();
-            } catch (final InterruptedException e) {
-                throw new InternalSystemException(
-                        "Interrupted while waiting for parallel evaluation to finish.");
+                try {
+                    readyLock.wait();
+                } catch (final InterruptedException e) {
+                    throw new InternalSystemException(
+                            "Interrupted while waiting for parallel evaluation to finish.");
+                }
             }
+        } finally {
+            shutdown();
         }
-
-        shutdown();
     }
 
     private void initialize(boolean evaluateSuccessors, EvaluationMonitor monitor2) {

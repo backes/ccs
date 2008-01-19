@@ -22,10 +22,18 @@ public class ParallelExpr extends Expression {
     private final Expression left;
     private final Expression right;
 
-    public ParallelExpr(Expression left, Expression right) {
+    protected ParallelExpr(Expression left, Expression right) {
         super();
         this.left = left;
         this.right = right;
+    }
+
+    public static Expression create(Expression left, Expression right) {
+        if (left instanceof StopExpr)
+            return right;
+        if (right instanceof StopExpr)
+            return left;
+        return Expression.getExpression(new ParallelExpr(left, right));
     }
 
     @Override
@@ -217,7 +225,7 @@ public class ParallelExpr extends Expression {
         final Expression newRight = right.instantiate(parameters);
         if (newLeft.equals(left) && newRight.equals(right))
             return this;
-        return Expression.getExpression(new ParallelExpr(newLeft, newRight));
+        return create(newLeft, newRight);
     }
 
     @Override

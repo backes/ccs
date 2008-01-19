@@ -38,11 +38,6 @@ public class ParameterRefChannel extends AbstractValue implements Channel {
     }
 
     @Override
-    public String toString() {
-        return getStringValue();
-    }
-
-    @Override
     public int hashCode() {
         return param.hashCode();
     }

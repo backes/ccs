@@ -68,6 +68,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.actions.SimpleAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.TauAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.AddValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.AndValue;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.BooleanValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.CompValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConditionalValue;
@@ -76,6 +77,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstChannel;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstIntegerValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstStringValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.EqValue;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.IntegerValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.MultValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.NotValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.OrValue;
@@ -156,29 +158,25 @@ public class CCSParser implements Parser {
         try {
             // first, read the declarations
             int index = 0;
-            try {
-                while (it.hasNext()) {
+            while (it.hasNext()) {
 
-                    final Declaration nextDeclaration = readDeclaration(it);
-                    if (nextDeclaration == null)
-                        break;
+                final Declaration nextDeclaration = readDeclaration(it);
+                if (nextDeclaration == null)
+                    break;
 
-                    if (!it.hasNext() || !(it.next() instanceof Semicolon))
-                        throw new ParseException("Expected ';' after this declaration");
+                if (!it.hasNext() || !(it.next() instanceof Semicolon))
+                    throw new ParseException("Expected ';' after this declaration");
 
-                    index = it.nextIndex();
+                index = it.nextIndex();
 
-                    // check if a declaration with the same name and number of parameters is already known
-                    for (final Declaration decl: declarations)
-                        if (decl.getName().equals(nextDeclaration.getName())
-                                && decl.getParamNr() == nextDeclaration.getParamNr())
-                            throw new ParseException("Duplicate recursion variable definition ("
-                                + nextDeclaration.getName() + "[" + nextDeclaration.getParamNr() + "]");
+                // check if a declaration with the same name and number of parameters is already known
+                for (final Declaration decl: declarations)
+                    if (decl.getName().equals(nextDeclaration.getName())
+                            && decl.getParamNr() == nextDeclaration.getParamNr())
+                        throw new ParseException("Duplicate recursion variable definition ("
+                            + nextDeclaration.getName() + "[" + nextDeclaration.getParamNr() + "]");
 
-                    declarations.add(nextDeclaration);
-                }
-            } catch (final ParseException e) {
-                // abort reading declarations, start reading the main expression
+                declarations.add(nextDeclaration);
             }
 
             declarations.trimToSize();
@@ -209,7 +207,7 @@ public class CCSParser implements Parser {
 
         final StringBuilder environment = new StringBuilder();
         for (int i = from; i < to; ++i) {
-            if (i == from)
+            if (i != from)
                 environment.append(' ');
             environment.append(tokens.get(i));
         }
@@ -252,9 +250,8 @@ public class CCSParser implements Parser {
             } finally {
                 parameters = oldParameters;
             }
-        } else {
-            throw new ParseException("Expected declaration");
-        }
+        } else
+            return null;
         return new Declaration(identifier.getName(), myParameters, expr);
     }
 
@@ -485,7 +482,7 @@ public class CCSParser implements Parser {
         while (tokens.hasNext() && tokens.peek() instanceof Parallel) {
             tokens.next();
             final Expression newExpr = readWhenExpression(tokens);
-            expr = Expression.getExpression(new ParallelExpr(expr, newExpr));
+            expr = ParallelExpr.create(expr, newExpr);
         }
 
         return expr;
@@ -502,8 +499,7 @@ public class CCSParser implements Parser {
                 tokens.next();
             final Expression consequence = readWhenExpression(tokens);
 
-            Expression condExpr = Expression.getExpression(
-                new ConditionalExpression(condition, consequence));
+            Expression condExpr = ConditionalExpression.create(condition, consequence);
 
             // we allow an "else" here to declare an alternative, but internally,
             // it is mapped to a "(when (x) <consequence>) + (when (!x) <alternative>)"
@@ -514,10 +510,8 @@ public class CCSParser implements Parser {
                 final Value negatedCondition = condition instanceof NotValue
                     ? ((NotValue)condition).getNegatedValue()
                     : NotValue.create(condition);
-                alternative = Expression.getExpression(
-                    new ConditionalExpression(negatedCondition, alternative));
-                condExpr = Expression.getExpression(
-                    new ChoiceExpr(condExpr, alternative));
+                alternative = ConditionalExpression.create(negatedCondition, alternative);
+                condExpr = ChoiceExpr.create(condExpr, alternative);
             }
             return condExpr;
         }
@@ -529,10 +523,10 @@ public class CCSParser implements Parser {
      */
     private Expression readChoiceExpression(ExtendedIterator<Token> tokens) throws ParseException {
         Expression expr = readPrefixExpression(tokens);
-        while (tokens.hasNext() && tokens.peek() instanceof Minus) {
+        while (tokens.hasNext() && tokens.peek() instanceof Plus) {
             tokens.next();
             final Expression newExpr = readPrefixExpression(tokens);
-            expr = Expression.getExpression(new ChoiceExpr(expr, newExpr));
+            expr = ChoiceExpr.create(expr, newExpr);
         }
 
         return expr;
@@ -602,7 +596,7 @@ public class CCSParser implements Parser {
                 return Expression.getExpression(new StopExpr());
 
             if (nextToken instanceof LParenthesis) {
-                final Expression expr = readRestrictExpression(tokens);
+                final Expression expr = readExpression(tokens);
                 if (!tokens.hasNext() || !(tokens.next() instanceof RParenthesis))
                     throw new ParseException("Expected ')'");
                 return expr;
@@ -766,6 +760,9 @@ public class CCSParser implements Parser {
         final Token nextToken = tokens.next();
         if (nextToken instanceof IntegerToken)
             return new ConstIntegerValue(((IntegerToken)nextToken).getValue());
+        // a stop is the integer "0" here...
+        if (nextToken instanceof Stop)
+            return new ConstIntegerValue(0);
         if (nextToken instanceof True)
             return ConstBooleanValue.get(true);
         if (nextToken instanceof False)
@@ -788,21 +785,66 @@ public class CCSParser implements Parser {
         throw new ParseException("Expected some expression here.");
     }
 
-    private void ensureEqualTypes(Value thenValue, Value elseValue,
-            String string) {
-        // TODO Auto-generated method stub
-
+    private void ensureEqualTypes(Value value1, Value value2, String message) throws ParseException {
+        if (value1 instanceof IntegerValue && value2 instanceof IntegerValue)
+            return;
+        if (value1 instanceof BooleanValue && value2 instanceof BooleanValue)
+            return;
+        if (value1 instanceof ConstStringValue && value2 instanceof ConstStringValue)
+            return;
+        if (value1 instanceof ParameterRefValue) {
+            ((ParameterRefValue)value1).getParam().match(value2);
+            return;
+        }
+        if (value2 instanceof ParameterRefValue) {
+            ((ParameterRefValue)value2).getParam().match(value1);
+            return;
+        }
+        if (value1 instanceof ConditionalValue) {
+            ensureEqualTypes(((ConditionalValue)value1).getThenValue(), value2, message);
+            ensureEqualTypes(((ConditionalValue)value1).getElseValue(), value2, message);
+        } else if (value2 instanceof ConditionalValue) {
+            ensureEqualTypes(value1, ((ConditionalValue)value2).getThenValue(), message);
+            ensureEqualTypes(value2, ((ConditionalValue)value2).getElseValue(), message);
+        }
+        throw new ParseException(message + " (the values \"" + value1 + "\" and \"" + value2 + "\" have different types.");
     }
 
-    private void ensureBoolean(Value orValue, String message) {
-        // Conditional, ==, Parameter
-        // TODO Auto-generated method stub
-
+    private void ensureBoolean(Value value, String message) throws ParseException {
+        if (value instanceof BooleanValue)
+            return;
+        if (value instanceof IntegerValue)
+            throw new ParseException(message + " (the value \"" + value + "\" has type integer.");
+        if (value instanceof ConstStringValue)
+            throw new ParseException(message + " (the value \"" + value + "\" has type string.");
+        if (value instanceof ParameterRefValue) {
+            ((ParameterRefValue)value).getParam().setType(Parameter.Type.BOOLEANVALUE);
+            return;
+        }
+        if (value instanceof ConditionalValue) {
+            ensureBoolean(((ConditionalValue)value).getThenValue(), message);
+            ensureBoolean(((ConditionalValue)value).getElseValue(), message);
+        }
+        assert false;
+        throw new ParseException(message);
     }
 
-    private void ensureInteger(Value orValue, String message) {
-        // Conditional, ==, Parameter
-        // TODO Auto-generated method stub
-
+    private void ensureInteger(Value value, String message) throws ParseException {
+        if (value instanceof IntegerValue)
+            return;
+        if (value instanceof BooleanValue)
+            throw new ParseException(message + " (the value \"" + value + "\" has type boolean.");
+        if (value instanceof ConstStringValue)
+            throw new ParseException(message + " (the value \"" + value + "\" has type string.");
+        if (value instanceof ParameterRefValue) {
+            ((ParameterRefValue)value).getParam().setType(Parameter.Type.INTEGERVALUE);
+            return;
+        }
+        if (value instanceof ConditionalValue) {
+            ensureBoolean(((ConditionalValue)value).getThenValue(), message);
+            ensureBoolean(((ConditionalValue)value).getElseValue(), message);
+        }
+        assert false;
+        throw new ParseException(message);
     }
 }

@@ -25,4 +25,9 @@ public abstract class AbstractValue implements Value {
         return this;
     }
 
+    @Override
+    public String toString() {
+        return getStringValue();
+    }
+
 }

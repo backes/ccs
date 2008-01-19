@@ -27,11 +27,6 @@ public class ConstIntegerValue extends IntegerValue implements ConstantValue {
     }
 
     @Override
-    public String toString() {
-        return Integer.toString(value);
-    }
-
-    @Override
     public int hashCode() {
         return value;
     }

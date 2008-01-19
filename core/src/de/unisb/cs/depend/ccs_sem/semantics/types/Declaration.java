@@ -35,10 +35,10 @@ public class Declaration {
      * A Declaration is regular iff it does not contain a cycle of recursions
      * back to itself that contains parallel or restriction operators (so called
      * "static" operators).
-     * Besides, the value of the declaration must not be the recursion variable
-     * itself.
+     * Besides, the recursion variable iself must only occure guarded in the value.
      */
     public boolean isRegular() {
+        // TODO guardedness
         // check the second condition first (easier)
         if (value instanceof RecursiveExpr) {
             final RecursiveExpr recExpr = (RecursiveExpr) value;
@@ -51,6 +51,9 @@ public class Declaration {
 
         // every expression has to be checked only once
         final Set<Expression> checked = new HashSet<Expression>();
+        // every declaration has to be checked only once, even if it occures
+        // with different parameters
+        final Set<Declaration> checkedDeclarations = new HashSet<Declaration>();
         // a queue of expressions to check
         final Queue<Expression> queue = new ArrayDeque<Expression>();
         // queue of expressions that occured after static operators
@@ -65,6 +68,10 @@ public class Declaration {
                 if (expr instanceof ParallelExpr || expr instanceof RestrictExpr) {
                     afterStaticQueue.addAll(expr.getSubTerms());
                 } else {
+                    // every RecursiveExpr has to be checked only once
+                    if (expr instanceof RecursiveExpr)
+                        if (!checkedDeclarations.add(((RecursiveExpr)expr).getReferencedDeclaration()))
+                            continue;
                     queue.addAll(expr.getSubTerms());
                 }
             }
@@ -80,9 +87,8 @@ public class Declaration {
                     final RecursiveExpr recExpr = (RecursiveExpr) expr;
                     if (recExpr.getReferencedDeclaration().equals(this))
                         return false;
-                } else {
-                    afterStaticQueue.addAll(expr.getSubTerms());
                 }
+                afterStaticQueue.addAll(expr.getSubTerms());
             }
         }
 
@@ -156,6 +162,13 @@ public class Declaration {
     @Override
     public String toString() {
         return name + parameters + " = " + value;
+    }
+
+    /**
+     * @return the name together with the parameters
+     */
+    public Object getFullName() {
+        return name + parameters;
     }
 
     // TODO really? then caching doesn't make much sense

@@ -32,11 +32,6 @@ public class ParameterRefValue extends AbstractValue {
     }
 
     @Override
-    public String toString() {
-        return param.getName();
-    }
-
-    @Override
     public int hashCode() {
         return param.hashCode();
     }

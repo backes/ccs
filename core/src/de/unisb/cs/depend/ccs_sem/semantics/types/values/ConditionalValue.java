@@ -25,6 +25,18 @@ public class ConditionalValue extends AbstractValue {
         return new ConditionalValue(condition, thenValue, elseValue);
     }
 
+    public Value getCondition() {
+        return condition;
+    }
+
+    public Value getThenValue() {
+        return thenValue;
+    }
+
+    public Value getElseValue() {
+        return elseValue;
+    }
+
     @Override
     public Value instantiate(Map<Parameter, Value> parameters) {
         final Value newCondition = condition.instantiate(parameters);
@@ -51,6 +63,34 @@ public class ConditionalValue extends AbstractValue {
 
     public boolean isConstant() {
         return false;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 16;
+        result = prime * result + condition.hashCode();
+        result = prime * result + elseValue.hashCode();
+        result = prime * result + thenValue.hashCode();
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final ConditionalValue other = (ConditionalValue) obj;
+        if (!condition.equals(other.condition))
+            return false;
+        if (!elseValue.equals(other.elseValue))
+            return false;
+        if (!thenValue.equals(other.thenValue))
+            return false;
+        return true;
     }
 
 }

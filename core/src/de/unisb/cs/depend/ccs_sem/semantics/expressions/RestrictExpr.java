@@ -111,7 +111,7 @@ public class RestrictExpr extends Expression {
             if (first)
                 first = false;
             else
-                sb.append(',');
+                sb.append(", ");
             sb.append(restr);
         }
         sb.append('}');

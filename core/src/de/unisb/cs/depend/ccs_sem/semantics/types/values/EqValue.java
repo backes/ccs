@@ -36,7 +36,7 @@ public class EqValue extends BooleanValue {
         final Value newRight = right.instantiate(parameters);
         if (left.equals(newLeft) && right.equals(newRight))
             return this;
-        return create(left, right, isNegated);
+        return create(newLeft, newRight, isNegated);
     }
 
     public String getStringValue() {
@@ -62,6 +62,34 @@ public class EqValue extends BooleanValue {
 
     public boolean isConstant() {
         return false;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 15;
+        result = prime * result + (isNegated ? 1231 : 1237);
+        result = prime * result + left.hashCode();
+        result = prime * result + right.hashCode();
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final EqValue other = (EqValue) obj;
+        if (isNegated != other.isNegated)
+            return false;
+        if (!left.equals(other.left))
+            return false;
+        if (!right.equals(other.right))
+            return false;
+        return true;
     }
 
 }

@@ -86,7 +86,7 @@ public class UnknownString extends Expression {
             if (proposals.size() > 0) {
                 sb.append(". Did you mean");
                 for (final Declaration prop: proposals)
-                    sb.append(Globals.getNewline()).append("  - ").append(prop);
+                    sb.append(Globals.getNewline()).append("  - ").append(prop.getFullName());
             }
 
             throw new ParseException(sb.toString());

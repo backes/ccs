@@ -45,4 +45,23 @@ public class NotValue extends BooleanValue {
         return false;
     }
 
+    @Override
+    public int hashCode() {
+        return 13*31 + negatedValue.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final NotValue other = (NotValue) obj;
+        if (!negatedValue.equals(other.negatedValue))
+            return false;
+        return true;
+    }
+
 }

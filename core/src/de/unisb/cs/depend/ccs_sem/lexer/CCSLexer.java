@@ -94,15 +94,24 @@ public class CCSLexer extends AbstractLexer {
             case '-':
                 tokens.add(new Minus(position));
                 break;
-                
+
             case '*':
                 tokens.add(new Multiplication(position));
                 break;
-                
+
             case '/':
-                tokens.add(new Division(position));
+                // check for comment
+                nextChar = input.read();
+                if (nextChar == '/') {
+                    while ((nextChar = input.read()) != -1)
+                        if (nextChar == '\n' || nextChar == '\r')
+                            break;
+                } else {
+                    input.unread(nextChar);
+                    tokens.add(new Division(position));
+                }
                 break;
-                
+
             case '%':
                 tokens.add(new Modulo(position, position));
                 break;
@@ -117,7 +126,7 @@ public class CCSLexer extends AbstractLexer {
                     tokens.add(new Parallel(position));
                 }
                 break;
-                
+
             case '&':
                 nextChar = input.read();
                 if (nextChar == '&')
@@ -131,7 +140,22 @@ public class CCSLexer extends AbstractLexer {
                 break;
 
             case '(':
-                tokens.add(new LParenthesis(position));
+                // check for comment
+                nextChar = input.read();
+                if (nextChar == '*') {
+                    while ((nextChar = input.read()) != -1) {
+                        if (nextChar == '*') {
+                            nextChar = input.read();
+                            if (nextChar == ')')
+                                break;
+                        }
+                    }
+                    if (nextChar == -1)
+                        throw new LexException("Comment is not closed");
+                } else {
+                    input.unread(nextChar);
+                    tokens.add(new LParenthesis(position));
+                }
                 break;
 
             case ')':
@@ -186,22 +210,22 @@ public class CCSLexer extends AbstractLexer {
                     tokens.add(new Exclamation(position));
                 }
                 break;
-                
+
             case ':':
                 tokens.add(new Colon(position));
                 break;
-                
+
             case '<':
                 nextChar = input.read();
                 switch (nextChar) {
                 case '<':
                     tokens.add(new LeftShift(position++));
                     break;
-                    
+
                 case '=':
                     tokens.add(new Leq(position++));
                     break;
-                    
+
                 default:
                     if (nextChar != -1)
                         input.unread(nextChar);
@@ -216,11 +240,11 @@ public class CCSLexer extends AbstractLexer {
                 case '>':
                     tokens.add(new RightShift(position++));
                     break;
-                    
+
                 case '=':
                     tokens.add(new Geq(position++));
                     break;
-                    
+
                 default:
                     if (nextChar != -1)
                         input.unread(nextChar);
@@ -228,7 +252,7 @@ public class CCSLexer extends AbstractLexer {
                     break;
                 }
                 break;
-                
+
             case '1': case '2': case '3': case '4': case '5':
             case '6': case '7': case '8': case '9':
                 final IntegerToken intToken = readInteger(nextChar, input, tokens, position);
@@ -237,7 +261,7 @@ public class CCSLexer extends AbstractLexer {
                 break;
 
             default:
-                String str = readString(nextChar, input);
+                final String str = readString(nextChar, input);
                 if (str.length() == 0)
                     throw new LexException("Syntaxerror on position " + position, readEnvironment(input, ENVIRONMENT_SIZE));
                 if ("when".equals(str) || "if".equals(str))

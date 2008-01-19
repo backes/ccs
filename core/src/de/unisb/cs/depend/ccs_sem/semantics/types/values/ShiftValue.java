@@ -36,7 +36,7 @@ public class ShiftValue extends IntegerValue {
         final Value newRight = right.instantiate(parameters);
         if (left.equals(newLeft) && right.equals(newRight))
             return this;
-        return create(left, right, isRightShift);
+        return create(newLeft, newRight, isRightShift);
     }
 
     public String getStringValue() {
@@ -60,6 +60,34 @@ public class ShiftValue extends IntegerValue {
 
     public boolean isConstant() {
         return false;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 11;
+        result = prime * result + (isRightShift ? 1231 : 1237);
+        result = prime * result + left.hashCode();
+        result = prime * result + right.hashCode();
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final ShiftValue other = (ShiftValue) obj;
+        if (isRightShift != other.isRightShift)
+            return false;
+        if (!left.equals(other.left))
+            return false;
+        if (!right.equals(other.right))
+            return false;
+        return true;
     }
 
 }
