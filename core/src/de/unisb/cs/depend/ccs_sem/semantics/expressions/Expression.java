@@ -2,7 +2,6 @@ package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -44,8 +43,6 @@ public abstract class Expression {
             final ArrayList<Transition> list = (ArrayList<Transition>) transitions;
             list.trimToSize();
         }
-
-        transitions = Collections.unmodifiableList(transitions);
     }
 
     public boolean isEvaluated() {

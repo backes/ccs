@@ -109,16 +109,12 @@ public class ParallelEvaluator implements Evaluator {
         evaluatedSuccessors = null;
     }
 
-    private static interface Informable {
-
-        void inform();
-    }
-
     private class EvaluatorJob implements Runnable {
 
-        protected List<Informable> waiters = null;
-        protected final Expression expr;
-        protected final boolean evaluateSuccessors;
+        private volatile List<Barrier> waiters = null;
+        private final Expression expr;
+        private final boolean evaluateSuccessors;
+        private volatile boolean childrenEvaluated = false;
 
         public EvaluatorJob(Expression expr, boolean evaluateSuccessors) {
             this.expr = expr;
@@ -127,95 +123,90 @@ public class ParallelEvaluator implements Evaluator {
             executor.execute(this);
         }
 
-        private synchronized void addWaiter(Informable info) {
+        // is externally synchronized (over the expression)
+        private void addWaiter(Barrier waiter) {
             if (waiters == null)
-                waiters = new ArrayList<Informable>(2);
-            waiters.add(info);
+                waiters = new ArrayList<Barrier>(2);
+            waiters.add(waiter);
         }
 
         public void run() {
-            Barrier barrier = null;
+            if (!childrenEvaluated) {
+                Barrier barrier = null;
 
-            final EvaluateSingleExpressionJob eval = new EvaluateSingleExpressionJob();
+                for (final Expression child: expr.getChildren()) {
+                    synchronized (child) {
+                        if (!child.isEvaluated()) {
+                            if (barrier == null)
+                                barrier = new Barrier(executor, this);
 
-            for (final Expression child: expr.getChildren()) {
-                synchronized (child) {
-                    if (!child.isEvaluated()) {
-                        if (barrier == null) {
-                            barrier = new Barrier(eval);
-                        }
-                        EvaluatorJob childEvaluator =
-                                currentlyEvaluating.get(child);
-                        if (childEvaluator == null)
-                            childEvaluator = new EvaluatorJob(child, false);
-                        childEvaluator.addWaiter(barrier);
-                        barrier.inc();
-                    }
-                }
-            }
-
-            if (barrier == null) {
-                // that means, all children are already evaluated
-                // so we use this thread to evaluate the expression
-                eval.run();
-            }
-            // otherwise, the barrier will do this work
-        }
-
-        protected class EvaluateSingleExpressionJob implements Runnable {
-
-            public void run() {
-
-                //System.out.println("Evaluating " + expr + " (" + expr.hashCode() + ", " + System.identityHashCode(expr) + ")");
-                expr.evaluate();
-
-                synchronized (expr) {
-                    if (waiters != null)
-                        for (final Informable inf: waiters)
-                            inf.inform();
-                }
-
-                if (evaluateSuccessors) {
-                    if (monitor != null) {
-                        monitor.newState();
-                        monitor.newTransitions(expr.getTransitions().size());
-                    }
-
-                    for (final Transition trans: expr.getTransitions()) {
-                        final Expression succ = trans.getTarget();
-                        if (evaluatedSuccessors.add(succ)) {
-                            EvaluatorJob job = currentlyEvaluating.get(succ);
-                            if (job == null)
-                                job = new EvaluatorJob(succ, true);
+                            EvaluatorJob childEvaluator =
+                                    currentlyEvaluating.get(child);
+                            if (childEvaluator == null)
+                                childEvaluator = new EvaluatorJob(child, false);
+                            childEvaluator.addWaiter(barrier);
+                            barrier.inc();
                         }
                     }
                 }
 
-                // now the work is ready
-                currentlyEvaluating.remove(expr);
-                if (currentlyEvaluating.isEmpty()) {
-                    synchronized (readyLock) {
-                        if (monitor != null)
-                            monitor.ready();
-                        readyLock.notify();
-                    }
+                childrenEvaluated = true;
+
+                if (barrier != null)
+                    // then the barrier will call us again if all children are evaluated
+                    return;
+            }
+
+            expr.evaluate();
+
+            synchronized (expr) {
+                if (waiters != null)
+                    for (final Barrier waiter: waiters)
+                        waiter.inform();
+            }
+
+            if (evaluateSuccessors) {
+                if (monitor != null) {
+                    monitor.newState();
+                    monitor.newTransitions(expr.getTransitions().size());
+                }
+
+                for (final Transition trans: expr.getTransitions()) {
+                    final Expression succ = trans.getTarget();
+                    if (evaluatedSuccessors.add(succ))
+                        if (currentlyEvaluating.get(succ) == null)
+                            new EvaluatorJob(succ, true);
                 }
             }
 
-        }
+            // now the work is ready
+            final Object removed = currentlyEvaluating.remove(expr);
+            assert removed != null;
 
+            if (currentlyEvaluating.isEmpty()) {
+                synchronized (readyLock) {
+                    if (monitor != null)
+                        monitor.ready();
+                    readyLock.notify();
+                }
+            }
+        }
     }
 
-    private class Barrier implements Informable {
+    // static to improve performance, even if we have to copy the
+    // ExecutorService reference
+    private static class Barrier {
 
         private final Runnable job;
         private int waitNr = 0;
+        private final ExecutorService executor;
 
-        public Barrier(Runnable jobToRun) {
+        public Barrier(ExecutorService executor, Runnable jobToRun) {
+            this.executor = executor;
             this.job = jobToRun;
         }
 
-        public synchronized void inc() {
+        public void inc() {
             ++waitNr;
         }
 
@@ -223,6 +214,7 @@ public class ParallelEvaluator implements Evaluator {
             assert waitNr > 0;
             --waitNr;
             if (waitNr == 0) {
+                // is this synchronized?
                 executor.execute(job);
             }
         }
