@@ -9,5 +9,8 @@
    <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.1.1.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.1.01">
       <category name="ccs_category"/>
    </feature>
+   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.2.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.02">
+      <category name="ccs_category"/>
+   </feature>
    <category-def name="ccs_category" label="CCS"/>
 </site>

@@ -132,7 +132,7 @@ public class NewCCSFileWizard extends Wizard implements INewWizard {
 
 	protected InputStream openContentStream() {
 		final String contents =
-			"This is the initial file contents for *.ccs file that should be word-sorted in the Preview page of the multi-page editor";
+			"(* This is an example CCS file *)\n\nX = a.b.X;\nY[c,a,b] = c!a.c!b.Y[c,b,a];\n\nX | Y\n";
 		return new ByteArrayInputStream(contents.getBytes());
 	}
 

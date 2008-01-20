@@ -2,7 +2,7 @@
 <feature
       id="de.unisb.cs.depend.ccs_sem.feature"
       label="CCS Evaluator"
-      version="0.1.01">
+      version="0.8.02">
 
    <description>
       This tool is able to evaluate, visualize and export terms written

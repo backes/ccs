@@ -5,12 +5,16 @@ package de.unisb.cs.depend.ccs_sem.semantics.types.values;
 public class ConstStringValue extends AbstractValue implements ConstantValue {
 
     private final String value;
+    private final boolean needsQuotes;
 
-    public ConstStringValue(String value) {
+    public ConstStringValue(String value, boolean needsQuotes) {
         this.value = value;
+        this.needsQuotes = needsQuotes;
     }
 
     public String getStringValue() {
+        if (needsQuotes)
+            return '"' + value + '"';
         return value;
     }
 
@@ -20,7 +24,10 @@ public class ConstStringValue extends AbstractValue implements ConstantValue {
 
     @Override
     public int hashCode() {
-        return value.hashCode();
+        int hashCode = value.hashCode();
+        if (needsQuotes)
+            ++hashCode;
+        return hashCode;
     }
 
     @Override
@@ -32,6 +39,8 @@ public class ConstStringValue extends AbstractValue implements ConstantValue {
         if (getClass() != obj.getClass())
             return false;
         final ConstStringValue other = (ConstStringValue) obj;
+        if (needsQuotes != other.needsQuotes)
+            return false;
         if (value == null) {
             if (other.value != null)
                 return false;

@@ -54,7 +54,6 @@
       <wizard
             category="de.unisb.cs.depend.ccs_sem.plugin.CCS_category"
             class="de.unisb.cs.depend.ccs_sem.plugin.wizards.NewCCSProjectWizard"
-            finalPerspective="de.unisb.cs.depend.ccs_sem.plugin.perspectives.CCSPerspective"
             hasPages="true"
             icon="resources/icons/ccs.gif"
             id="de.unisb.cs.depend.ccs_sem.plugin.wizards.NewCCSProjectWizard"

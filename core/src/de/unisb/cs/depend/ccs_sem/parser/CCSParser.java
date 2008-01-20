@@ -229,12 +229,14 @@ public class CCSParser implements Parser {
             // there is no declaration
             return null;
 
-        Identifier identifier;
-        List<Parameter> myParameters;
-        Expression expr;
         if (!(token1 instanceof Identifier))
             return null;
-        identifier = (Identifier) token1;
+
+        final Identifier identifier = (Identifier) token1;
+        if (identifier.isQuoted())
+            return null;
+        List<Parameter> myParameters;
+        Expression expr;
 
         if (token2 instanceof Equals) {
             expr = readExpression(tokens);
@@ -275,6 +277,8 @@ public class CCSParser implements Parser {
             Token nextToken = tokens.next();
             if (nextToken instanceof Identifier) {
                 final Identifier identifier = (Identifier)nextToken;
+                if (identifier.isQuoted())
+                    return null;
                 final String name = identifier.getName();
                 if ("i".equals(name))
                     return null;
@@ -410,7 +414,7 @@ public class CCSParser implements Parser {
                 if (nextToken instanceof QuestionMark) {
                     // read the input value
                     if (tokens.hasNext()) {
-                        if (tokens.peek() instanceof Identifier) {
+                        if (tokens.peek() instanceof Identifier && !((Identifier)tokens.peek()).isQuoted()) {
                             final Identifier identifier = (Identifier)tokens.next();
                             return new InputAction(channel, new Parameter(identifier.getName()));
                         } else {
@@ -462,10 +466,12 @@ public class CCSParser implements Parser {
                 final Identifier identifier = (Identifier)nextToken;
                 if ("i".equals(identifier.getName()))
                     return TauChannel.get();
-                for (final Parameter param: parameters) {
-                    if (param.getName().equals(identifier.getName())) {
-                        param.setType(Parameter.Type.CHANNEL);
-                        return new ParameterRefChannel(param);
+                if (!identifier.isQuoted()) {
+                    for (final Parameter param: parameters) {
+                        if (param.getName().equals(identifier.getName())) {
+                            param.setType(Parameter.Type.CHANNEL);
+                            return new ParameterRefChannel(param);
+                        }
                     }
                 }
                 return new ConstChannel(identifier.getName());
@@ -769,12 +775,15 @@ public class CCSParser implements Parser {
         if (nextToken instanceof False)
             return ConstBooleanValue.get(false);
         if (nextToken instanceof Identifier) {
-            // search if this identifier is a parameter
+            final Identifier id = (Identifier) nextToken;
             final String name = ((Identifier)nextToken).getName();
-            for (final Parameter param: parameters)
-                if (param.getName().equals(name))
-                    return new ParameterRefValue(param);
-            return new ConstStringValue(name);
+            if (!id.isQuoted()) {
+                // search if this identifier is a parameter
+                for (final Parameter param: parameters)
+                    if (param.getName().equals(name))
+                        return new ParameterRefValue(param);
+            }
+            return new ConstStringValue(name, id.isQuoted());
         }
         if (nextToken instanceof LParenthesis) {
             final Value value = readArithmeticExpression(tokens);

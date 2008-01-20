@@ -2,7 +2,8 @@ package de.unisb.cs.depend.ccs_sem.plugin.grappa;
 
 import java.awt.Color;
 import java.awt.Frame;
-import java.awt.GridLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -13,12 +14,17 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import javax.swing.JScrollPane;
+
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 
 import att.grappa.Edge;
 import att.grappa.Graph;
@@ -42,30 +48,49 @@ public class GrappaFrame extends Composite {
     private static final Color startNodeColor = Color.LIGHT_GRAY;
     private static final Color warnNodeColor = Color.RED;
 
-    private final GrappaPanel grappaPanel;
-    private final Graph graph = new Graph("CSS-Graph");
+    protected final GrappaPanel grappaPanel;
+    protected final Graph graph = new Graph("CSS-Graph");
     private final CCSEditor ccsEditor;
+    private boolean showEdgeLabels = true;
+    private boolean showNodeLabels = true;
 
     public GrappaFrame(Composite parent, int style, CCSEditor editor) {
         super(parent, style);
         this.ccsEditor = editor;
-        setLayout(new FillLayout(SWT.VERTICAL));
+        setLayout(new org.eclipse.swt.layout.GridLayout(1, true));
 
         final Composite controlsComposite = new Composite(this, SWT.None);
         controlsComposite.setLayout(new FillLayout(SWT.HORIZONTAL));
-        final Text text = new Text(controlsComposite, SWT.None);
-        text.setText("Controls go here...");
-        text.setEnabled(false);
+        controlsComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
+        /*
+        final ScrolledComposite scrolledGraphComposite = new ScrolledComposite(this, SWT.H_SCROLL | SWT.V_SCROLL);
+        scrolledGraphComposite.setExpandVertical(true);
+        scrolledGraphComposite.setExpandHorizontal(true);
+        scrolledGraphComposite.setLayout(new org.eclipse.swt.layout.GridLayout(1, true));
+        scrolledGraphComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
+        scrolledGraphComposite.setAlwaysShowScrollBars(true);
+        */
+
+        //final Composite graphComposite = new Composite(scrolledGraphComposite, SWT.EMBEDDED);
         final Composite graphComposite = new Composite(this, SWT.EMBEDDED);
+        //scrolledGraphComposite.setContent(graphComposite);
         graphComposite.setLayout(new org.eclipse.swt.layout.GridLayout(1, true));
+        graphComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
 
         final Frame grappaFrame = SWT_AWT.new_Frame(graphComposite);
         grappaPanel = new GrappaPanel(graph);
         grappaPanel.addGrappaListener(new GrappaAdapter());
         grappaPanel.setScaleToFit(true);
-        grappaFrame.setLayout(new GridLayout(1, 1));
-        grappaFrame.add(grappaPanel);
+        grappaFrame.setLayout(new GridBagLayout());
+        //grappaFrame.add(grappaPanel);
+        final JScrollPane scroll = new JScrollPane(grappaPanel);
+        //scroll.setLayout(new GridLayout(1,1));
+        final GridBagConstraints gbc = new GridBagConstraints();
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        grappaFrame.add(scroll, gbc);
 
         Grappa.antiAliasText = true;
         Grappa.useAntiAliasing = true;
@@ -78,10 +103,88 @@ public class GrappaFrame extends Composite {
         node.setAttribute(GrappaConstants.COLOR_ATTR, warnNodeColor);
         filterGraph(graph);
         graph.repaint();
+
+        // add control components
+        final Button buttonScaleToFit = new Button(controlsComposite, SWT.CHECK);
+        buttonScaleToFit.setSelection(true);
+        buttonScaleToFit.setText("Scale to fit");
+
+        final Button buttonZoomIn = new Button(controlsComposite, SWT.PUSH);
+        buttonZoomIn.setEnabled(false);
+        buttonZoomIn.setText("Zoom in");
+
+        final Button buttonZoomOut = new Button(controlsComposite, SWT.PUSH);
+        buttonZoomOut.setEnabled(false);
+        buttonZoomOut.setText("Zoom out");
+
+        final Button buttonShowNodeLabels = new Button(controlsComposite, SWT.CHECK);
+        buttonShowNodeLabels.setSelection(true);
+        buttonShowNodeLabels.setText("Show node labels");
+
+        final Button buttonShowEdgeLabels = new Button(controlsComposite, SWT.CHECK);
+        buttonShowEdgeLabels.setSelection(true);
+        buttonShowEdgeLabels.setText("Show edge labels");
+
+        buttonScaleToFit.addListener(SWT.Selection, new Listener() {
+
+            public void handleEvent(Event event) {
+                boolean scale = buttonScaleToFit.getSelection();
+                buttonZoomIn.setEnabled(!scale);
+                buttonZoomOut.setEnabled(!scale);
+                /*
+                final Point clientArea = scrolledGraphComposite.getSize();
+                grappaPanel.setSize(clientArea.x, clientArea.y);
+                */
+                grappaPanel.setScaleToFit(scale);
+                grappaPanel.repaint();
+            }
+
+        });
+        buttonZoomIn.addListener(SWT.Selection, new Listener() {
+
+            public void handleEvent(Event event) {
+                grappaPanel.multiplyScaleFactor(1.25);
+                grappaPanel.repaint();
+            }
+
+        });
+        buttonZoomOut.addListener(SWT.Selection, new Listener() {
+
+            public void handleEvent(Event event) {
+                grappaPanel.multiplyScaleFactor(0.8);
+                grappaPanel.repaint();
+            }
+
+        });
+
+        buttonShowNodeLabels.addListener(SWT.Selection, new Listener() {
+
+            public void handleEvent(Event event) {
+                setShowNodeLabels(buttonShowNodeLabels.getSelection());
+                update();
+            }
+
+        });
+        buttonShowEdgeLabels.addListener(SWT.Selection, new Listener() {
+
+            public void handleEvent(Event event) {
+                setShowEdgeLabels(buttonShowEdgeLabels.getSelection());
+                update();
+            }
+
+        });
+    }
+
+    protected void setShowEdgeLabels(boolean showEdgeLabels) {
+        this.showEdgeLabels = showEdgeLabels;
+    }
+
+    protected void setShowNodeLabels(boolean showNodeLabels) {
+        this.showNodeLabels = showNodeLabels;
     }
 
     @Override
-    public void update() {
+    public synchronized void update() {
 
         // parse ccs term
         Program ccsProgram = null;
@@ -125,7 +228,8 @@ public class GrappaFrame extends Composite {
         while (!queue.isEmpty()) {
             final Expression e = queue.poll();
             final Node node = new Node(graph, "node_" + cnt++);
-            node.setAttribute(GrappaConstants.LABEL_ATTR, e.toString());
+            node.setAttribute(GrappaConstants.LABEL_ATTR,
+                showNodeLabels ? e.toString() : "");
             if (cnt == 1) {
                 node.setAttribute(GrappaConstants.STYLE_ATTR, "filled");
                 node.setAttribute(GrappaConstants.FILLCOLOR_ATTR, startNodeColor);
@@ -151,7 +255,7 @@ public class GrappaFrame extends Composite {
             for (final Transition trans: e.getTransitions()) {
                 final Node headNode = nodes.get(trans.getTarget());
                 final Edge edge = new Edge(graph, tailNode, headNode, "edge_" + cnt++);
-                final String label = trans.getAction().getLabel();
+                final String label = showEdgeLabels ? trans.getAction().getLabel() : "";
                 edge.setAttribute(GrappaConstants.LABEL_ATTR, label);
                 edge.setAttribute(GrappaConstants.TIP_ATTR, "Transition: " + label);
                 graph.addEdge(edge);
@@ -173,21 +277,24 @@ public class GrappaFrame extends Composite {
         command.add(getDotExecutablePath());
 
         final ProcessBuilder pb = new ProcessBuilder(command);
-        Process dotFilter;
+        Process dotFilter = null;
+        boolean success = true;
         try {
             dotFilter = pb.start();
         } catch (final IOException e) {
-            if (MessageDialog.openQuestion(getShell(), "Error layouting graph",
-                "The graph could not be layout, because the 'dot' tool could not be started.\n" +
-                "Do you want to configure the path for this tool now?")) {
-
-                // TODO show preferences page
-                // now, try again
-                return filterGraph(graph);
-            }
-            return false;
+            success = false;
         }
-        return GrappaSupport.filterGraph(graph, dotFilter);
+
+        if (success)
+            success &= GrappaSupport.filterGraph(graph, dotFilter);
+
+        if (!success) {
+            MessageDialog.openError(getShell(), "Error layouting graph",
+                "The graph could not be layout, most probably there was an error with starting the dot tool.\n" +
+                "You can configure the path for this tool in your preferences.");
+        }
+
+        return success;
     }
 
     private String getDotExecutablePath() {

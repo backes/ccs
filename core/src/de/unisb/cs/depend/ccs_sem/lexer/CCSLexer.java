@@ -50,13 +50,15 @@ public class CCSLexer extends AbstractLexer {
 
     private static final int ENVIRONMENT_SIZE = 15;
 
+    private int position;
+
     public List<Token> lex(Reader input) throws LexException {
         final List<Token> tokens = new ArrayList<Token>();
 
         final HistoryPushbackReader pr = new HistoryPushbackReader(input, 1, ENVIRONMENT_SIZE);
 
         try {
-            lex0(pr, tokens, 0);
+            lex0(pr, tokens);
         } catch (final IOException e) {
             throw new LexException("Error reading input stream", e);
         }
@@ -66,8 +68,13 @@ public class CCSLexer extends AbstractLexer {
         return tokens;
     }
 
-    private void lex0(HistoryPushbackReader input, List<Token> tokens, int position) throws IOException, LexException {
+    private synchronized void lex0(HistoryPushbackReader input, List<Token> tokens) throws IOException, LexException {
         int nextChar;
+
+        // temporaryly needed variables
+        String str;
+
+        position = 0;
 
         while ((nextChar = input.read()) != -1) {
             assert nextChar >= 0 && nextChar < 1<<16;
@@ -253,15 +260,21 @@ public class CCSLexer extends AbstractLexer {
                 }
                 break;
 
+            case '"':
+                // read until the next DoubleQuotes
+                final int startPosition = position;
+                str = readQuotedString(input);
+                tokens.add(new Identifier(startPosition, position, str, true));
+                break;
+
             case '1': case '2': case '3': case '4': case '5':
             case '6': case '7': case '8': case '9':
-                final IntegerToken intToken = readInteger(nextChar, input, tokens, position);
+                final IntegerToken intToken = readInteger(nextChar, input, tokens);
                 tokens.add(intToken);
-                position += intToken.getEndPosition() - intToken.getStartPosition();
                 break;
 
             default:
-                final String str = readString(nextChar, input);
+                str = readString(nextChar, input);
                 if (str.length() == 0)
                     throw new LexException("Syntaxerror on position " + position, readEnvironment(input, ENVIRONMENT_SIZE));
                 if ("when".equals(str) || "if".equals(str))
@@ -281,7 +294,7 @@ public class CCSLexer extends AbstractLexer {
                 else if ("or".equals(str))
                     tokens.add(new Or(position, position += str.length() - 1));
                 else
-                    tokens.add(new Identifier(position, position += str.length() - 1, str));
+                    tokens.add(new Identifier(position, position += str.length() - 1, str, false));
 
                 break;
             }
@@ -297,7 +310,9 @@ public class CCSLexer extends AbstractLexer {
         int c;
         try {
             while (nr-- > 0 && (c = input.read()) != -1) {
-                if (c != '\n' && c != '\r')
+                if (c == '\n' || c == '\r')
+                    sb.append(' ');
+                else
                     sb.append((char)c);
             }
             if ((c = input.read()) != -1) {
@@ -329,20 +344,41 @@ public class CCSLexer extends AbstractLexer {
         return name.toString();
     }
 
-    private IntegerToken readInteger(int nextChar, HistoryPushbackReader input, List<Token> tokens, int position) throws IOException {
+    private String readQuotedString(HistoryPushbackReader input) throws LexException, IOException {
+        int nextChar;
+        final StringBuilder sb = new StringBuilder();
+        while ((nextChar = input.read()) != -1) {
+            ++position;
+            if (nextChar == '\\') {
+                nextChar = input.read();
+                if (nextChar == '"') {
+                    sb.append((char)nextChar);
+                } else {
+                    sb.append('\\').append((char)nextChar);
+                }
+            } else if (nextChar == '"') {
+                return sb.toString();
+            } else
+                sb.append((char)nextChar);
+        }
+
+        throw new LexException("Expected '\"'", readEnvironment(input, ENVIRONMENT_SIZE));
+    }
+
+    private IntegerToken readInteger(int nextChar, HistoryPushbackReader input, List<Token> tokens) throws IOException {
         assert '0' <= nextChar && nextChar <= '9';
 
-        int endPosition = position - 1;
+        final int startPosition = position--;
         int value = 0;
         while (nextChar >= '0' && nextChar <= '9') {
             value = 10*value + nextChar - '0';
             nextChar = input.read();
-            ++endPosition;
+            ++position;
         }
         if (nextChar != -1)
             input.unread(nextChar);
 
-        return new IntegerToken(position, endPosition, value);
+        return new IntegerToken(startPosition, position, value);
     }
 
 }
