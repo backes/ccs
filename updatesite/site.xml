@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.2.0.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.2.0">
+      <category name="ccs_category"/>
+   </feature>
+   <category-def name="ccs_category" label="CCS"/>
+</site>

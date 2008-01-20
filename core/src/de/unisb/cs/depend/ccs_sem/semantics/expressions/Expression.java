@@ -34,15 +34,16 @@ public abstract class Expression {
         if (transitions != null)
             return;
 
-        transitions = evaluate0();
+        final List<Transition> transitions0 = evaluate0();
 
-        assert transitions != null;
+        assert transitions0 != null;
 
         // save memory
-        if (transitions instanceof ArrayList) {
-            final ArrayList<Transition> list = (ArrayList<Transition>) transitions;
-            list.trimToSize();
-        }
+        if (transitions0 instanceof ArrayList)
+            ((ArrayList<Transition>)transitions0).trimToSize();
+
+        // volatile write
+        transitions = transitions0;
     }
 
     public boolean isEvaluated() {

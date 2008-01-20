@@ -76,16 +76,14 @@ public class ParallelExpr extends Expression {
             transitions.add(newTrans);
         }
 
-        boolean useCleverWay =
-                leftTransitions.size() > 3
-                        && rightTransitions.size() > 3
-                        && (leftTransitions.size() * rightTransitions.size()) > 20;
+        boolean useComplexWay = leftTransitions.size() > 3
+                && rightTransitions.size() > 3;
 
         // in debug mode switch between the two modes
-        assert (useCleverWay = new Random().nextBoolean()) || true;
+        assert (useComplexWay = new Random().nextBoolean()) || true;
 
-        if (useCleverWay) {
-            combineUsingCleverWay(leftTransitions, rightTransitions, transitions);
+        if (useComplexWay) {
+            combineUsingComplexWay(leftTransitions, rightTransitions, transitions);
         } else {
             combineUsingNaiveWay(leftTransitions, rightTransitions, transitions);
         }
@@ -132,7 +130,7 @@ public class ParallelExpr extends Expression {
             }
     }
 
-    private void combineUsingCleverWay(final List<Transition> leftTransitions,
+    private void combineUsingComplexWay(final List<Transition> leftTransitions,
             final List<Transition> rightTransitions,
             final List<Transition> transitions) {
         final Map<Channel, List<Transition>> leftInput =
