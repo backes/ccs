@@ -4,8 +4,9 @@
       label="CCS Evaluator"
       version="0.1.0">
 
-   <description url="http://www.example.com/description">
-      This tool is able to evaluate, visualize and export terms written in value-passing CCS.
+   <description>
+      This tool is able to evaluate, visualize and export terms written
+in value-passing CCS.
    </description>
 
    <license url="http://www.opensource.org/licenses/cpl1.0.php">
