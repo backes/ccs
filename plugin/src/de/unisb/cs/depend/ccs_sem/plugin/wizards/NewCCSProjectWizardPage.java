@@ -42,8 +42,8 @@ public class NewCCSProjectWizardPage extends WizardPage {
 	 */
 	public NewCCSProjectWizardPage(ISelection selection) {
 		super("wizardPage");
-		setTitle("Multi-page Editor File");
-		setDescription("This wizard creates a new file with *.ccs extension that can be opened by a multi-page editor.");
+		setTitle("New CCS Project");
+		setDescription("This wizard creates a new ccs project.");
 		this.selection = selection;
 	}
 
@@ -57,7 +57,7 @@ public class NewCCSProjectWizardPage extends WizardPage {
 		layout.numColumns = 3;
 		layout.verticalSpacing = 9;
 		Label label = new Label(container, SWT.NULL);
-		label.setText("&Container:");
+		label.setText("&Location:");
 
 		containerText = new Text(container, SWT.BORDER | SWT.SINGLE);
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);

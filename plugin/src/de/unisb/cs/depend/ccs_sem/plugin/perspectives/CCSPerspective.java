@@ -1,13 +1,3 @@
-/*******************************************************************************
- * Copyright (c) 2006 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- *
- * Contributors:
- *     IBM Corporation - initial API and implementation
- *******************************************************************************/
 package de.unisb.cs.depend.ccs_sem.plugin.perspectives;
 
 import org.eclipse.ui.IFolderLayout;
@@ -73,6 +63,7 @@ public class CCSPerspective implements IPerspectiveFactory {
 
 	private void addActionSets() {
 		//factory.addActionSet(IPageLayout.ID_NAVIGATE_ACTION_SET); //NON-NLS-1
+	    factory.addActionSet(Global.getActionSetId());
 	}
 
 	private void addPerspectiveShortcuts() {

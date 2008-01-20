@@ -39,7 +39,7 @@ public class NewCCSProjectWizard extends Wizard implements INewWizard {
 	 */
 	public NewCCSProjectWizard() {
 		super();
-		setNeedsProgressMonitor(true);
+		setNeedsProgressMonitor(false);
 	}
 
 	/**
@@ -60,12 +60,12 @@ public class NewCCSProjectWizard extends Wizard implements INewWizard {
 	@Override
     public boolean performFinish() {
         // TODO new project
-        IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject("CCS Project");
+        final IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject("CCS Project");
         //project.create(null);
 
-        
-        
-        
+
+
+
 		final String containerName = page.getContainerName();
 		final String fileName = page.getFileName();
 		final IRunnableWithProgress op = new IRunnableWithProgress() {

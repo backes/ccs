@@ -67,7 +67,7 @@
       <actionSet
             id="de.unisb.cs.depend.ccs_sem.plugin.actionSet"
             label="CCS Action Set"
-            visible="true">
+            visible="false">
          <menu
                id="ccsMenu"
                label="CCS &amp;Menu">
@@ -77,7 +77,7 @@
          </menu>
          <action
                class="de.unisb.cs.depend.ccs_sem.plugin.actions.OpenCCSFile"
-               icon="resources/icons/sample.gif"
+               icon="resources/icons/ccs.gif"
                id="de.unisb.cs.depend.ccs_sem.plugin.actions.OpenCCSFileAction"
                label="&amp;Open File"
                style="push"
