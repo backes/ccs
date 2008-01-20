@@ -13,6 +13,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.PageBook;
 import org.eclipse.ui.part.ViewPart;
 
@@ -52,6 +53,8 @@ public class CCSGraphView extends ViewPart implements ISelectionListener {
         myPages.showPage(currentView = defaultText);
 
         getSite().getPage().addSelectionListener(this);
+
+        selectionChanged(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor(), null);
     }
 
     @Override

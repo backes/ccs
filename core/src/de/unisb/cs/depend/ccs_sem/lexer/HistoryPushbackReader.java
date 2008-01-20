@@ -7,8 +7,8 @@ import java.io.Reader;
 
 public class HistoryPushbackReader extends PushbackReader {
 
-    private int[] history;
-    private int histSize;
+    private final int[] history;
+    private final int histSize;
     private int histPos;
 
     public HistoryPushbackReader(Reader in, int size, int histSize) {
@@ -23,31 +23,34 @@ public class HistoryPushbackReader extends PushbackReader {
     public HistoryPushbackReader(Reader in, int histSize) {
         this(in, 1, histSize);
     }
-    
+
     @Override
     public int read() throws IOException {
-        int read = super.read();
-        history[histPos = (histPos+1)%history.length] = read;
+        final int read = super.read();
+        histPos = histPos == history.length-1 ? 0 : histPos+1;
+        history[histPos] = read;
         return read;
     }
-    
+
     @Override
     public void unread(int c) throws IOException {
         super.unread(c);
-        histPos = (histPos-1)%history.length;
+        histPos = histPos == 0 ? history.length - 1 : histPos-1;
     }
-    
+
     public String getHistory(int maxSize) {
-        char[] chars = new char[history.length];
-        int offset = history.length;
         maxSize = Math.min(maxSize, histSize);
+        final char[] chars = new char[maxSize];
+        int offset = maxSize;
         for (int i = 0; i < maxSize; ++i) {
-            int c = history[(histPos-i)%history.length];
-            if (c == -1)
-                continue;
+            int c = history[(histPos+history.length-i)%history.length];
+            if (c == '\n' || c == '\r')
+                c = ' ';
+            else if (c == -1)
+                break;
             chars[--offset] = (char)c;
         }
-        String str = new String(chars, offset, history.length - offset);
+        final String str = new String(chars, offset, maxSize - offset);
         return str;
     }
 

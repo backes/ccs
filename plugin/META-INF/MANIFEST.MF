@@ -18,3 +18,4 @@ Eclipse-LazyStart: true
 Bundle-ClassPath: lib/CCS-Semantics_core.jar,
  .,
  lib/grappa1_2.jar
+Export-Package: de.unisb.cs.depend.ccs_sem.plugin.actions

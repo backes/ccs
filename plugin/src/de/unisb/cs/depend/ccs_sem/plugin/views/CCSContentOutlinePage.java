@@ -29,14 +29,12 @@ public class CCSContentOutlinePage implements IContentOutlinePage {
         outerOne.setLayout(new FillLayout(SWT.VERTICAL));
 
         final Text text = new Text(outerOne, SWT.MULTI);
-        text.setText("No text.....");
-        // TODO Auto-generated method stub
-
+        text.setText("No outline available so far...");
+        text.setEnabled(false);
     }
 
     public void dispose() {
-        // TODO Auto-generated method stub
-
+        // nothing to do
     }
 
     public Control getControl() {

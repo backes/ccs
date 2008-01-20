@@ -241,8 +241,9 @@ public class CCSParser implements Parser {
             myParameters = Collections.emptyList();
         } else if (token2 instanceof LBracket) {
             myParameters = readParameters(tokens);
-            if (!tokens.hasNext() || !(tokens.peek() instanceof Equals) || ((Equals)tokens.next()).isComp())
-                throw new ParseException("Expected declaration");
+            if (myParameters == null || !tokens.hasNext()
+                    || !(tokens.peek() instanceof Equals) || ((Equals)tokens.next()).isComp())
+                return null;
             final Deque<Parameter> oldParameters = parameters;
             parameters = new ArrayDeque<Parameter>(myParameters);
             try {

@@ -24,7 +24,7 @@ public class CCSPerspective implements IPerspectiveFactory {
 
 	public void createInitialLayout(IPageLayout factory) {
 		this.factory = factory;
-        factory.setFixed(true);
+        factory.setFixed(false);
 		addViews();
 		addActionSets();
 		addNewWizardShortcuts();

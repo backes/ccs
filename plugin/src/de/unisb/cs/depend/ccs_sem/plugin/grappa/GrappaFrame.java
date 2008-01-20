@@ -18,6 +18,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Text;
 
 import att.grappa.Edge;
 import att.grappa.Graph;
@@ -46,11 +47,20 @@ public class GrappaFrame extends Composite {
     private final CCSEditor ccsEditor;
 
     public GrappaFrame(Composite parent, int style, CCSEditor editor) {
-        super(parent, style | SWT.EMBEDDED);
+        super(parent, style);
         this.ccsEditor = editor;
         setLayout(new FillLayout(SWT.VERTICAL));
 
-        final Frame grappaFrame = SWT_AWT.new_Frame(this);
+        final Composite controlsComposite = new Composite(this, SWT.None);
+        controlsComposite.setLayout(new FillLayout(SWT.HORIZONTAL));
+        final Text text = new Text(controlsComposite, SWT.None);
+        text.setText("Controls go here...");
+        text.setEnabled(false);
+
+        final Composite graphComposite = new Composite(this, SWT.EMBEDDED);
+        graphComposite.setLayout(new org.eclipse.swt.layout.GridLayout(1, true));
+
+        final Frame grappaFrame = SWT_AWT.new_Frame(graphComposite);
         grappaPanel = new GrappaPanel(graph);
         grappaPanel.addGrappaListener(new GrappaAdapter());
         grappaPanel.setScaleToFit(true);
