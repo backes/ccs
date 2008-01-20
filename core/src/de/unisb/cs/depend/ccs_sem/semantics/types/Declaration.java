@@ -12,6 +12,7 @@ import java.util.Set;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.ParallelExpr;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.PrefixExpr;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.RecursiveExpr;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.RestrictExpr;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
@@ -38,16 +39,7 @@ public class Declaration {
      * Besides, the recursion variable iself must only occure guarded in the value.
      */
     public boolean isRegular() {
-        // TODO guardedness
-        // check the second condition first (easier)
-        if (value instanceof RecursiveExpr) {
-            final RecursiveExpr recExpr = (RecursiveExpr) value;
-            if (recExpr.getReferencedDeclaration().equals(this))
-                return false;
-        }
-
-        // then, check for a recursive loop back to this declaration, that
-        // contains parallel or restriction operator(s)
+        // check guardedness first
 
         // every expression has to be checked only once
         final Set<Expression> checked = new HashSet<Expression>();
@@ -56,6 +48,37 @@ public class Declaration {
         final Set<Declaration> checkedDeclarations = new HashSet<Declaration>();
         // a queue of expressions to check
         final Queue<Expression> queue = new ArrayDeque<Expression>();
+        queue.add(value);
+
+        // first, search for all expressions that occure after static operators
+        while (!queue.isEmpty()) {
+            final Expression expr = queue.poll();
+            if (checked.add(expr)) {
+                // not checked before...
+                if (expr instanceof PrefixExpr)
+                    // then, it is guarded
+                    continue;
+                // every RecursiveExpr has to be checked only once
+                if (expr instanceof RecursiveExpr) {
+                    final Declaration referencedDeclaration = ((RecursiveExpr)expr).getReferencedDeclaration();
+                    if (referencedDeclaration.equals(this))
+                        return false;
+                    if (!checkedDeclarations.add(referencedDeclaration))
+                        continue;
+                }
+                queue.addAll(expr.getSubTerms());
+            }
+        }
+        checked.clear();
+
+
+        // then, check for a recursive loop back to this declaration, that
+        // contains parallel or restriction operator(s)
+
+        // reuse the collections from above
+        checked.clear();
+        checkedDeclarations.clear();
+
         // queue of expressions that occured after static operators
         final Queue<Expression> afterStaticQueue = new ArrayDeque<Expression>();
         queue.add(value);

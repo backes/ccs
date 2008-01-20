@@ -11,7 +11,7 @@ import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterRefValue;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterReference;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 
@@ -84,7 +84,7 @@ public abstract class Expression {
 
     /**
      * Is called in the constructor of a {@link RecursiveExpr}.
-     * Replaces all {@link ParameterRefValue}s that occure in the expression by
+     * Replaces all {@link ParameterReference}s that occure in the expression by
      * the corresponding {@link Value} from the parameter list.
      * Typically delegates to it's subterms.
      * @param parameters the parameters to replace by concrete values

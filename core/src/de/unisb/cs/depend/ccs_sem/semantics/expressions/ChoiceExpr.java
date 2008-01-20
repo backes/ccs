@@ -72,7 +72,7 @@ public class ChoiceExpr extends Expression {
         if (newLeft.equals(left) && newRight.equals(right))
             return this;
 
-        return Expression.getExpression(new ChoiceExpr(newLeft, newRight));
+        return create(newLeft, newRight);
     }
 
     @Override

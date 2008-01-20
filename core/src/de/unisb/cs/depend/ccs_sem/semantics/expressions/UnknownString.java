@@ -13,7 +13,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.SimpleAction;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstChannel;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstStringChannel;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
@@ -91,7 +91,7 @@ public class UnknownString extends Expression {
 
             throw new ParseException(sb.toString());
         }
-        final Action prefix = new SimpleAction(new ConstChannel(name));
+        final Action prefix = new SimpleAction(new ConstStringChannel(name, false));
         final Expression stopExpression = Expression.getExpression(new StopExpr());
         return Expression.getExpression(new PrefixExpr(prefix, stopExpression));
     }

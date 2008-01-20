@@ -36,7 +36,7 @@ public class NotValue extends BooleanValue {
     }
 
     public String getStringValue() {
-        final boolean needParenthesis = !(negatedValue instanceof ParameterRefValue
+        final boolean needParenthesis = !(negatedValue instanceof ParameterReference
                 || negatedValue instanceof ConstBooleanValue);
         return needParenthesis ? "!(" + negatedValue + ")" : "!" + negatedValue;
     }

@@ -10,7 +10,7 @@ public interface Value {
     String getStringValue();
 
     /**
-     * Replaces all {@link ParameterRefValue}s that occure in the expression by
+     * Replaces all {@link ParameterReference}s that occure in the expression by
      * the corresponding {@link Value} from the parameter list.
      */
     Value instantiate(Map<Parameter, Value> parameters);

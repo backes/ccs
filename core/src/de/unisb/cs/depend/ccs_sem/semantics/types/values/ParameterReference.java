@@ -5,11 +5,11 @@ import java.util.Map;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 
 
-public class ParameterRefValue extends AbstractValue {
+public class ParameterReference extends AbstractValue {
 
     private final Parameter param;
 
-    public ParameterRefValue(Parameter param) {
+    public ParameterReference(Parameter param) {
         this.param = param;
     }
 
@@ -44,7 +44,7 @@ public class ParameterRefValue extends AbstractValue {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        final ParameterRefValue other = (ParameterRefValue) obj;
+        final ParameterReference other = (ParameterReference) obj;
         if (param == null) {
             if (other.param != null)
                 return false;

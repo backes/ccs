@@ -2,14 +2,19 @@ package de.unisb.cs.depend.ccs_sem.semantics.types.values;
 
 
 
-public class ConstStringValue extends AbstractValue implements ConstantValue {
+// This is a constant string that can be either a channel or a value
+public class ConstString extends AbstractValue implements ConstantValue {
 
     private final String value;
     private final boolean needsQuotes;
 
-    public ConstStringValue(String value, boolean needsQuotes) {
+    public ConstString(String value, boolean needsQuotes) {
         this.value = value;
         this.needsQuotes = needsQuotes;
+    }
+
+    public boolean isNeedsQuotes() {
+        return needsQuotes;
     }
 
     public String getStringValue() {
@@ -38,7 +43,7 @@ public class ConstStringValue extends AbstractValue implements ConstantValue {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        final ConstStringValue other = (ConstStringValue) obj;
+        final ConstString other = (ConstString) obj;
         if (needsQuotes != other.needsQuotes)
             return false;
         if (value == null) {

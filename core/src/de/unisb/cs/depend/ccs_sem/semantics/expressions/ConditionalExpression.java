@@ -70,7 +70,7 @@ public class ConditionalExpression extends Expression {
         final Expression newConsequence = consequence.replaceRecursion(declarations);
         if (consequence.equals(newConsequence))
             return this;
-        return new ConditionalExpression(condition, newConsequence);
+        return create(condition, newConsequence);
     }
 
     @Override

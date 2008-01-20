@@ -73,18 +73,16 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.CompValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConditionalValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstBooleanValue;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstChannel;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstIntegerValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstString;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstStringValue;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstStringChannel;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.EqValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.IntegerValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.MultValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.NotValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.OrValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterRefChannel;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterRefString;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterRefValue;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterReference;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ShiftValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.TauChannel;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
@@ -476,7 +474,7 @@ public class CCSParser implements Parser {
                         }
                     }
                 }
-                return new ConstChannel(identifier.getName());
+                return new ConstStringChannel(identifier.getName(), identifier.isQuoted());
             }
             tokens.previous();
         }
@@ -487,44 +485,14 @@ public class CCSParser implements Parser {
      * Read one parallel expression.
      */
     private Expression readParallelExpression(ExtendedIterator<Token> tokens) throws ParseException {
-        Expression expr = readWhenExpression(tokens);
+        Expression expr = readChoiceExpression(tokens);
         while (tokens.hasNext() && tokens.peek() instanceof Parallel) {
             tokens.next();
-            final Expression newExpr = readWhenExpression(tokens);
+            final Expression newExpr = readChoiceExpression(tokens);
             expr = ParallelExpr.create(expr, newExpr);
         }
 
         return expr;
-    }
-
-    private Expression readWhenExpression(ExtendedIterator<Token> tokens) throws ParseException {
-        if (tokens.hasNext() && tokens.peek() instanceof When) {
-            tokens.next();
-            final Value condition = readArithmeticExpression(tokens);
-            ensureBoolean(condition, "Expected boolean expression after 'when'");
-
-            // if there is a "then" now, ignore it
-            if (tokens.hasNext() && tokens.peek() instanceof Then)
-                tokens.next();
-            final Expression consequence = readWhenExpression(tokens);
-
-            Expression condExpr = ConditionalExpression.create(condition, consequence);
-
-            // we allow an "else" here to declare an alternative, but internally,
-            // it is mapped to a "(when (x) <consequence>) + (when (!x) <alternative>)"
-            if (tokens.hasNext() && tokens.peek() instanceof Else) {
-                tokens.next();
-                Expression alternative = readWhenExpression(tokens);
-                // build negated condition
-                final Value negatedCondition = condition instanceof NotValue
-                    ? ((NotValue)condition).getNegatedValue()
-                    : NotValue.create(condition);
-                alternative = ConditionalExpression.create(negatedCondition, alternative);
-                condExpr = ChoiceExpr.create(condExpr, alternative);
-            }
-            return condExpr;
-        }
-        return readChoiceExpression(tokens);
     }
 
     /**
@@ -595,6 +563,36 @@ public class CCSParser implements Parser {
             tokens.setPosition(oldPosition);
         }
 
+        return readWhenExpression(tokens);
+    }
+
+    private Expression readWhenExpression(ExtendedIterator<Token> tokens) throws ParseException {
+        if (tokens.hasNext() && tokens.peek() instanceof When) {
+            tokens.next();
+            final Value condition = readArithmeticExpression(tokens);
+            ensureBoolean(condition, "Expected boolean expression after 'when'");
+
+            // if there is a "then" now, ignore it
+            if (tokens.hasNext() && tokens.peek() instanceof Then)
+                tokens.next();
+            final Expression consequence = readPrefixExpression(tokens);
+
+            Expression condExpr = ConditionalExpression.create(condition, consequence);
+
+            // we allow an "else" here to declare an alternative, but internally,
+            // it is mapped to a "(when (x) <consequence>) + (when (!x) <alternative>)"
+            if (tokens.hasNext() && tokens.peek() instanceof Else) {
+                tokens.next();
+                Expression alternative = readPrefixExpression(tokens);
+                // build negated condition
+                final Value negatedCondition = condition instanceof NotValue
+                    ? ((NotValue)condition).getNegatedValue()
+                    : NotValue.create(condition);
+                alternative = ConditionalExpression.create(negatedCondition, alternative);
+                condExpr = ChoiceExpr.create(condExpr, alternative);
+            }
+            return condExpr;
+        }
         return readBaseExpression(tokens);
     }
 
@@ -787,7 +785,7 @@ public class CCSParser implements Parser {
                 // search if this identifier is a parameter
                 for (final Parameter param: parameters)
                     if (param.getName().equals(name)) {
-                        return new ParameterRefString(param);
+                        return new ParameterReference(param);
                     }
             }
             return new ConstString(name, id.isQuoted());
@@ -807,16 +805,14 @@ public class CCSParser implements Parser {
             return;
         if (value1 instanceof BooleanValue && value2 instanceof BooleanValue)
             return;
-        if (value1 instanceof ConstStringValue && value2 instanceof ConstStringValue)
-            return;
         if (value1 instanceof ConstString && value2 instanceof ConstString)
             return;
-        if (value1 instanceof ParameterRefValue) {
-            ((ParameterRefValue)value1).getParam().match(value2);
+        if (value1 instanceof ParameterReference || value1 instanceof ParameterRefChannel) {
+            ((ParameterReference)value1).getParam().match(value2);
             return;
         }
-        if (value2 instanceof ParameterRefValue) {
-            ((ParameterRefValue)value2).getParam().match(value1);
+        if (value2 instanceof ParameterReference || value2 instanceof ParameterRefChannel) {
+            ((ParameterReference)value2).getParam().match(value1);
             return;
         }
         if (value1 instanceof ConditionalValue) {
@@ -824,7 +820,7 @@ public class CCSParser implements Parser {
             ensureEqualTypes(((ConditionalValue)value1).getElseValue(), value2, message);
         } else if (value2 instanceof ConditionalValue) {
             ensureEqualTypes(value1, ((ConditionalValue)value2).getThenValue(), message);
-            ensureEqualTypes(value2, ((ConditionalValue)value2).getElseValue(), message);
+            ensureEqualTypes(value1, ((ConditionalValue)value2).getElseValue(), message);
         }
         throw new ParseException(message + " (the values \"" + value1 + "\" and \"" + value2 + "\" have different types.");
     }
@@ -834,12 +830,10 @@ public class CCSParser implements Parser {
             return;
         if (value instanceof IntegerValue)
             throw new ParseException(message + " (the value \"" + value + "\" has type integer.");
-        if (value instanceof ConstStringValue)
-            throw new ParseException(message + " (the value \"" + value + "\" has type string.");
         if (value instanceof ConstString)
             throw new ParseException(message + " (the value \"" + value + "\" has type string.");
-        if (value instanceof ParameterRefValue) {
-            ((ParameterRefValue)value).getParam().setType(Parameter.Type.BOOLEANVALUE);
+        if (value instanceof ParameterReference) {
+            ((ParameterReference)value).getParam().setType(Parameter.Type.BOOLEANVALUE);
             return;
         }
         if (value instanceof ConditionalValue) {
@@ -855,17 +849,15 @@ public class CCSParser implements Parser {
             return;
         if (value instanceof BooleanValue)
             throw new ParseException(message + " (the value \"" + value + "\" has type boolean.");
-        if (value instanceof ConstStringValue)
-            throw new ParseException(message + " (the value \"" + value + "\" has type string.");
         if (value instanceof ConstString)
             throw new ParseException(message + " (the value \"" + value + "\" has type string.");
-        if (value instanceof ParameterRefValue) {
-            ((ParameterRefValue)value).getParam().setType(Parameter.Type.INTEGERVALUE);
+        if (value instanceof ParameterReference) {
+            ((ParameterReference)value).getParam().setType(Parameter.Type.INTEGERVALUE);
             return;
         }
         if (value instanceof ConditionalValue) {
-            ensureBoolean(((ConditionalValue)value).getThenValue(), message);
-            ensureBoolean(((ConditionalValue)value).getElseValue(), message);
+            ensureInteger(((ConditionalValue)value).getThenValue(), message);
+            ensureInteger(((ConditionalValue)value).getElseValue(), message);
         }
         assert false;
         throw new ParseException(message);

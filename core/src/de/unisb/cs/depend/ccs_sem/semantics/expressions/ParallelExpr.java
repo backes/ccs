@@ -214,7 +214,7 @@ public class ParallelExpr extends Expression {
         if (newLeft.equals(left) && newRight.equals(right))
             return this;
 
-        return Expression.getExpression(new ParallelExpr(newLeft, newRight));
+        return create(newLeft, newRight);
     }
 
     @Override
