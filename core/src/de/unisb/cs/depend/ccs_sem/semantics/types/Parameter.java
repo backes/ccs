@@ -6,6 +6,7 @@ import java.util.List;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.BooleanValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstString;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstStringValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.IntegerValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterRefValue;
@@ -21,8 +22,9 @@ public class Parameter {
 
     // TODO when instantiating a parameter, it has to be copied (i think)
 
+    // STRING is either a string value or a string channel
     public static enum Type {
-        UNKNOWN, CHANNEL, VALUE, STRINGVALUE, BOOLEANVALUE, INTEGERVALUE
+        UNKNOWN, CHANNEL, VALUE, STRINGVALUE, BOOLEANVALUE, INTEGERVALUE, STRING
     }
 
     // the type is determined while Value.insertParameters() and
@@ -68,6 +70,7 @@ public class Parameter {
             case BOOLEANVALUE:
             case INTEGERVALUE:
             case STRINGVALUE:
+            case STRING:
                 setType(otherType);
                 break;
             default:
@@ -82,9 +85,11 @@ public class Parameter {
             setType(Type.INTEGERVALUE);
         } else if (value instanceof ConstStringValue) {
             setType(Type.STRINGVALUE);
+        } else if (value instanceof ConstString) {
+            setType(Type.STRING);
         } else {
             // TODO does this occure?
-            setType(Type.VALUE);
+            //setType(Type.VALUE);
         }
     }
 
@@ -104,7 +109,10 @@ public class Parameter {
             // we accept every type
             break;
         case CHANNEL:
-            // a channel is a channel and stays a channel...
+            if (newType == Type.STRING)
+                // TODO too weak?
+                // do not change
+                return;
             throw new ParseException("Parameter already has type " + type + ", cannot be used as " + newType);
         case VALUE:
             switch (newType) {
@@ -117,11 +125,22 @@ public class Parameter {
             default:
                 throw new ParseException("Parameter already has type " + type + ", cannot be used as " + newType);
             }
+
+        case STRINGVALUE:
+            if (newType == Type.STRING)
+                // TODO too weak?
+                // do not change
+                return;
+            // fall through here!
         case BOOLEANVALUE:
         case INTEGERVALUE:
-        case STRINGVALUE:
             if (newType != Type.VALUE)
                 throw new ParseException("Parameter already has type " + type + ", cannot be used as " + newType);
+        case STRING:
+            if (newType == Type.CHANNEL || newType == Type.STRINGVALUE)
+                // accept
+                break;
+            throw new ParseException("Parameter already has type " + type + ", cannot be a " + newType);
         default:
             assert false;
         }

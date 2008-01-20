@@ -75,6 +75,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConditionalValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstBooleanValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstChannel;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstIntegerValue;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstString;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstStringValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.EqValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.IntegerValue;
@@ -82,6 +83,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.MultValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.NotValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.OrValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterRefChannel;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterRefString;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterRefValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ShiftValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.TauChannel;
@@ -97,13 +99,13 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
  * expression          --> restrictExpression
  * restrictExpression  --> parallelExpression
  *                          | restrictExpression "\" "{" ( ( identidier "," )* identifier )? "}"
- * parallelExpression  --> whenExpression
- *                          | parallelExpression "|" whenExpression
- * whenExpression      --> choiceExpression | "when" arithExpression whenExpression
+ * parallelExpression  --> choiceExpression
+ *                          | parallelExpression "|" choiceExpression
  * choiceExpression    --> prefixExpression
  *                          | choiceExpression "+" prefixExpression
- * prefixExpression    --> baseExpression
+ * prefixExpression    --> whenExpression
  *                          | action "." prefixExpression
+ * whenExpression      --> baseExpression | "when" arithExpression prefixExpression
  * baseExpression      --> "0"
  *                          | "(" expression ")"
  *                          | recursionVariable
@@ -547,9 +549,11 @@ public class CCSParser implements Parser {
             // this is not very nice: we have to save the iterator position to
             // (possibly) reset it
             final int oldPosition = tokens.nextIndex();
+            boolean foundDot = false;
             try {
                 final Action action = readAction(tokens, true);
                 if (tokens.hasNext() && tokens.peek() instanceof Dot) {
+                    foundDot = true;
                     tokens.next();
                     // if the read action is an InputAction with a parameter, we
                     // have to add this parameter to the list of parameters
@@ -572,17 +576,19 @@ public class CCSParser implements Parser {
                 // PrefixExpression (followed by Stop)
                 // otherwise try to read the parameters
                 if (action instanceof SimpleAction) {
-                    List<Value> parameters = Collections.emptyList();
+                    List<Value> myParameters = Collections.emptyList();
                     if (tokens.hasNext() && tokens.peek() instanceof LBracket) {
                         tokens.next();
-                        parameters = readParameterValues(tokens);
+                        myParameters = readParameterValues(tokens);
                     }
-                    return Expression.getExpression(new UnknownString(action.getLabel(), parameters));
+                    return Expression.getExpression(new UnknownString(action.getLabel(), myParameters));
                 } else {
                     return Expression.getExpression(new PrefixExpr(action, StopExpr.get()));
                 }
             } catch (final ParseException e) {
-                // ignore this
+                if (foundDot)
+                    throw e;
+                // otherwise ignore this
             }
 
             // reset to old position
@@ -780,10 +786,11 @@ public class CCSParser implements Parser {
             if (!id.isQuoted()) {
                 // search if this identifier is a parameter
                 for (final Parameter param: parameters)
-                    if (param.getName().equals(name))
-                        return new ParameterRefValue(param);
+                    if (param.getName().equals(name)) {
+                        return new ParameterRefString(param);
+                    }
             }
-            return new ConstStringValue(name, id.isQuoted());
+            return new ConstString(name, id.isQuoted());
         }
         if (nextToken instanceof LParenthesis) {
             final Value value = readArithmeticExpression(tokens);
@@ -801,6 +808,8 @@ public class CCSParser implements Parser {
         if (value1 instanceof BooleanValue && value2 instanceof BooleanValue)
             return;
         if (value1 instanceof ConstStringValue && value2 instanceof ConstStringValue)
+            return;
+        if (value1 instanceof ConstString && value2 instanceof ConstString)
             return;
         if (value1 instanceof ParameterRefValue) {
             ((ParameterRefValue)value1).getParam().match(value2);
@@ -827,6 +836,8 @@ public class CCSParser implements Parser {
             throw new ParseException(message + " (the value \"" + value + "\" has type integer.");
         if (value instanceof ConstStringValue)
             throw new ParseException(message + " (the value \"" + value + "\" has type string.");
+        if (value instanceof ConstString)
+            throw new ParseException(message + " (the value \"" + value + "\" has type string.");
         if (value instanceof ParameterRefValue) {
             ((ParameterRefValue)value).getParam().setType(Parameter.Type.BOOLEANVALUE);
             return;
@@ -845,6 +856,8 @@ public class CCSParser implements Parser {
         if (value instanceof BooleanValue)
             throw new ParseException(message + " (the value \"" + value + "\" has type boolean.");
         if (value instanceof ConstStringValue)
+            throw new ParseException(message + " (the value \"" + value + "\" has type string.");
+        if (value instanceof ConstString)
             throw new ParseException(message + " (the value \"" + value + "\" has type string.");
         if (value instanceof ParameterRefValue) {
             ((ParameterRefValue)value).getParam().setType(Parameter.Type.INTEGERVALUE);

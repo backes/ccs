@@ -5,8 +5,7 @@
       version="0.8.02">
 
    <description>
-      This tool is able to evaluate, visualize and export terms written
-in value-passing CCS.
+      This tool is able to evaluate a value-passing CCS term into a labelled transition system, and to visualize and export it.
    </description>
 
    <license url="http://www.eclipse.org/org/documents/epl-v10.php">

@@ -23,10 +23,15 @@ public class ParameterRefChannel extends AbstractValue implements Channel {
 
     @Override
     public Channel instantiate(Map<Parameter, Value> parameters) {
-        final Value myValue = parameters.get(param);
+        Value myValue = parameters.get(param);
 
         if (myValue == null)
             return this;
+
+        if (myValue instanceof ParameterRefString)
+            myValue = new ParameterRefChannel(((ParameterRefString)myValue).getParam());
+        else if (myValue instanceof ConstString)
+            myValue = new ConstChannel(((ConstString)myValue).getValue());
 
         assert myValue instanceof Channel;
 

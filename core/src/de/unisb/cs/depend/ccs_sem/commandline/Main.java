@@ -12,6 +12,7 @@ import java.util.Locale;
 import de.unisb.cs.depend.ccs_sem.evalutators.EvaluationMonitor;
 import de.unisb.cs.depend.ccs_sem.evalutators.Evaluator;
 import de.unisb.cs.depend.ccs_sem.evalutators.ParallelEvaluator;
+import de.unisb.cs.depend.ccs_sem.evalutators.SequentialEvaluator;
 import de.unisb.cs.depend.ccs_sem.exceptions.ExportException;
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
@@ -161,10 +162,21 @@ public class Main {
                 System.exit(0);
             } else if ("--output".equals(arg)) {
                 if (index == args.length) {
-                    System.err.println("Expecting argument for \"-o\" switch.");
+                    System.err.println("Expecting argument for \"--output\" switch.");
                     System.exit(-1);
                 }
                 parseOutputFile(args[index++]);
+            } else if ("--policy".equals(arg)) {
+                if (index == args.length) {
+                    System.err.println("Expecting argument for \"--policy\" switch.");
+                    System.exit(-1);
+                }
+                try {
+                    setPolicy(Integer.valueOf(args[index++]));
+                } catch (final NumberFormatException e) {
+                    System.err.println("Integer expected after \"--policy\" switch.");
+                    System.exit(-1);
+                }
             } else if ("--minimize".equals(arg)) {
                 minimize = true;
             } else if (arg.length() >= 2 && arg.charAt(0) == '-' && arg.charAt(1) != '-') {
@@ -188,6 +200,18 @@ public class Main {
                         parseOutputFile(args[index++]);
                         break;
 
+                    case 'p':
+                        if (i < arg.length() - 1 || index == args.length) {
+                            System.err.println("Expecting argument for \"-p\" switch.");
+                            System.exit(-1);
+                        }
+                        try {
+                            setPolicy(Integer.valueOf(args[index++]));
+                        } catch (final NumberFormatException e) {
+                            System.err.println("Integer expected after \"-p\" switch.");
+                            System.exit(-1);
+                        }
+
                     default:
                         System.err.println("Illegal switch: \"" + c + "\"");
                         printHelp(System.err);
@@ -202,6 +226,15 @@ public class Main {
                 System.exit(-1);
             }
         }
+    }
+
+    private void setPolicy(int policy) {
+        if (policy == 0)
+            evaluator = new ParallelEvaluator();
+        else if (policy == 1)
+            evaluator = new SequentialEvaluator();
+        else
+            evaluator = new ParallelEvaluator(policy);
     }
 
     private void parseOutputFile(String arg) {
@@ -220,7 +253,8 @@ public class Main {
             filename = arg;
         }
         if (filename.length() == 0) {
-            // TODO default filename
+            System.err.println("Please specify a valid filename as output file.");
+            System.exit(-1);
         }
         if ("aisee".equalsIgnoreCase(format) || "gdl".equalsIgnoreCase(format)) {
             exporters.add(new AiSeeGraphExporter(new File(filename)));
@@ -242,6 +276,25 @@ public class Main {
 
     private void printHelp(PrintStream out) {
         out.println("usage: java " + getClass().getName() + " <parameter> <input file>");
+        out.println("  where <parameter> can be:");
+        out.println();
+        out.println("  -h, --help");
+        out.println("     shows this help");
+        out.println();
+        out.println("  -m, --minimize");
+        out.println("     to minimize the graph after evaluation (chains of tau-transitions are removed)");
+        out.println();
+        out.println("  -o, --output=<format>:<filename>.<extension>");
+        out.println("     sets the output file. This parameter can occure several times to several output files.");
+        out.println("     If the format is omitted, it is assumed to be the same as the extension.");
+        out.println();
+        out.println("  -p, --policy=<integer>");
+        out.println("     sets the number of threads used to evaluate the ccs expression.");
+        out.println("     There are some special numbers:");
+        out.println("     0 means: <nr of available processors>+1");
+        out.println("     1 means: evaluate sequentially (this is sometimes faster than parallel evaluation of a dual-core system)");
+        out.println("     any other number means: take that much threads for parallel evaluation.");
+        out.println();
     }
 
     protected void log(String output) {
