@@ -1,0 +1,11 @@
+welche expressions können ausgewertet werden
+
+regularität / guardedness
+
+channels/values, parameter zusammenhänge
+
+geänderte semantik
+- parallele stopexpressions fallen weg
+- dito für choice
+- when wird aufgelöst sobald condition ausgewertet ist
+- expressions sind linksassoziativ (klammern von links), d.h. "x+1+1+1" wird nicht vereinfacht, aber "1+1+1+x" wird vereinfacht zu "3+x"

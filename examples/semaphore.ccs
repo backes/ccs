@@ -1,0 +1,9 @@
+SEMA[channel, nr] = channel?"up".SEMA[channel, nr+1] + when nr > 0 channel?"down".SEMA[channel, nr-1];
+
+PRODUCER[sema_ch] = produce.sema_ch!up.PRODUCER[sema_ch];
+CONSUMER[sema_ch] = sema_ch!down.consume.CONSUMER[sema_ch];
+
+TOGETHER[sema_ch] = PRODUCER[sema_ch] | CONSUMER[sema_ch] | SEMA[sema_ch, 0];
+
+TOGETHER[firstlane] | TOGETHER[secondlane]
+

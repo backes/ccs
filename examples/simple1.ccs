@@ -1,3 +1,5 @@
+(* A simple interleaving example *)
+
 X=a.b.c.X;
 Y=x.Y + y.Y;
 

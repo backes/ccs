@@ -2,10 +2,4 @@ A = a.b.wait?x.c.d.found!x.A ;
 
 B = x.y.wait!1.z.wait!2.B;
 
-A|
-B|
-A|
-B|
-A|
-B
-\ {wait!1, wait?}
+A|B \ {wait!1, wait?}
