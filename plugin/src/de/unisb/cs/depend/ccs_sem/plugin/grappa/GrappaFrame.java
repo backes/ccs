@@ -192,11 +192,11 @@ public class GrappaFrame extends Composite {
         try {
             ccsProgram = ccsEditor.getCCSProgram(true);
         } catch (final LexException e) {
-            warning = "Error lexing: " + e.getMessage()
-                + " (around this context: " + e.getEnvironment() + ")";
+            warning = "Error lexing: " + e.getMessage() + "\\n"
+                + "(around this context: " + e.getEnvironment() + ")";
         } catch (final ParseException e) {
-            warning = "Error parsing: " + e.getMessage()
-                + " (around this context: " + e.getEnvironment() + ")";
+            warning = "Error parsing: " + e.getMessage() + "\\n"
+                + "(around this context: " + e.getEnvironment() + ")";
         }
 
         graph.reset();
@@ -291,7 +291,7 @@ public class GrappaFrame extends Composite {
         if (!success) {
             MessageDialog.openError(getShell(), "Error layouting graph",
                 "The graph could not be layout, most probably there was an error with starting the dot tool.\n" +
-                "You can configure the path for this tool in your preferences.");
+                "You can configure the path for this tool in your preferences on the \"CCS\" page.");
         }
 
         return success;

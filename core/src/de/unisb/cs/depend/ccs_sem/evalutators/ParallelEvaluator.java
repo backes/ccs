@@ -183,6 +183,8 @@ public class ParallelEvaluator implements Evaluator {
             final Object removed = currentlyEvaluating.remove(expr);
             assert removed != null;
 
+            // TODO isEmpty could slow down the whole evaluation. there are a
+            // lot of locks (on each segment)
             if (currentlyEvaluating.isEmpty()) {
                 synchronized (readyLock) {
                     if (monitor != null)

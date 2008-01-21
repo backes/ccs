@@ -29,6 +29,11 @@ public abstract class Expression {
         // nothing to do
     }
 
+    public static Expression getExpression(Expression expr) {
+        final Expression foundExpr = repository.putIfAbsent(expr, expr);
+        return foundExpr == null ? expr : foundExpr;
+    }
+
     // precondition: children have been evaluated
     public void evaluate() {
         if (transitions != null)
@@ -76,11 +81,6 @@ public abstract class Expression {
      * @return either itself or a new created Expression, if something changed
      */
     public abstract Expression replaceRecursion(List<Declaration> declarations) throws ParseException;
-
-    public static Expression getExpression(Expression expr) {
-        final Expression foundExpr = repository.putIfAbsent(expr, expr);
-        return foundExpr == null ? expr : foundExpr;
-    }
 
     /**
      * Is called in the constructor of a {@link RecursiveExpr}.

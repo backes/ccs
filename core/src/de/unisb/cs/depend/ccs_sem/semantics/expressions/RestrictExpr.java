@@ -131,8 +131,8 @@ public class RestrictExpr extends Expression {
     protected int hashCode0() {
         final int PRIME = 31;
         int result = 6;
-        result = PRIME * result + ((innerExpr == null) ? 0 : innerExpr.hashCode());
-        result = PRIME * result + ((restricted == null) ? 0 : restricted.hashCode());
+        result = PRIME * result + innerExpr.hashCode();
+        result = PRIME * result + restricted.hashCode();
         return result;
     }
 

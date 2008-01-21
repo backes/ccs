@@ -96,7 +96,7 @@ public class Main {
 
             public synchronized void newState() {
                 ++states;
-                if (states % 50000 == 0)
+                if (states % 10000 == 0)
                     log(states + " states, " + transitions + " transitions so far...");
             }
 

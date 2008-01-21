@@ -58,9 +58,7 @@ public class ParallelExpr extends Expression {
 
         // either left alone:
         for (final Transition trans: leftTransitions) {
-            Expression newExpr = new ParallelExpr(trans.getTarget(), right);
-            // search if this expression is already known
-            newExpr = Expression.getExpression(newExpr);
+            final Expression newExpr = create(trans.getTarget(), right);
             // search if this transition is already known (otherwise create it)
             final Transition newTrans = new Transition(trans.getAction(), newExpr);
             transitions.add(newTrans);
@@ -68,9 +66,7 @@ public class ParallelExpr extends Expression {
 
         // or right alone:
         for (final Transition trans: rightTransitions) {
-            Expression newExpr = new ParallelExpr(left, trans.getTarget());
-            // search if this expression is already known
-            newExpr = Expression.getExpression(newExpr);
+            final Expression newExpr = create(left, trans.getTarget());
             // search if this transition is already known (otherwise create it)
             final Transition newTrans = new Transition(trans.getAction(), newExpr);
             transitions.add(newTrans);
@@ -111,8 +107,7 @@ public class ParallelExpr extends Expression {
                         if (!newFromLeft.equals(leftTrans.getTarget())
                                 || !newFromRight.equals(rightTrans.getTarget())) {
                             // in this case, we have to add this new transition too
-                            final Expression newTarget = Expression.getExpression(
-                                new ParallelExpr(leftTrans.getTarget(), newFromRight));
+                            final Expression newTarget = create(leftTrans.getTarget(), newFromRight);
                             final Transition newTransition = new Transition(TauAction.get(), newTarget);
                             transitions.add(newTransition);
                         }
@@ -164,8 +159,7 @@ public class ParallelExpr extends Expression {
                         final Expression newLeftTarget = inputTrans.synchronizeWith(rightTrans.getAction());
                         if (newLeftTarget != null) {
                             // i.e. there was a match
-                            final Expression newTarget = Expression.getExpression(
-                                new ParallelExpr(newLeftTarget, rightTrans.getTarget()));
+                            final Expression newTarget = create(newLeftTarget, rightTrans.getTarget());
                             final Transition newTrans = new Transition(TauAction.get(), newTarget);
                             transitions.add(newTrans);
                         }
