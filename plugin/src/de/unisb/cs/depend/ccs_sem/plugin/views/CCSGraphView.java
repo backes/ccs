@@ -46,7 +46,7 @@ public class CCSGraphView extends ViewPart implements ISelectionListener {
         myPages = new PageBook(parent, SWT.None);
 
         defaultText = new Text(myPages, SWT.None);
-        defaultText.setText("No Graph to display...");
+        defaultText.setText("No CCS file opened...");
         defaultText.setEditable(false);
 
         myPages.showPage(currentView = defaultText);

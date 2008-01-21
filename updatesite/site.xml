@@ -21,5 +21,8 @@
    <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.5.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.05">
       <category name="ccs_category"/>
    </feature>
+   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.6.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.06">
+      <category name="ccs_category"/>
+   </feature>
    <category-def name="ccs_category" label="CCS"/>
 </site>

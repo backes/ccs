@@ -132,7 +132,8 @@ public class NewCCSFileWizard extends Wizard implements INewWizard {
 
 	protected InputStream openContentStream() {
 		final String contents =
-			"(* This is an example CCS file *)\n\nX = a.b.X;\nY[c,a,b] = c!a.c!b.Y[c,b,a];\n\nX | Y\n";
+			"(* This is an example CCS file *)\n\nX = x.y.X;\n" +
+			"Y[c,a,b] = c!a.c!b.Y[c,b,a];\n\nX | Y[out, 0, 1]\n";
 		return new ByteArrayInputStream(contents.getBytes());
 	}
 
