@@ -106,8 +106,8 @@ public class ChoiceExpr extends Expression {
     protected int hashCode0() {
         final int PRIME = 31;
         int result = 2;
-        result = PRIME * result + ((left == null) ? 0 : left.hashCode());
-        result = PRIME * result + ((right == null) ? 0 : right.hashCode());
+        result = PRIME * result + left.hashCode();
+        result = PRIME * result + right.hashCode();
         return result;
     }
 
@@ -120,15 +120,9 @@ public class ChoiceExpr extends Expression {
         if (getClass() != obj.getClass())
             return false;
         final ChoiceExpr other = (ChoiceExpr) obj;
-        if (left == null) {
-            if (other.left != null)
-                return false;
-        } else if (!left.equals(other.left))
+        if (!left.equals(other.left))
             return false;
-        if (right == null) {
-            if (other.right != null)
-                return false;
-        } else if (!right.equals(other.right))
+        if (!right.equals(other.right))
             return false;
         return true;
     }

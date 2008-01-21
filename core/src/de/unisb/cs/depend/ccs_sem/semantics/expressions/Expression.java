@@ -118,6 +118,8 @@ public abstract class Expression {
             this.hash = h == 0 ? 1 : h;
         }
 
+        assert h == hashCode0();
+
         return h;
     }
 

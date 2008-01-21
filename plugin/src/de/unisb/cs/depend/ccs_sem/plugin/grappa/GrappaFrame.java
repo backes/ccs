@@ -227,10 +227,10 @@ public class GrappaFrame extends Composite {
 
         graph.reset();
         graph.setAttribute("root", "node_0");
-        graph.setAttribute(GrappaConstants.TIP_ATTR, "");
         // set layout direction to "left to right"
         if (layoutLeftToRight)
             graph.setAttribute(GrappaConstants.RANKDIR_ATTR, "LR");
+        graph.setToolTipText("");
 
         if (warning != null) {
             final Node node = new Node(graph, "warn_node");

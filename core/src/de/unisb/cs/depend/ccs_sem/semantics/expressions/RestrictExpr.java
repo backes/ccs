@@ -19,7 +19,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 public class RestrictExpr extends Expression {
 
-    private Expression innerExpr;
+    private final Expression innerExpr;
     private final List<Action> restricted;
 
     public RestrictExpr(Expression innerExpr, List<Action> restricted) {
@@ -98,8 +98,10 @@ public class RestrictExpr extends Expression {
 
     @Override
     public Expression replaceRecursion(List<Declaration> declarations) throws ParseException {
-        innerExpr = innerExpr.replaceRecursion(declarations);
-        return this;
+        final Expression newInnerExpr = innerExpr.replaceRecursion(declarations);
+        if (innerExpr.equals(newInnerExpr))
+            return this;
+        return new RestrictExpr(newInnerExpr, restricted);
     }
 
     @Override
@@ -145,15 +147,9 @@ public class RestrictExpr extends Expression {
         if (getClass() != obj.getClass())
             return false;
         final RestrictExpr other = (RestrictExpr) obj;
-        if (innerExpr == null) {
-            if (other.innerExpr != null)
-                return false;
-        } else if (!innerExpr.equals(other.innerExpr))
+        if (!innerExpr.equals(other.innerExpr))
             return false;
-        if (restricted == null) {
-            if (other.restricted != null)
-                return false;
-        } else if (!restricted.equals(other.restricted))
+        if (!restricted.equals(other.restricted))
             return false;
         return true;
     }

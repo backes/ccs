@@ -80,21 +80,15 @@ public class RecursiveExpr extends Expression {
         if (parameters.size() == 0)
             return referencedDeclaration.getName();
 
-        final StringBuilder sb = new StringBuilder(referencedDeclaration.getName());
-        sb.append('[');
-        for (int i = 0; i < parameters.size(); ++i)
-            sb.append(i>0 ? "," : "").append(parameters.get(i));
-        sb.append(']');
-
-        return sb.toString();
+        return referencedDeclaration.getName() + parameters;
     }
 
     @Override
     protected int hashCode0() {
         final int PRIME = 31;
         int result = 5;
-        result = PRIME * result + ((referencedDeclaration == null) ? 0 : referencedDeclaration.hashCode());
-        result = PRIME * result + ((parameters == null) ? 0 : parameters.hashCode());
+        result = PRIME * result + referencedDeclaration.hashCode();
+        result = PRIME * result + parameters.hashCode();
         return result;
     }
 
@@ -107,15 +101,9 @@ public class RecursiveExpr extends Expression {
         if (getClass() != obj.getClass())
             return false;
         final RecursiveExpr other = (RecursiveExpr) obj;
-        if (referencedDeclaration == null) {
-            if (other.referencedDeclaration != null)
-                return false;
-        } else if (!referencedDeclaration.equals(other.referencedDeclaration))
+        if (!referencedDeclaration.equals(other.referencedDeclaration))
             return false;
-        if (parameters == null) {
-            if (other.parameters != null)
-                return false;
-        } else if (!parameters.equals(other.parameters))
+        if (!parameters.equals(other.parameters))
             return false;
         return true;
     }

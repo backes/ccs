@@ -13,7 +13,7 @@
             class="de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView"
             icon="resources/icons/ccs.gif"
             id="de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView"
-            name="CCSGraphView">
+            name="CCS Graph">
       </view>
    </extension>
    <extension

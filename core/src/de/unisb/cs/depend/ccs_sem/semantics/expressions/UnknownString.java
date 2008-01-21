@@ -118,18 +118,15 @@ public class UnknownString extends Expression {
         if (parameters.size() == 0)
             return name;
 
-        final StringBuilder sb = new StringBuilder(name);
-        sb.append(parameters);
-
-        return sb.toString();
+        return name+parameters;
     }
 
     @Override
     protected int hashCode0() {
         final int PRIME = 31;
         int result = 8;
-        result = PRIME * result + ((name == null) ? 0 : name.hashCode());
-        result = PRIME * result + ((parameters == null) ? 0 : parameters.hashCode());
+        result = PRIME * result + name.hashCode();
+        result = PRIME * result + parameters.hashCode();
         return result;
     }
 
@@ -142,15 +139,9 @@ public class UnknownString extends Expression {
         if (getClass() != obj.getClass())
             return false;
         final UnknownString other = (UnknownString) obj;
-        if (name == null) {
-            if (other.name != null)
-                return false;
-        } else if (!name.equals(other.name))
+        if (!name.equals(other.name))
             return false;
-        if (parameters == null) {
-            if (other.parameters != null)
-                return false;
-        } else if (!parameters.equals(other.parameters))
+        if (!parameters.equals(other.parameters))
             return false;
         return true;
     }

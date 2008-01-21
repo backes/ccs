@@ -570,7 +570,7 @@ public class CCSParser implements Parser {
         if (tokens.hasNext() && tokens.peek() instanceof When) {
             tokens.next();
             final Value condition = readArithmeticExpression(tokens);
-            ensureBoolean(condition, "Expected boolean expression after 'when'");
+            ensureBoolean(condition, "Expected boolean expression after 'when'.");
 
             // if there is a "then" now, ignore it
             if (tokens.hasNext() && tokens.peek() instanceof Then)
@@ -822,16 +822,16 @@ public class CCSParser implements Parser {
             ensureEqualTypes(value1, ((ConditionalValue)value2).getThenValue(), message);
             ensureEqualTypes(value1, ((ConditionalValue)value2).getElseValue(), message);
         }
-        throw new ParseException(message + " (the values \"" + value1 + "\" and \"" + value2 + "\" have different types.");
+        throw new ParseException(message + " The values \"" + value1 + "\" and \"" + value2 + "\" have different types.");
     }
 
     private void ensureBoolean(Value value, String message) throws ParseException {
         if (value instanceof BooleanValue)
             return;
         if (value instanceof IntegerValue)
-            throw new ParseException(message + " (the value \"" + value + "\" has type integer.");
+            throw new ParseException(message + " The value \"" + value + "\" has type integer.");
         if (value instanceof ConstString)
-            throw new ParseException(message + " (the value \"" + value + "\" has type string.");
+            throw new ParseException(message + " The value \"" + value + "\" has type string.");
         if (value instanceof ParameterReference) {
             ((ParameterReference)value).getParam().setType(Parameter.Type.BOOLEANVALUE);
             return;
@@ -848,9 +848,9 @@ public class CCSParser implements Parser {
         if (value instanceof IntegerValue)
             return;
         if (value instanceof BooleanValue)
-            throw new ParseException(message + " (the value \"" + value + "\" has type boolean.");
+            throw new ParseException(message + " The value \"" + value + "\" has type boolean.");
         if (value instanceof ConstString)
-            throw new ParseException(message + " (the value \"" + value + "\" has type string.");
+            throw new ParseException(message + " The value \"" + value + "\" has type string.");
         if (value instanceof ParameterReference) {
             ((ParameterReference)value).getParam().setType(Parameter.Type.INTEGERVALUE);
             return;
