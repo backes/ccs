@@ -264,10 +264,9 @@ public class GrappaFrame extends Composite {
             }
         }
 
-        if (!filterGraph(graph)) {
+        if (!filterGraph(graph))
             System.err.println("Could not layout graph.");
-            // TODO
-        }
+
         graph.repaint();
     }
 

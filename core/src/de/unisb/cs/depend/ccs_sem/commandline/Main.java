@@ -211,6 +211,7 @@ public class Main {
                             System.err.println("Integer expected after \"-p\" switch.");
                             System.exit(-1);
                         }
+                        break;
 
                     default:
                         System.err.println("Illegal switch: \"" + c + "\"");
@@ -287,6 +288,9 @@ public class Main {
         out.println("  -o, --output=<format>:<filename>.<extension>");
         out.println("     sets the output file. This parameter can occure several times to several output files.");
         out.println("     If the format is omitted, it is assumed to be the same as the extension.");
+        out.println("     Currently the following formats are accepted:");
+        out.println("       - tra (for ETMCC)");
+        out.println("       - gdl (for aiSee)");
         out.println();
         out.println("  -p, --policy=<integer>");
         out.println("     sets the number of threads used to evaluate the ccs expression.");

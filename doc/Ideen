@@ -15,17 +15,5 @@ Parameter müssen evt. dupliziert werden...
 bei nicht-regulären Ausdrücken wird eine Warnung ausgegeben, es kann aber fortgefahren werden.
 
 
-Kommentare 
-
-
 typen von parametern auch in expressions entsprechend einschränken
 
-
-TODO:
-
-- Klammersetzung kontrollieren (Reihenfolge der Operatorauswertung, es sind neue Operator dazugekommen)
-  -> values bei input/output actions
-
-- jede Menge falsch getypte arithmetische ausdrücke ausprobieren (channels einsetzen, integer, bool, string durchprobieren)
-
-- preference page aufrufen
