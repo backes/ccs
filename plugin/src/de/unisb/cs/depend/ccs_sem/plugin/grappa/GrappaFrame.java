@@ -2,8 +2,8 @@ package de.unisb.cs.depend.ccs_sem.plugin.grappa;
 
 import java.awt.Color;
 import java.awt.Frame;
-import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -53,6 +53,7 @@ public class GrappaFrame extends Composite {
     private final CCSEditor ccsEditor;
     private boolean showEdgeLabels = true;
     private boolean showNodeLabels = true;
+    protected boolean layoutLeftToRight = true;
 
     public GrappaFrame(Composite parent, int style, CCSEditor editor) {
         super(parent, style);
@@ -83,14 +84,9 @@ public class GrappaFrame extends Composite {
         grappaPanel.addGrappaListener(new GrappaAdapter());
         grappaPanel.setScaleToFit(true);
         grappaFrame.setLayout(new GridBagLayout());
-        //grappaFrame.add(grappaPanel);
         final JScrollPane scroll = new JScrollPane(grappaPanel);
-        //scroll.setLayout(new GridLayout(1,1));
-        final GridBagConstraints gbc = new GridBagConstraints();
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.BOTH;
-        grappaFrame.add(scroll, gbc);
+        grappaFrame.setLayout(new GridLayout(1,1));
+        grappaFrame.add(scroll);
 
         Grappa.antiAliasText = true;
         Grappa.useAntiAliasing = true;
@@ -101,6 +97,7 @@ public class GrappaFrame extends Composite {
         node.setAttribute(GrappaConstants.LABEL_ATTR, "Not initialized...");
         node.setAttribute(GrappaConstants.STYLE_ATTR, "filled");
         node.setAttribute(GrappaConstants.COLOR_ATTR, warnNodeColor);
+        node.setAttribute(GrappaConstants.TIP_ATTR, "In the CCS Editor, click the \"Show Graph\" button to generate the graph.");
         filterGraph(graph);
         graph.repaint();
 
@@ -124,6 +121,14 @@ public class GrappaFrame extends Composite {
         final Button buttonShowEdgeLabels = new Button(controlsComposite, SWT.CHECK);
         buttonShowEdgeLabels.setSelection(true);
         buttonShowEdgeLabels.setText("Show edge labels");
+
+        final Button buttonLayoutTopToBottom = new Button(controlsComposite, SWT.RADIO);
+        buttonLayoutTopToBottom.setSelection(false);
+        buttonLayoutTopToBottom.setText("Layout top to bottom");
+
+        final Button buttonLayoutLeftToRight = new Button(controlsComposite, SWT.RADIO);
+        buttonLayoutLeftToRight.setSelection(true);
+        buttonLayoutLeftToRight.setText("Layout left to right");
 
         buttonScaleToFit.addListener(SWT.Selection, new Listener() {
 
@@ -173,6 +178,27 @@ public class GrappaFrame extends Composite {
             }
 
         });
+
+        buttonLayoutTopToBottom.addListener(SWT.Selection, new Listener() {
+
+            public void handleEvent(Event event) {
+                if (buttonLayoutTopToBottom.getSelection()) {
+                    layoutLeftToRight = false;
+                    update();
+                }
+            }
+
+        });
+        buttonLayoutLeftToRight.addListener(SWT.Selection, new Listener() {
+
+            public void handleEvent(Event event) {
+                if (buttonLayoutLeftToRight.getSelection()) {
+                    layoutLeftToRight = true;
+                    update();
+                }
+            }
+
+        });
     }
 
     protected void setShowEdgeLabels(boolean showEdgeLabels) {
@@ -200,6 +226,11 @@ public class GrappaFrame extends Composite {
         }
 
         graph.reset();
+        graph.setAttribute("root", "node_0");
+        graph.setAttribute(GrappaConstants.TIP_ATTR, "");
+        // set layout direction to "left to right"
+        if (layoutLeftToRight)
+            graph.setAttribute(GrappaConstants.RANKDIR_ATTR, "LR");
 
         if (warning != null) {
             final Node node = new Node(graph, "warn_node");
@@ -257,7 +288,13 @@ public class GrappaFrame extends Composite {
                 final Edge edge = new Edge(graph, tailNode, headNode, "edge_" + cnt++);
                 final String label = showEdgeLabels ? trans.getAction().getLabel() : "";
                 edge.setAttribute(GrappaConstants.LABEL_ATTR, label);
-                edge.setAttribute(GrappaConstants.TIP_ATTR, "Transition: " + label);
+                final StringBuilder tipBuilder = new StringBuilder(230);
+                tipBuilder.append("<html><table border=0>");
+                tipBuilder.append("<tr><td align=right><i>Transition:</i></td><td>").append(label).append("</td></tr>");
+                tipBuilder.append("<tr><td align=right><i>from:</i></td><td>").append(e.toString()).append("</td></tr>");
+                tipBuilder.append("<tr><td align=right><i>to:</i></td><td>").append(trans.getTarget().toString()).append("</td></tr>");
+                tipBuilder.append("</table></html>.");
+                edge.setAttribute(GrappaConstants.TIP_ATTR, tipBuilder.toString());
                 graph.addEdge(edge);
                 if (written.add(trans.getTarget()))
                     queue.add(trans.getTarget());
