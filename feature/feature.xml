@@ -2,7 +2,7 @@
 <feature
       id="de.unisb.cs.depend.ccs_sem.feature"
       label="CCS Evaluator"
-      version="0.8.03">
+      version="0.8.04">
 
    <description>
       This tool is able to evaluate a value-passing CCS term into a labelled transition system, and to visualize and export it.
