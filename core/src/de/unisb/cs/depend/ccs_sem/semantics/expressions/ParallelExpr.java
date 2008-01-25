@@ -33,7 +33,7 @@ public class ParallelExpr extends Expression {
             return right;
         if (right instanceof StopExpr)
             return left;
-        return Expression.getExpression(new ParallelExpr(left, right));
+        return ExpressionRepository.getExpression(new ParallelExpr(left, right));
     }
 
     @Override
@@ -112,13 +112,11 @@ public class ParallelExpr extends Expression {
                             transitions.add(newTransition);
                         }
                     }
-                    final Expression newTarget = Expression.getExpression(
-                        new ParallelExpr(newFromLeft, rightTrans.getTarget()));
+                    final Expression newTarget = create(newFromLeft, rightTrans.getTarget());
                     final Transition newTransition = new Transition(TauAction.get(), newTarget);
                     transitions.add(newTransition);
                 } else if (newFromRight != null) {
-                    final Expression newTarget = Expression.getExpression(
-                        new ParallelExpr(leftTrans.getTarget(), newFromRight));
+                    final Expression newTarget = create(leftTrans.getTarget(), newFromRight);
                     final Transition newTransition = new Transition(TauAction.get(), newTarget);
                     transitions.add(newTransition);
                 }
@@ -189,8 +187,7 @@ public class ParallelExpr extends Expression {
                         if (seenBefore)
                             continue;
 
-                        final Expression newTarget = Expression.getExpression(
-                            new ParallelExpr(leftTrans.getTarget(), newRightTarget));
+                        final Expression newTarget = create(leftTrans.getTarget(), newRightTarget);
                         final Transition newTrans = new Transition(TauAction.get(), newTarget);
                         transitions.add(newTrans);
                     }

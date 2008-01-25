@@ -9,26 +9,27 @@ import java.util.Map;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 
 public class RecursiveExpr extends Expression {
 
     private final Declaration referencedDeclaration;
-    private final List<Value> parameters;
+    private final List<Value> parameterValues;
     private Expression instantiatedExpression = null;
 
     public RecursiveExpr(Declaration referencedDeclaration, List<Value> parameters) {
         super();
         this.referencedDeclaration = referencedDeclaration;
-        this.parameters = parameters;
+        this.parameterValues = parameters;
     }
 
     /**
      * Note: The returned list must not be changed!
      */
     public List<Value> getParameters() {
-        return parameters;
+        return parameterValues;
     }
 
     public Declaration getReferencedDeclaration() {
@@ -36,8 +37,25 @@ public class RecursiveExpr extends Expression {
     }
 
     public Expression getInstantiatedExpression() {
-        if (instantiatedExpression == null)
-            instantiatedExpression = referencedDeclaration.instantiate(parameters);
+        if (instantiatedExpression == null) {
+            // if all parameters are fully instantiated, check if the parameters
+            // are in the correct range
+            boolean readyForCheck = true;
+            for (final Value value: parameterValues)
+                if (!(value instanceof ConstantValue))
+                    readyForCheck = false;
+
+            final boolean rangesOK = readyForCheck
+                ? referencedDeclaration.checkRanges(parameterValues) : true;
+            if (rangesOK)
+                instantiatedExpression = referencedDeclaration.instantiate(parameterValues);
+            else {
+                // TODO
+                System.err.println("Warning: The recursive expression \"" + this
+                    + "\" was replaced by a STOP expression because the parameters were out of range.");
+                instantiatedExpression = StopExpr.get();
+            }
+        }
 
         return instantiatedExpression;
     }
@@ -60,9 +78,9 @@ public class RecursiveExpr extends Expression {
 
     @Override
     public Expression instantiate(Map<Parameter, Value> params) {
-        final List<Value> newParameters = new ArrayList<Value>(parameters.size());
+        final List<Value> newParameters = new ArrayList<Value>(parameterValues.size());
         boolean changed = false;
-        for (final Value param: parameters) {
+        for (final Value param: parameterValues) {
             final Value newParam = param.instantiate(params);
             if (!changed && !newParam.equals(param))
                 changed = true;
@@ -72,15 +90,15 @@ public class RecursiveExpr extends Expression {
         if (!changed)
             return this;
 
-        return Expression.getExpression(new RecursiveExpr(referencedDeclaration, newParameters));
+        return ExpressionRepository.getExpression(new RecursiveExpr(referencedDeclaration, newParameters));
     }
 
     @Override
     public String toString() {
-        if (parameters.size() == 0)
+        if (parameterValues.size() == 0)
             return referencedDeclaration.getName();
 
-        return referencedDeclaration.getName() + parameters;
+        return referencedDeclaration.getName() + parameterValues;
     }
 
     @Override
@@ -88,7 +106,7 @@ public class RecursiveExpr extends Expression {
         final int PRIME = 31;
         int result = 5;
         result = PRIME * result + referencedDeclaration.hashCode();
-        result = PRIME * result + parameters.hashCode();
+        result = PRIME * result + parameterValues.hashCode();
         return result;
     }
 
@@ -103,7 +121,7 @@ public class RecursiveExpr extends Expression {
         final RecursiveExpr other = (RecursiveExpr) obj;
         if (!referencedDeclaration.equals(other.referencedDeclaration))
             return false;
-        if (!parameters.equals(other.parameters))
+        if (!parameterValues.equals(other.parameterValues))
             return false;
         return true;
     }

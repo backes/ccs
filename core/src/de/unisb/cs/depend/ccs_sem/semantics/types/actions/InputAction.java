@@ -5,6 +5,7 @@ import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.Range;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
@@ -34,7 +35,7 @@ public class InputAction extends Action {
     @Override
     public String getLabel() {
         final String channelValue = channel.getStringValue();
-        final String paramValue = param != null ? param.getName()
+        final String paramValue = param != null ? param.toString()
                         : value != null ? value.getStringValue() : null;
 
         final int size = channelValue.length() + 1 +
@@ -69,9 +70,11 @@ public class InputAction extends Action {
 
     @Override
     public Expression synchronizeWith(Action otherAction, Expression target) {
+        // can only synchronize with an output action
         if (!(otherAction instanceof OutputAction))
             return null;
 
+        // the channel have to match
         if (!channel.equals(otherAction.getChannel()))
             return null;
 
@@ -81,6 +84,11 @@ public class InputAction extends Action {
 
             return null;
         }
+
+        // check the parameter range
+        final Range range = param.getRange();
+        if (range != null && !range.contains(otherAction.getMessage()))
+            return null;
 
         final Map<Parameter, Value> map =
             Collections.singletonMap(param, otherAction.getMessage());
@@ -94,7 +102,7 @@ public class InputAction extends Action {
         if (value == null) {
             if (channel.equals(newChannel))
                 return this;
-            return new InputAction(newChannel, value);
+            return new InputAction(newChannel, param);
         }
 
         final Value newValue = value.instantiate(parameters);
@@ -107,6 +115,7 @@ public class InputAction extends Action {
 
     @Override
     public boolean restricts(Action actionToCheck) {
+        // TODO ranges
         if (actionToCheck instanceof InputAction) {
             final InputAction inputActionToCheck = (InputAction) actionToCheck;
             if (channel.equals(inputActionToCheck.channel)) {

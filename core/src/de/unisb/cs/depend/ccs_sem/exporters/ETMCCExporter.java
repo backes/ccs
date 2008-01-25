@@ -15,6 +15,7 @@ import de.unisb.cs.depend.ccs_sem.exporters.helpers.StateNumerator;
 import de.unisb.cs.depend.ccs_sem.exporters.helpers.TransitionCounter;
 import de.unisb.cs.depend.ccs_sem.exporters.helpers.TransitionsTargetNumberComparator;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 
 
@@ -27,7 +28,9 @@ public class ETMCCExporter implements Exporter {
         this.traFile = traFile;
     }
 
-    public void export(Expression expr) throws ExportException {
+    public void export(Program program) throws ExportException {
+        final Expression expr = program.getMainExpression();
+
         final PrintWriter traWriter;
         try {
             traWriter = new PrintWriter(traFile);

@@ -9,7 +9,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 
-public abstract class Action {
+public abstract class Action implements Comparable<Action> {
 
     public abstract String getLabel();
 
@@ -55,4 +55,7 @@ public abstract class Action {
      */
     public abstract Expression synchronizeWith(Action otherAction, Expression target);
 
+    public int compareTo(Action o) {
+        return getLabel().compareTo(o.getLabel());
+    }
 }

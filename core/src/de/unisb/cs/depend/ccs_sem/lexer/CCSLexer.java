@@ -9,6 +9,7 @@ import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.And;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Colon;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Comma;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.ConstToken;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Division;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Dot;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Else;
@@ -19,6 +20,7 @@ import de.unisb.cs.depend.ccs_sem.lexer.tokens.Geq;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Greater;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Identifier;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.IntegerToken;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.IntervalDots;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.LBrace;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.LBracket;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.LParenthesis;
@@ -36,6 +38,7 @@ import de.unisb.cs.depend.ccs_sem.lexer.tokens.QuestionMark;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.RBrace;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.RBracket;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.RParenthesis;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.RangeToken;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Restrict;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.RightShift;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Semicolon;
@@ -91,7 +94,13 @@ public class CCSLexer extends AbstractLexer {
                 break;
 
             case '.':
-                tokens.add(new Dot(position));
+                nextChar = input.read();
+                if (nextChar == '.')
+                    tokens.add(new IntervalDots(position, ++position));
+                else {
+                    input.unread(nextChar);
+                    tokens.add(new Dot(position));
+                }
                 break;
 
             case '+':
@@ -293,6 +302,10 @@ public class CCSLexer extends AbstractLexer {
                     tokens.add(new And(position, position += str.length() - 1));
                 else if ("or".equals(str))
                     tokens.add(new Or(position, position += str.length() - 1));
+                else if ("range".equals(str))
+                    tokens.add(new RangeToken(position, position += str.length() - 1));
+                else if ("const".equals(str))
+                    tokens.add(new ConstToken(position, position += str.length() - 1));
                 else
                     tokens.add(new Identifier(position, position += str.length() - 1, str, false));
 

@@ -45,7 +45,7 @@ public class PrefixExpr extends Expression {
         final Expression newTarget = target.replaceRecursion(declarations);
         if (newTarget.equals(target))
             return this;
-        return Expression.getExpression(new PrefixExpr(prefix, newTarget));
+        return ExpressionRepository.getExpression(new PrefixExpr(prefix, newTarget));
     }
 
     @Override
@@ -54,7 +54,7 @@ public class PrefixExpr extends Expression {
         final Expression newTarget = target.instantiate(parameters);
         if (newPrefix.equals(prefix) && newTarget.equals(target))
             return this;
-        return Expression.getExpression(new PrefixExpr(newPrefix, newTarget));
+        return ExpressionRepository.getExpression(new PrefixExpr(newPrefix, newTarget));
     }
 
     @Override

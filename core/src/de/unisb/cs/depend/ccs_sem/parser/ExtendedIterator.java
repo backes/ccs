@@ -75,6 +75,13 @@ public class ExtendedIterator<E> implements ListIterator<E> {
         return list.get(position);
     }
 
+    public E peekPrevious() {
+        if (position < 1)
+            throw new NoSuchElementException();
+
+        return list.get(position-1);
+    }
+
     public boolean lookahead(Class<? extends E> class1) {
         return (position + 1 < list.size()
                 && class1.isInstance(list.get(position+1)));

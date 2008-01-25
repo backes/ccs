@@ -1,0 +1,198 @@
+package de.unisb.cs.depend.ccs_sem.exporters;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Random;
+import java.util.Set;
+
+import de.unisb.cs.depend.ccs_sem.exceptions.ExportException;
+import de.unisb.cs.depend.ccs_sem.exporters.helpers.StateNumberComparator;
+import de.unisb.cs.depend.ccs_sem.exporters.helpers.StateNumerator;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+
+
+public class IntegrationtestExporter implements Exporter {
+
+    final File javaFile;
+    private final String className;
+
+    public IntegrationtestExporter(File javaFile) {
+        this(javaFile, extractClassName(javaFile));
+    }
+
+    public IntegrationtestExporter(File javaFile, String className) {
+        super();
+        this.javaFile = javaFile;
+        this.className = className;
+    }
+
+    private static String extractClassName(File javaFilename) {
+        final String filename = javaFilename.getName();
+        if (filename.isEmpty())
+            return randomClassName();
+
+        final int dotIndex = filename.indexOf('.');
+        if (dotIndex != -1) {
+            if (dotIndex == 0)
+                return randomClassName();
+            final char first = Character.toUpperCase(filename.charAt(0));
+            return first + removeIllegalCharacters(filename.substring(1, dotIndex));
+        }
+
+        return removeIllegalCharacters(filename);
+    }
+
+    private static String removeIllegalCharacters(String filename) {
+        final char[] chars = filename.toCharArray();
+        for (int i = 0; i < chars.length; ++i)
+            if (i==0 ? !Character.isJavaIdentifierStart(chars[i])
+                     : !Character.isJavaIdentifierPart(chars[i]))
+                chars[i] = '_';
+
+        return new String(chars);
+    }
+
+    private static String randomClassName() {
+        return "Unnamed_" + (new Random().nextInt(1000000));
+    }
+
+    public void export(Program program) throws ExportException {
+        final PrintWriter javaWriter;
+        try {
+            javaWriter = new PrintWriter(javaFile);
+        } catch (final IOException e) {
+            throw new ExportException("Error opening output file: "
+                    + e.getMessage(), e);
+        }
+
+        final Expression expr = program.getMainExpression();
+
+        final Map<Expression, Integer> stateNumbers =
+                StateNumerator.numerateStates(expr);
+
+        // write header
+        javaWriter.println("package de.unisb.cs.depend.ccs_sem.junit.integrationtests;");
+        javaWriter.println();
+        javaWriter.println("import de.unisb.cs.depend.ccs_sem.junit.IntegrationTest;");
+        javaWriter.println();
+        javaWriter.println();
+        javaWriter.println("/*");
+        javaWriter.println("The CCS program:");
+        javaWriter.println();
+        javaWriter.println(program);
+        javaWriter.println("*/");
+        javaWriter.println();
+        javaWriter.println("public class " + className + " extends IntegrationTest {");
+        javaWriter.println();
+        javaWriter.println("    @Override");
+        javaWriter.println("    protected String getExpressionString() {");
+        javaWriter.println("        return " + encode0(program.toString()) + ";");
+        javaWriter.println("    }");
+        javaWriter.println();
+        javaWriter.println("    @Override");
+        javaWriter.println("    protected void addStates() {");
+
+        // write the states
+        final PriorityQueue<Expression> queue =
+                new PriorityQueue<Expression>(11, new StateNumberComparator(
+                        stateNumbers));
+        queue.add(expr);
+
+        final Set<Expression> written = new HashSet<Expression>(stateNumbers.size()*3/2);
+        written.add(expr);
+
+        while (!queue.isEmpty()) {
+            final Expression e = queue.poll();
+            javaWriter.println("        addState(" + encode0(e.toString()) + ");");
+
+            for (final Transition trans: e.getTransitions()) {
+                final Expression targetExpr = trans.getTarget();
+                if (written.add(targetExpr))
+                    queue.add(targetExpr);
+            }
+        }
+
+        javaWriter.println("    }");
+        javaWriter.println();
+        javaWriter.println("    @Override");
+        javaWriter.println("    protected void addTransitions() {");
+
+        // write the transitions
+        queue.add(expr);
+
+        written.clear();
+        written.add(expr);
+
+        while (!queue.isEmpty()) {
+            final Expression e = queue.poll();
+            final int sourceStateNr = stateNumbers.get(e);
+
+            for (final Transition trans: e.getTransitions()) {
+                final Expression targetExpr = trans.getTarget();
+                final int targetStateNr = stateNumbers.get(targetExpr);
+                javaWriter.println("        addTransition(" + sourceStateNr + ", "
+                    + targetStateNr + ", " + encode0(trans.getAction().getLabel()) + ");");
+                if (written.add(targetExpr))
+                    queue.add(targetExpr);
+            }
+        }
+
+        javaWriter.println("    }");
+        javaWriter.println("}");
+
+        // close the file
+        javaWriter.close();
+
+    }
+
+    private String encode(String str) {
+        final StringBuilder sb = new StringBuilder(str.length() * 3 / 2);
+
+        for (final char c: str.toCharArray())
+            if (isValid(c))
+                sb.append(c);
+            else
+                sb.append('%').append((int)c);
+
+        return sb.toString();
+    }
+
+    private String encode0(String str) {
+        final String encoded = encode(str);
+        if (encoded.equals(str))
+            return '"' + str + '"';
+        else
+            return "decode(\"" + encoded + "\")";
+    }
+
+    private boolean isValid(char c) {
+        switch (c) {
+        // lists all valid characters (better to little than to many)
+        case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g':
+        case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n':
+        case 'o': case 'p': case 'q': case 'r': case 's': case 't': case 'u':
+        case 'v': case 'w': case 'x': case 'y': case 'z': case 'A': case 'B':
+        case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': case 'I':
+        case 'J': case 'K': case 'L': case 'M': case 'N': case 'O': case 'P':
+        case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W':
+        case 'X': case 'Y': case 'Z': case '0': case '1': case '2': case '3':
+        case '4': case '5': case '6': case '7': case '8': case '9': case '.':
+        case ' ': case ':': case '{': case '}': case '_': case '!': case '?':
+        case '=': case ',': case '[': case ']': case '|':
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    public String getIdentifier() {
+        return "Integration test export to " + javaFile.getPath();
+    }
+
+}

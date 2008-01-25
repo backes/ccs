@@ -153,7 +153,7 @@ public class ParallelEvaluator implements Evaluator {
                 childrenEvaluated = true;
 
                 if (barrier != null)
-                    // then the barrier will call us again if all children are evaluated
+                    // then the barrier will call us again when all children are evaluated
                     return;
             }
 

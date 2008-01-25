@@ -15,6 +15,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.expressions.ParallelExpr;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.PrefixExpr;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.RecursiveExpr;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.RestrictExpr;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.Range;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 
@@ -38,6 +39,7 @@ public class Declaration {
      * "static" operators).
      * Besides, the recursion variable iself must only occure guarded in the value.
      */
+    // TODO this does more than to check regularity. rename! split in two methods?
     public boolean isRegular() {
         // check guardedness first
 
@@ -69,8 +71,6 @@ public class Declaration {
                 queue.addAll(expr.getSubTerms());
             }
         }
-        checked.clear();
-
 
         // then, check for a recursive loop back to this declaration, that
         // contains parallel or restriction operator(s)
@@ -184,6 +184,9 @@ public class Declaration {
 
     @Override
     public String toString() {
+        if (parameters.size() == 0)
+            return name + " = " + value;
+
         return name + parameters + " = " + value;
     }
 
@@ -192,6 +195,18 @@ public class Declaration {
      */
     public Object getFullName() {
         return name + parameters;
+    }
+
+    public boolean checkRanges(List<Value> parameterValues) {
+        assert parameters.size() == parameterValues.size();
+
+        for (int i = 0; i < parameters.size(); ++i) {
+            final Range range = parameters.get(i).getRange();
+            if (range != null && !range.contains(parameterValues.get(i)))
+                return false;
+        }
+
+        return true;
     }
 
     // TODO really? then caching doesn't make much sense

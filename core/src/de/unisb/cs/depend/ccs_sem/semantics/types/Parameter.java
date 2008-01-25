@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.IntervalRange;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.Range;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.SetRange;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.BooleanValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstString;
@@ -19,30 +22,44 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
  */
 public class Parameter {
 
-    // TODO when instantiating a parameter, it has to be copied (i think)
-
     // STRING is either a string value or a string channel
     public static enum Type {
         UNKNOWN, CHANNEL, VALUE, STRINGVALUE, BOOLEANVALUE, INTEGERVALUE, STRING
     }
 
-    // the type is determined while Value.insertParameters() and
+    // the type is determined while parsing, Value.insertParameters() and
     // UnknownString.replaceRecursion
     private Type type = Type.UNKNOWN;
     private final String name;
     private List<Parameter> connectedParameters = null;
+    private final Range range;
 
     public Parameter(String name) {
+        this(name, null);
+    }
+
+    public Parameter(String name, Range range) {
         this.name = name;
+        this.range = range;
     }
 
     @Override
     public String toString() {
-        return name;
+        if (range == null)
+            return name;
+
+        if (range instanceof IntervalRange || range instanceof SetRange)
+            return name + ":" + range;
+
+        return name + ":(" + range + ")";
     }
 
     public String getName() {
         return name;
+    }
+
+    public Range getRange() {
+        return range;
     }
 
     /**
@@ -53,7 +70,7 @@ public class Parameter {
      * not suit, the type is left unchanged, and a ParseException is thrown.
      *
      * @param value the Value to match this Parameter with
-     * @throws ParseException if this parameter cannot be replaced by the given value
+     * @throws ParseException if this parameter cannot be instantiated with the given value
      */
     public void match(Value value) throws ParseException {
         if (value instanceof ParameterReference) {
@@ -85,15 +102,15 @@ public class Parameter {
         } else if (value instanceof ConstString) {
             setType(Type.STRING);
         } else {
-            // TODO does this occure?
+            // we should never get to here
             assert false;
         }
     }
 
     /**
-     * Tries to set a new type, which has to be more specific than the old one.
-     * Otherwise (if they clash), a ParseException is thrown.
-     * @param newType the new type to set this parameter to.
+     * Tries to set a new type, which has suit the old one.
+     * Otherwise a ParseException is thrown.
+     * @param newType the new type to set this parameter to
      * @throws ParseException if the old type and the new type don't fit together
      */
     public void setType(Type newType) throws ParseException {

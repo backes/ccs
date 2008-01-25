@@ -13,10 +13,6 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
  */
 public abstract class AbstractValue implements Value {
 
-    public boolean canBeInstantiated(Value message) {
-        return false;
-    }
-
     public Value instantiate(Map<Parameter, Value> parameters) {
         return this;
     }
@@ -28,6 +24,11 @@ public abstract class AbstractValue implements Value {
     @Override
     public String toString() {
         return getStringValue();
+    }
+
+    // this could be refined by subclasses
+    public int compareTo(Value o) {
+        return getStringValue().compareTo(o.getStringValue());
     }
 
 }

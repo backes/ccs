@@ -3,7 +3,6 @@ package de.unisb.cs.depend.ccs_sem.exporters;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -13,6 +12,7 @@ import de.unisb.cs.depend.ccs_sem.exceptions.ExportException;
 import de.unisb.cs.depend.ccs_sem.exporters.helpers.StateNumberComparator;
 import de.unisb.cs.depend.ccs_sem.exporters.helpers.StateNumerator;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 
 
@@ -25,7 +25,9 @@ public class AiSeeGraphExporter implements Exporter {
         this.aiSeeFile = aiSeeFile;
     }
 
-    public void export(Expression expr) throws ExportException {
+    public void export(Program program) throws ExportException {
+        final Expression expr = program.getMainExpression();
+
         final PrintWriter aiSeeWriter;
         try {
             aiSeeWriter = new PrintWriter(aiSeeFile);
@@ -51,8 +53,6 @@ public class AiSeeGraphExporter implements Exporter {
 
         while (!queue.isEmpty()) {
             final Expression e = queue.poll();
-            final Collection<Transition> transitions = e.getTransitions();
-
             final int sourceStateNr = stateNumbers.get(e);
             aiSeeWriter.print("node: { title: \"");
             aiSeeWriter.print(sourceStateNr);
@@ -60,7 +60,7 @@ public class AiSeeGraphExporter implements Exporter {
             aiSeeWriter.print(e);
             aiSeeWriter.println("\" }");
 
-            for (final Transition trans: transitions) {
+            for (final Transition trans: e.getTransitions()) {
                 final Expression targetExpr = trans.getTarget();
                 final int targetStateNr = stateNumbers.get(targetExpr);
                 aiSeeWriter.print("edge: { source: \"");

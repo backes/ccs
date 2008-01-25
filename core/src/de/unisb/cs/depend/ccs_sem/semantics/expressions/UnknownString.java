@@ -69,7 +69,7 @@ public class UnknownString extends Expression {
                 // this possibly throws a ParseException
                 decl.checkMatch(parameters);
                 final RecursiveExpr newExpr = new RecursiveExpr(decl, parameters);
-                return Expression.getExpression(newExpr);
+                return ExpressionRepository.getExpression(newExpr);
             }
         }
 
@@ -92,8 +92,8 @@ public class UnknownString extends Expression {
             throw new ParseException(sb.toString());
         }
         final Action prefix = new SimpleAction(new ConstStringChannel(name, false));
-        final Expression stopExpression = Expression.getExpression(new StopExpr());
-        return Expression.getExpression(new PrefixExpr(prefix, stopExpression));
+        final Expression stopExpression = ExpressionRepository.getExpression(new StopExpr());
+        return ExpressionRepository.getExpression(new PrefixExpr(prefix, stopExpression));
     }
 
     @Override
@@ -110,7 +110,7 @@ public class UnknownString extends Expression {
         if (!changed)
             return this;
 
-        return Expression.getExpression(new UnknownString(name, newParameters));
+        return ExpressionRepository.getExpression(new UnknownString(name, newParameters));
     }
 
     @Override

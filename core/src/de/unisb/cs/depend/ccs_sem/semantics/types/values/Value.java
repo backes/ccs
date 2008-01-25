@@ -5,7 +5,7 @@ import java.util.Map;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 
 
-public interface Value {
+public interface Value extends Comparable<Value> {
 
     String getStringValue();
 
@@ -14,7 +14,5 @@ public interface Value {
      * the corresponding {@link Value} from the parameter list.
      */
     Value instantiate(Map<Parameter, Value> parameters);
-
-    boolean canBeInstantiated(Value message);
 
 }

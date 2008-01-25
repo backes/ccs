@@ -13,6 +13,7 @@ import de.unisb.cs.depend.ccs_sem.exporters.helpers.StateNumberComparator;
 import de.unisb.cs.depend.ccs_sem.exporters.helpers.StateNumerator;
 import de.unisb.cs.depend.ccs_sem.exporters.helpers.TransitionsTargetNumberComparator;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 
 
@@ -35,7 +36,8 @@ public class BCGExporter implements Exporter {
         }
     }
 
-    public void export(Expression expr) throws ExportException {
+    public void export(Program program) throws ExportException {
+        final Expression expr = program.getMainExpression();
         // ensure that only one BCG file is written concurrently
         synchronized (BCGWriter.class) {
             final Map<Expression, Integer> stateNumbers =

@@ -27,7 +27,7 @@ public class ConditionalExpression extends Expression {
     public static Expression create(Value condition, Expression consequence) {
         if (condition instanceof ConstBooleanValue)
             return ((ConstBooleanValue)condition).getValue() ? consequence : StopExpr.get();
-        return Expression.getExpression(new ConditionalExpression(condition, consequence));
+        return ExpressionRepository.getExpression(new ConditionalExpression(condition, consequence));
     }
 
     @Override

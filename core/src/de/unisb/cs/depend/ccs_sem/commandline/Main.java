@@ -19,6 +19,7 @@ import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.exporters.AiSeeGraphExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.ETMCCExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.Exporter;
+import de.unisb.cs.depend.ccs_sem.exporters.IntegrationtestExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.bcg.BCGExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.helpers.StateNumerator;
 import de.unisb.cs.depend.ccs_sem.exporters.helpers.TransitionCounter;
@@ -127,7 +128,7 @@ public class Main {
         for (final Exporter exporter: exporters) {
             log("  - " + exporter.getIdentifier());
             try {
-                exporter.export(program.getMainExpression());
+                exporter.export(program);
             } catch (final ExportException e) {
                 System.err.println("Error exporting: " + e.getMessage());
                 errors = true;
@@ -261,6 +262,8 @@ public class Main {
             exporters.add(new AiSeeGraphExporter(new File(filename)));
         } else if ("etmcc".equalsIgnoreCase(format) || "tra".equalsIgnoreCase(format)) {
             exporters.add(new ETMCCExporter(new File(filename)));
+        } else if ("integrationtest".equalsIgnoreCase(format) || "junit".equalsIgnoreCase(format)) {
+            exporters.add(new IntegrationtestExporter(new File(filename)));
         } else if ("bcg".equalsIgnoreCase(format)) {
             try {
                 exporters.add(new BCGExporter(new File(filename)));

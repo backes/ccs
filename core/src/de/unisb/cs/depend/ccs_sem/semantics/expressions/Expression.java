@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
@@ -17,9 +16,6 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 public abstract class Expression {
 
-    private static ConcurrentHashMap<Expression, Expression> repository
-        = new ConcurrentHashMap<Expression, Expression>();
-
     private volatile List<Transition> transitions = null;
 
     // stores the hashcode of this expression
@@ -27,11 +23,6 @@ public abstract class Expression {
 
     protected Expression() {
         // nothing to do
-    }
-
-    public static Expression getExpression(Expression expr) {
-        final Expression foundExpr = repository.putIfAbsent(expr, expr);
-        return foundExpr == null ? expr : foundExpr;
     }
 
     // precondition: children have been evaluated

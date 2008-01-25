@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
@@ -20,9 +21,9 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 public class RestrictExpr extends Expression {
 
     private final Expression innerExpr;
-    private final List<Action> restricted;
+    private final Set<Action> restricted;
 
-    public RestrictExpr(Expression innerExpr, List<Action> restricted) {
+    public RestrictExpr(Expression innerExpr, Set<Action> restricted) {
         super();
         this.innerExpr = innerExpr;
         this.restricted = restricted;
@@ -61,7 +62,7 @@ public class RestrictExpr extends Expression {
                     continue outer;
             Expression newExpr = new RestrictExpr(trans.getTarget(), restricted);
             // search if this expression is already known
-            newExpr = Expression.getExpression(newExpr);
+            newExpr = ExpressionRepository.getExpression(newExpr);
             // search if this transition is already known (otherwise create it)
             final Transition newTrans = new Transition(trans.getAction(), newExpr);
             newTransitions.add(newTrans);
@@ -89,7 +90,7 @@ public class RestrictExpr extends Expression {
 
             Expression newExpr = new RestrictExpr(trans.getTarget(), restricted);
             // search if this expression is already known
-            newExpr = Expression.getExpression(newExpr);
+            newExpr = ExpressionRepository.getExpression(newExpr);
             // search if this transition is already known (otherwise create it)
             final Transition newTrans = new Transition(trans.getAction(), newExpr);
             newTransitions.add(newTrans);
@@ -126,7 +127,7 @@ public class RestrictExpr extends Expression {
         final Expression newExpr = innerExpr.instantiate(parameters);
         if (newExpr.equals(innerExpr))
             return this;
-        return Expression.getExpression(new RestrictExpr(newExpr, restricted));
+        return ExpressionRepository.getExpression(new RestrictExpr(newExpr, restricted));
     }
 
     @Override

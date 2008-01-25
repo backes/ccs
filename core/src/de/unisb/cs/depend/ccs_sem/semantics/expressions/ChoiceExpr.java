@@ -29,7 +29,7 @@ public class ChoiceExpr extends Expression {
             return right;
         if (right instanceof StopExpr)
             return left;
-        return Expression.getExpression(new ChoiceExpr(left, right));
+        return ExpressionRepository.getExpression(new ChoiceExpr(left, right));
     }
 
     @Override
