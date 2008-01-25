@@ -1,4 +1,6 @@
-range clock_range = 0 .. 1<<32;
+// let's assume we have a 3 digit display
+const max_value = 999;
+range clock_range = 0 .. max_value;
 
 T = tick! . T;
 
@@ -17,11 +19,11 @@ RUNNING[x: clock_range] = tick?.RUNNING[x + 1]
   + get!x.RUNNING[x];
 
 FREEZED[x: clock_range, y: clock_range] = tick?.FREEZED[x + 1, y]
-  + start?.FREEZED[x]
+  + start?.FREEZED[x,y]
   + stop?.STOPPED[x]
   + reset?.RUNNING[x]
   + get!y.FREEZED[x, y];
 
-# the main expression:
+// the main expression:
 CLOCK
 

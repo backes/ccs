@@ -8,4 +8,8 @@ geänderte semantik
 - parallele stopexpressions fallen weg
 - dito für choice
 - when wird aufgelöst sobald condition ausgewertet ist
-- expressions sind linksassoziativ (klammern von links), d.h. "x+1+1+1" wird nicht vereinfacht, aber "1+1+1+x" wird vereinfacht zu "3+x"
+
+expressions sind linksassoziativ (klammern von links), d.h. "x+1+1+1" wird nicht vereinfacht, aber "1+1+1+x" wird vereinfacht zu "3+x"
+(TODO ueberpruefen)
+
+reihenfolge bei identifier auftreten: parameter, constant, declaration (letzte beide sind disjunkt)
