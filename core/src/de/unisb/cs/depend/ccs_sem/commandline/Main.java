@@ -85,6 +85,17 @@ public class Main {
             return false;
         }
 
+        log("Checking regularity/guardedness...");
+        if (!program.isGuarded()) {
+            System.err.println("Your recursive definitions are not guarded.");
+            return false;
+        }
+        if (!program.isRegular()) {
+            System.err.println("Your recursive definitions are not regular.");
+            return false;
+        }
+
+
         log("Evaluating...");
         final EvaluationMonitor monitor = new EvaluationMonitor() {
 
@@ -108,18 +119,20 @@ public class Main {
         };
         program.evaluate(evaluator, monitor);
 
+        /*
         log("Counting...");
         int stateCount = StateNumerator.numerateStates(program.getMainExpression()).size();
         int transitionCount = TransitionCounter.countTransitions(program.getMainExpression());
         log(stateCount + " states, " + transitionCount + " Transitions.");
+        */
 
         if (minimize) {
             log("Minimizing...");
             program.minimizeTransitions();
             log("Counting...");
-            stateCount = StateNumerator.numerateStates(program.getMainExpression()).size();
-            transitionCount = TransitionCounter.countTransitions(program.getMainExpression());
-            log(stateCount + " states, " + transitionCount + " Transitions.");
+            final int newStateCount = StateNumerator.numerateStates(program.getMainExpression()).size();
+            final int newTransitionCount = TransitionCounter.countTransitions(program.getMainExpression());
+            log(newStateCount + " states, " + newTransitionCount + " Transitions.");
         }
 
 

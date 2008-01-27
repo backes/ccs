@@ -42,4 +42,29 @@ public class AddRange extends AbstractRange {
             return left.contains(value) || right.contains(value);
     }
 
+    public boolean isRangeRestricted() {
+        if (!left.isRangeRestricted())
+            return false;
+
+        if (!isSub && !right.isRangeRestricted())
+            return false;
+
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        final boolean rightNeedsParenthesis = right instanceof AddRange;
+
+        final StringBuilder sb = new StringBuilder();
+        sb.append(left.toString());
+        sb.append(isSub ? " - " : " + ");
+        if (rightNeedsParenthesis)
+            sb.append('(').append(right.toString()).append(')');
+        else
+            sb.append(right.toString());
+
+        return sb.toString();
+    }
+
 }

@@ -53,6 +53,18 @@ public class Program {
         return true;
     }
 
+    /**
+     * A program is guarded iff every recursive definition is regular.
+     * See {@link Declaration#isGuarded(List)}.
+     */
+    public boolean isGuarded() {
+        for (final Declaration decl: declarations)
+            if (!decl.isGuarded())
+                return false;
+
+        return true;
+    }
+
     public void evaluate(Evaluator eval) {
         evaluate(eval, null);
     }

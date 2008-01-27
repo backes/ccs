@@ -37,17 +37,8 @@ public class SimpleAction extends Action {
     }
 
     @Override
-    public Value getMessage() {
+    public Value getValue() {
         return null;
-    }
-
-    @Override
-    public boolean restricts(Action actionToCheck) {
-        if (!(actionToCheck instanceof SimpleAction))
-            return false;
-
-        final SimpleAction other = (SimpleAction)actionToCheck;
-        return channel.equals(other.channel);
     }
 
     @Override

@@ -39,7 +39,7 @@ public class OutputAction extends Action {
     }
 
     @Override
-    public Value getMessage() {
+    public Value getValue() {
         return message;
     }
 
@@ -54,20 +54,6 @@ public class OutputAction extends Action {
         assert false;
 
         return null;
-    }
-
-    @Override
-    public boolean restricts(Action actionToCheck) {
-        if (actionToCheck instanceof OutputAction) {
-            final OutputAction outputActionToCheck = (OutputAction) actionToCheck;
-            if (channel.equals(outputActionToCheck.channel)) {
-                // TODO distinguish parameters / values
-                if (message == null || message.equals(outputActionToCheck.message))
-                    return true;
-            }
-        }
-
-        return false;
     }
 
     @Override

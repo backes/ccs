@@ -65,6 +65,10 @@ public class CCSEditor extends TextEditor implements IDocumentListener {
 
         if (ccsProgram == null) {
             ccsProgram = new CCSParser().parse(getText());
+            if (!ccsProgram.isGuarded())
+                throw new ParseException("Your recursive definitions are not guarded.");
+            if (!ccsProgram.isRegular())
+                throw new ParseException("Your recursive definitions are not regular.");
         }
 
         if (evaluate) {

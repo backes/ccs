@@ -2,6 +2,7 @@ package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -30,13 +31,19 @@ public abstract class Expression {
         if (transitions != null)
             return;
 
-        final List<Transition> transitions0 = evaluate0();
+        List<Transition> transitions0 = evaluate0();
 
         assert transitions0 != null;
 
-        // save memory
-        if (transitions0 instanceof ArrayList)
-            ((ArrayList<Transition>)transitions0).trimToSize();
+        // some optimisations to save memory
+        if (transitions0 instanceof ArrayList) {
+            if (transitions0.size() == 0)
+                transitions0 = Collections.emptyList();
+            else if (transitions0.size() == 1)
+                transitions0 = Collections.singletonList(transitions0.get(0));
+            else
+                ((ArrayList<Transition>)transitions0).trimToSize();
+        }
 
         // volatile write
         transitions = transitions0;

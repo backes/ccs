@@ -39,9 +39,9 @@ public class TopMostExpression extends Expression {
                 final Parameter param = ((InputAction)act).getParameter();
                 if (param != null) {
                     final Range range = param.getRange();
-                    if (range == null) {
+                    if (range == null || !range.isRangeRestricted()) {
                         // TODO
-                        System.err.println("Unbound input parameter at top level removed (action \"" + act + "\").");
+                        System.err.println("Unbound and not range restricted input parameter at top level removed (action \"" + act + "\").");
                         continue;
                     }
                     for (final Value val: range.getPossibleValues()) {

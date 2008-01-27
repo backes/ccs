@@ -138,23 +138,26 @@ public class ParallelEvaluator implements Evaluator {
                     synchronized (child) {
                         if (!child.isEvaluated()) {
                             if (barrier == null)
-                                barrier = new Barrier(executor, this);
+                                barrier = new Barrier(executor, this, 1);
 
                             EvaluatorJob childEvaluator =
                                     currentlyEvaluating.get(child);
                             if (childEvaluator == null)
                                 childEvaluator = new EvaluatorJob(child, false);
-                            childEvaluator.addWaiter(barrier);
                             barrier.inc();
+                            childEvaluator.addWaiter(barrier);
                         }
                     }
                 }
 
                 childrenEvaluated = true;
 
-                if (barrier != null)
-                    // then the barrier will call us again when all children are evaluated
+                if (barrier != null) {
+                    // inform barrier that all children have been added
+                    barrier.inform();
+                    // the barrier will call us again when all children are evaluated
                     return;
+                }
             }
 
             expr.evaluate();
@@ -203,9 +206,10 @@ public class ParallelEvaluator implements Evaluator {
         private int waitNr = 0;
         private final ExecutorService executor;
 
-        public Barrier(ExecutorService executor, Runnable jobToRun) {
+        public Barrier(ExecutorService executor, Runnable jobToRun, int startNr) {
             this.executor = executor;
             this.job = jobToRun;
+            this.waitNr = startNr;
         }
 
         public void inc() {
@@ -215,10 +219,8 @@ public class ParallelEvaluator implements Evaluator {
         public synchronized void inform() {
             assert waitNr > 0;
             --waitNr;
-            if (waitNr == 0) {
-                // is this synchronized?
+            if (waitNr == 0)
                 executor.execute(job);
-            }
         }
 
     }

@@ -56,10 +56,13 @@ public class RestrictExpr extends Expression {
     private void restrictNaive(final List<Transition> oldTransitions,
             final List<Transition> newTransitions) {
         outer:
-        for (final Transition trans: oldTransitions) {
-            for (final Action restrictedAction: restricted)
-                if (restrictedAction.restricts(trans.getAction()))
+        for (Transition trans: oldTransitions) {
+            for (final Action restrictedAction: restricted) {
+                trans = trans.restrictBy(restrictedAction);
+                if (trans == null)
                     continue outer;
+            }
+
             Expression newExpr = new RestrictExpr(trans.getTarget(), restricted);
             // search if this expression is already known
             newExpr = ExpressionRepository.getExpression(newExpr);
@@ -81,12 +84,14 @@ public class RestrictExpr extends Expression {
         }
 
         outer:
-        for (final Transition trans: oldTransitions) {
+        for (Transition trans: oldTransitions) {
             final List<Action> restrList = restrictionMap.get(trans.getAction().getChannel());
             if (restrList != null)
-                for (final Action restrictedAction: restrList)
-                    if (restrictedAction.restricts(trans.getAction()))
+                for (final Action restrictedAction: restrList) {
+                    trans = trans.restrictBy(restrictedAction);
+                    if (trans == null)
                         continue outer;
+                }
 
             Expression newExpr = new RestrictExpr(trans.getTarget(), restricted);
             // search if this expression is already known

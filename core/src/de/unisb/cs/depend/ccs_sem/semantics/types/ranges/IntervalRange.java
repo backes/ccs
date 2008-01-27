@@ -37,4 +37,13 @@ public class IntervalRange extends AbstractRange {
         return (start <= hisValue && end >= hisValue);
     }
 
+    public boolean isRangeRestricted() {
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return start + ".." + end;
+    }
+
 }

@@ -8,6 +8,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -162,10 +163,11 @@ public class CCSParser implements Parser {
     // deque.
     private Deque<Parameter> parameters;
 
-    // TODO document
-    private HashMap<String, ConstantValue> constants;
+    // a Map of all constants that are defined in the current program
+    private Map<String, ConstantValue> constants;
 
-    private HashMap<String, Range> ranges;
+    // a Map of all ranges that are defined in the current program
+    private Map<String, Range> ranges;
 
     public Program parse(Reader input) throws ParseException, LexException {
         return parse(new CCSLexer().lex(input));
@@ -197,10 +199,6 @@ public class CCSParser implements Parser {
                 throw new ParseException("Syntax error: Unexpected '" + it.next() + "'");
 
             final Program program = new Program(declarations, expr);
-
-            if (!program.isRegular()) {
-                throw new ParseException("Your recursive definitions are not regular");
-            }
 
             return program;
         } catch (final ParseException e) {
@@ -371,7 +369,7 @@ public class CCSParser implements Parser {
             // or a set of independant values
             if (tokens.peek() instanceof LBrace) {
                 tokens.next();
-                final Set<Value> rangeValues = readRangeValues(tokens);
+                final Set<ConstantValue> rangeValues = readRangeValues(tokens);
                 return new SetRange(rangeValues);
             }
 
@@ -406,13 +404,13 @@ public class CCSParser implements Parser {
         throw new ParseException("Unexpected EOF.");
     }
 
-    private Set<Value> readRangeValues(ExtendedIterator<Token> tokens) throws ParseException {
+    private Set<ConstantValue> readRangeValues(ExtendedIterator<Token> tokens) throws ParseException {
         if (tokens.hasNext() && tokens.peek() instanceof RBrace) {
             tokens.next();
             return Collections.emptySet();
         }
 
-        final Set<Value> values = new TreeSet<Value>();
+        final Set<ConstantValue> values = new TreeSet<ConstantValue>();
 
         while (tokens.hasNext()) {
             final Value value = readArithmeticExpression(tokens);
@@ -420,7 +418,7 @@ public class CCSParser implements Parser {
             if (!(value instanceof ConstantValue))
                 throw new ParseException("Only constant values allowed in ranges.");
 
-            values.add(value);
+            values.add((ConstantValue)value);
 
             if (!tokens.hasNext())
                 throw new ParseException("Expected '}'");
@@ -988,7 +986,7 @@ public class CCSParser implements Parser {
         }
         if (nextToken instanceof LParenthesis) {
             final Value value = readArithmeticExpression(tokens);
-            if (!tokens.hasNext() || !(tokens.peek() instanceof RParenthesis))
+            if (!tokens.hasNext() || !(tokens.next() instanceof RParenthesis))
                 throw new ParseException("Expected ')'.");
             return value;
         }

@@ -42,7 +42,7 @@ public class TauAction extends Action {
     }
 
     @Override
-    public Value getMessage() {
+    public Value getValue() {
         return null;
     }
 
@@ -54,15 +54,6 @@ public class TauAction extends Action {
     @Override
     public boolean isOutputAction() {
         return true;
-    }
-
-    @Override
-    public boolean restricts(Action actionToCheck) {
-        // this method should not be called because TauActions cannot be used in
-        // RestrictExpressions
-        assert false;
-
-        return false;
     }
 
     @Override

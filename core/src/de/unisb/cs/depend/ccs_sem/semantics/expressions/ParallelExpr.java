@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
@@ -15,6 +17,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.TauAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
+import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
 
 public class ParallelExpr extends Expression {
@@ -29,10 +32,12 @@ public class ParallelExpr extends Expression {
     }
 
     public static Expression create(Expression left, Expression right) {
-        if (left instanceof StopExpr)
-            return right;
-        if (right instanceof StopExpr)
-            return left;
+        if (Globals.isMinimizeExpressions()) {
+            if (left instanceof StopExpr)
+                return right;
+            if (right instanceof StopExpr)
+                return left;
+        }
         return ExpressionRepository.getExpression(new ParallelExpr(left, right));
     }
 
@@ -52,9 +57,9 @@ public class ParallelExpr extends Expression {
         if (leftTransitions.isEmpty() && rightTransitions.isEmpty())
             return Collections.emptyList();
 
-        final List<Transition> transitions =
-                new ArrayList<Transition>(
-                        (leftTransitions.size() + rightTransitions.size()) * 3 / 2);
+        // we have to use a set here so that we don't add the same transition twice
+        final Set<Transition> transitions = new HashSet<Transition>(
+                (leftTransitions.size() + rightTransitions.size()) * 3);
 
         // either left alone:
         for (final Transition trans: leftTransitions) {
@@ -84,12 +89,12 @@ public class ParallelExpr extends Expression {
             combineUsingNaiveWay(leftTransitions, rightTransitions, transitions);
         }
 
-        return transitions;
+        return new ArrayList<Transition>(transitions);
     }
 
     private void combineUsingNaiveWay(final List<Transition> leftTransitions,
             final List<Transition> rightTransitions,
-            final List<Transition> transitions) {
+            final Set<Transition> transitions) {
         for (final Transition leftTrans: leftTransitions)
             for (final Transition rightTrans: rightTransitions) {
                 Expression newFromLeft = null;
@@ -125,12 +130,14 @@ public class ParallelExpr extends Expression {
 
     private void combineUsingComplexWay(final List<Transition> leftTransitions,
             final List<Transition> rightTransitions,
-            final List<Transition> transitions) {
+            final Set<Transition> transitions) {
+        // we use maps that list for each channel the correspoding input actions
         final Map<Channel, List<Transition>> leftInput =
             new HashMap<Channel, List<Transition>>(leftTransitions.size());
         final Map<Channel, List<Transition>> rightInput =
             new HashMap<Channel, List<Transition>>(rightTransitions.size());
 
+        // fill the map leftInput
         for (final Transition leftTrans: leftTransitions) {
             if (leftTrans.getAction().isInputAction()) {
                 final Channel channel = leftTrans.getAction().getChannel();
@@ -140,6 +147,7 @@ public class ParallelExpr extends Expression {
                 list.add(leftTrans);
             }
         }
+        // fill the map rightInput and check for matches with leftInput
         for (final Transition rightTrans: rightTransitions) {
             if (rightTrans.getAction().isInputAction()) {
                 final Channel channel = rightTrans.getAction().getChannel();
@@ -165,6 +173,7 @@ public class ParallelExpr extends Expression {
                 }
             }
         }
+        // search for matching pairs vice-versa
         for (final Transition leftTrans: leftTransitions) {
             if (!leftTrans.getAction().isOutputAction())
                 continue;
@@ -175,18 +184,6 @@ public class ParallelExpr extends Expression {
                 for (final Transition inputTrans: inputTransitions) {
                     final Expression newRightTarget = inputTrans.synchronizeWith(leftTrans.getAction());
                     if (newRightTarget != null) {
-                        boolean seenBefore = inputTrans.getAction().isOutputAction()
-                            && leftTrans.getAction().isInputAction();
-                        if (seenBefore) {
-                            final Expression newLeftTarget = leftTrans.synchronizeWith(inputTrans.getAction());
-                            if (newLeftTarget == null
-                                || !newLeftTarget.equals(leftTrans.getTarget())
-                                || !newRightTarget.equals(inputTrans.getTarget()))
-                                seenBefore = false;
-                        }
-                        if (seenBefore)
-                            continue;
-
                         final Expression newTarget = create(leftTrans.getTarget(), newRightTarget);
                         final Transition newTrans = new Transition(TauAction.get(), newTarget);
                         transitions.add(newTrans);

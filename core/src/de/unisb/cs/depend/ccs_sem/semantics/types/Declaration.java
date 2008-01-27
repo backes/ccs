@@ -34,25 +34,20 @@ public class Declaration {
     }
 
     /**
-     * A Declaration is regular iff it does not contain a cycle of recursions
-     * back to itself that contains parallel or restriction operators (so called
-     * "static" operators).
-     * Besides, the recursion variable iself must only occure guarded in the value.
+     * A Declaration is guarded if there is at least one prefix before all
+     * occurences of the Declaration itself in the related expression.
      */
-    // TODO this does more than to check regularity. rename! split in two methods?
-    public boolean isRegular() {
-        // check guardedness first
-
+    public boolean isGuarded() {
         // every expression has to be checked only once
         final Set<Expression> checked = new HashSet<Expression>();
         // every declaration has to be checked only once, even if it occures
         // with different parameters
         final Set<Declaration> checkedDeclarations = new HashSet<Declaration>();
+        checkedDeclarations.add(this);
         // a queue of expressions to check
         final Queue<Expression> queue = new ArrayDeque<Expression>();
         queue.add(value);
 
-        // first, search for all expressions that occure after static operators
         while (!queue.isEmpty()) {
             final Expression expr = queue.poll();
             if (checked.add(expr)) {
@@ -72,16 +67,27 @@ public class Declaration {
             }
         }
 
-        // then, check for a recursive loop back to this declaration, that
-        // contains parallel or restriction operator(s)
+        // nothing bad found...
+        return true;
+    }
 
-        // reuse the collections from above
-        checked.clear();
-        checkedDeclarations.clear();
-
+    /**
+     * A Declaration is regular if it does not contain a cycle of recursions
+     * back to itself that contains parallel or restriction operators (so called
+     * "static" operators).
+     */
+    public boolean isRegular() {
+        // every expression has to be checked only once
+        final Set<Expression> checked = new HashSet<Expression>();
+        // every declaration has to be checked only once, even if it occures
+        // with different parameters
+        final Set<Declaration> checkedDeclarations = new HashSet<Declaration>();
+        checkedDeclarations.add(this);
+        // a queue of expressions to check
+        final Queue<Expression> queue = new ArrayDeque<Expression>();
+        queue.add(value);
         // queue of expressions that occured after static operators
         final Queue<Expression> afterStaticQueue = new ArrayDeque<Expression>();
-        queue.add(value);
 
         // first, search for all expressions that occure after static operators
         while (!queue.isEmpty()) {

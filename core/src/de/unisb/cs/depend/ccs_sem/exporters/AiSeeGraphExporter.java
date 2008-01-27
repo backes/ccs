@@ -57,7 +57,7 @@ public class AiSeeGraphExporter implements Exporter {
             aiSeeWriter.print("node: { title: \"");
             aiSeeWriter.print(sourceStateNr);
             aiSeeWriter.print("\" label: \"");
-            aiSeeWriter.print(e);
+            aiSeeWriter.print(quote(e.toString()));
             aiSeeWriter.println("\" }");
 
             for (final Transition trans: e.getTransitions()) {
@@ -68,7 +68,7 @@ public class AiSeeGraphExporter implements Exporter {
                 aiSeeWriter.print("\" target: \"");
                 aiSeeWriter.print(targetStateNr);
                 aiSeeWriter.print("\" label: \"");
-                aiSeeWriter.print(trans.getAction().getLabel());
+                aiSeeWriter.print(quote(trans.getAction().getLabel().toString()));
                 aiSeeWriter.println("\" }");
                 if (written.add(targetExpr))
                     queue.add(targetExpr);
@@ -81,6 +81,25 @@ public class AiSeeGraphExporter implements Exporter {
         // close the tra file
         aiSeeWriter.close();
 
+    }
+
+    private String quote(String string) {
+        final StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < string.length(); ++i) {
+            final char c = string.charAt(i);
+            switch (c) {
+            case '\\':
+                sb.append("\\\\");
+                break;
+            case '"':
+                sb.append("\\\"");
+                break;
+            default:
+                sb.append(c);
+                break;
+            }
+        }
+        return sb.toString();
     }
 
     public String getIdentifier() {

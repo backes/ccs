@@ -41,4 +41,11 @@ public interface Range {
      */
     boolean contains(Value value);
 
+    /**
+     * Checks whether this Range restricts the possible values to a finite set.
+     * @return <code>true</code>, if this Range restricts the possible values
+     *         to a finite set
+     */
+    boolean isRangeRestricted();
+
 }

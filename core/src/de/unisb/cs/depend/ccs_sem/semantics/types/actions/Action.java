@@ -15,7 +15,7 @@ public abstract class Action implements Comparable<Action> {
 
     public abstract Channel getChannel();
 
-    public abstract Value getMessage();
+    public abstract Value getValue();
 
     /**
      * Overwritten by all Actions that can act as input action.
@@ -36,10 +36,17 @@ public abstract class Action implements Comparable<Action> {
     public abstract Action instantiate(Map<Parameter, Value> parameters);
 
     /**
-     * @param actionToCheck
-     * @return true iff <b>this</b> Action restrict the Action actionToCheck.
+     * Builds an Action that represents the restriction of some Action by
+     * another Action.
+     *
+     * @param actionToCheck the Action that gets restricted by this one
+     * @param oldTrans
+     * @return the given Action if it is not restricted, <code>null</code> if
+     *         it is fully restricted, or a new Action that's built of the
+     *         actionToCheck, but is more restricted (smaller input range)
      */
-    public abstract boolean restricts(Action actionToCheck);
+    // TODO remove
+    //public abstract Transition restrictBy(Action actionToCheck, Transition oldTrans);
 
     @Override
     public String toString() {

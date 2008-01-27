@@ -11,6 +11,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
+import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
 
 public class ChoiceExpr extends Expression {
@@ -25,10 +26,12 @@ public class ChoiceExpr extends Expression {
     }
 
     public static Expression create(Expression left, Expression right) {
-        if (left instanceof StopExpr)
-            return right;
-        if (right instanceof StopExpr)
-            return left;
+        if (Globals.isMinimizeExpressions()) {
+            if (left instanceof StopExpr)
+                return right;
+            if (right instanceof StopExpr)
+                return left;
+        }
         return ExpressionRepository.getExpression(new ChoiceExpr(left, right));
     }
 

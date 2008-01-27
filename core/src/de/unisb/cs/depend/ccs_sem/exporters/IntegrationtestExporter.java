@@ -15,6 +15,7 @@ import de.unisb.cs.depend.ccs_sem.exporters.helpers.StateNumerator;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
 
 public class IntegrationtestExporter implements Exporter {
@@ -151,44 +152,46 @@ public class IntegrationtestExporter implements Exporter {
 
     }
 
-    private String encode(String str) {
+    private String encode0(String str) {
         final StringBuilder sb = new StringBuilder(str.length() * 3 / 2);
 
+        boolean needsDecode = false;
         for (final char c: str.toCharArray())
-            if (isValid(c))
+            switch (c) {
+            // lists all valid characters (better too little than too many)
+            case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g':
+            case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n':
+            case 'o': case 'p': case 'q': case 'r': case 's': case 't': case 'u':
+            case 'v': case 'w': case 'x': case 'y': case 'z': case 'A': case 'B':
+            case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': case 'I':
+            case 'J': case 'K': case 'L': case 'M': case 'N': case 'O': case 'P':
+            case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W':
+            case 'X': case 'Y': case 'Z': case '0': case '1': case '2': case '3':
+            case '4': case '5': case '6': case '7': case '8': case '9': case '.':
+            case ' ': case ':': case '{': case '}': case '_': case '!': case '?':
+            case '=': case ',': case '[': case ']': case '|': case ';': case '+':
+            case '-': case '/': case '*': case '(': case ')':
                 sb.append(c);
-            else
+                break;
+            case '\\':
+                sb.append("\\\\");
+                break;
+            case '\r':
+                //sb.append("\\r");
+                break;
+            case '\n':
+                sb.append("\\n\"").append(Globals.getNewline()).append("            + \"");
+                break;
+            default:
+                needsDecode = true;
                 sb.append('%').append((int)c);
+                break;
+            }
 
-        return sb.toString();
-    }
-
-    private String encode0(String str) {
-        final String encoded = encode(str);
-        if (encoded.equals(str))
-            return '"' + str + '"';
+        if (needsDecode)
+            return "decode(\"" + sb.toString() + "\")";
         else
-            return "decode(\"" + encoded + "\")";
-    }
-
-    private boolean isValid(char c) {
-        switch (c) {
-        // lists all valid characters (better to little than to many)
-        case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g':
-        case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n':
-        case 'o': case 'p': case 'q': case 'r': case 's': case 't': case 'u':
-        case 'v': case 'w': case 'x': case 'y': case 'z': case 'A': case 'B':
-        case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': case 'I':
-        case 'J': case 'K': case 'L': case 'M': case 'N': case 'O': case 'P':
-        case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W':
-        case 'X': case 'Y': case 'Z': case '0': case '1': case '2': case '3':
-        case '4': case '5': case '6': case '7': case '8': case '9': case '.':
-        case ' ': case ':': case '{': case '}': case '_': case '!': case '?':
-        case '=': case ',': case '[': case ']': case '|':
-            return true;
-        default:
-            return false;
-        }
+            return '"' + sb.toString() + '"';
     }
 
     public String getIdentifier() {

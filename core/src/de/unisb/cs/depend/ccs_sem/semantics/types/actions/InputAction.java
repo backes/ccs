@@ -53,9 +53,7 @@ public class InputAction extends Action {
     }
 
     @Override
-    public Value getMessage() {
-        // TODO is this right? is this method ever called?
-        assert false;
+    public Value getValue() {
         return value;
     }
 
@@ -78,20 +76,24 @@ public class InputAction extends Action {
         if (!channel.equals(otherAction.getChannel()))
             return null;
 
+        final Value otherValue = otherAction.getValue();
         if (param == null) {
-            if (value == null ? otherAction.getMessage() == null : value.equals(otherAction.getMessage()))
+            if (value == null ? otherValue == null : value.equals(otherValue))
                 return target;
 
             return null;
         }
 
+        if (otherValue == null)
+            return null;
+
         // check the parameter range
         final Range range = param.getRange();
-        if (range != null && !range.contains(otherAction.getMessage()))
+        if (range != null && !range.contains(otherValue))
             return null;
 
         final Map<Parameter, Value> map =
-            Collections.singletonMap(param, otherAction.getMessage());
+            Collections.singletonMap(param, otherValue);
         return target.instantiate(map);
     }
 
@@ -111,22 +113,6 @@ public class InputAction extends Action {
             return this;
 
         return new InputAction(newChannel, newValue);
-    }
-
-    @Override
-    public boolean restricts(Action actionToCheck) {
-        // TODO ranges
-        if (actionToCheck instanceof InputAction) {
-            final InputAction inputActionToCheck = (InputAction) actionToCheck;
-            if (channel.equals(inputActionToCheck.channel)) {
-                if (param != null)
-                    return true;
-                if (value == null || value.equals(inputActionToCheck.value))
-                    return true;
-            }
-        }
-
-        return false;
     }
 
     @Override
