@@ -83,7 +83,7 @@ public class ParallelEvaluator implements Evaluator {
         return !errorOccured;
     }
 
-    private void initialize(boolean evaluateSuccessors, EvaluationMonitor monitor2) {
+    protected void initialize(boolean evaluateSuccessors, EvaluationMonitor monitor2) {
         assert executor == null;
         assert currentlyEvaluating == null;
         assert monitor == null;
@@ -106,7 +106,7 @@ public class ParallelEvaluator implements Evaluator {
             }
         };
         final ThreadFactory myThreadFactory = new MyThreadFactory(eh);
-        executor = Executors.newFixedThreadPool(threadsToInstantiate, myThreadFactory);
+        executor = getExecutor(threadsToInstantiate, myThreadFactory);
 
         currentlyEvaluating = new ConcurrentHashMap<Expression, EvaluatorJob>();
 
@@ -116,6 +116,11 @@ public class ParallelEvaluator implements Evaluator {
         monitor = monitor2;
 
         errorOccured = false;
+    }
+
+    protected ExecutorService getExecutor(final int threadsToInstantiate,
+            final ThreadFactory myThreadFactory) {
+        return Executors.newFixedThreadPool(threadsToInstantiate, myThreadFactory);
     }
 
     private void shutdown() {

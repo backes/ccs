@@ -13,6 +13,7 @@ import de.unisb.cs.depend.ccs_sem.evalutators.EvaluationMonitor;
 import de.unisb.cs.depend.ccs_sem.evalutators.Evaluator;
 import de.unisb.cs.depend.ccs_sem.evalutators.ParallelEvaluator;
 import de.unisb.cs.depend.ccs_sem.evalutators.SequentialEvaluator;
+import de.unisb.cs.depend.ccs_sem.evalutators.ThreadBasedEvaluator;
 import de.unisb.cs.depend.ccs_sem.exceptions.ExportException;
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
@@ -254,6 +255,8 @@ public class Main {
             evaluator = new ParallelEvaluator();
         else if (policy == 1)
             evaluator = new SequentialEvaluator();
+        else if (policy < 0)
+            evaluator = new ThreadBasedEvaluator(-policy);
         else
             evaluator = new ParallelEvaluator(policy);
     }

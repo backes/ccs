@@ -25,7 +25,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
  * i.e. it substitutes all chains of tau transitions (labeled by "i") by just
  * one tau transition to the corresponding target.
  *
- * TODO: document exactly how this algorithm works
+ * TODO: document exactly how this algorithm works (and/or find a better algorithm)
  *
  * @author Clemens Hammacher
  */
