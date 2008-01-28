@@ -102,7 +102,7 @@ public abstract class Expression {
             this.hash = h == 0 ? 1 : h;
         }
 
-        assert h == hashCode0();
+        assert h == hashCode0() || (h == 0 && hashCode0() == 1);
 
         return h;
     }

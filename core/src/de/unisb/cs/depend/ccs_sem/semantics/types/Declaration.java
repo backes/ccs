@@ -106,6 +106,7 @@ public class Declaration {
             }
         }
         checked.clear();
+        checkedDeclarations.clear();
 
         // then, check these expressions for occurences of the current declaration (recursive loop)
         while (!afterStaticQueue.isEmpty()) {
@@ -113,9 +114,11 @@ public class Declaration {
             if (checked.add(expr)) {
                 // not checked before...
                 if (expr instanceof RecursiveExpr) {
-                    final RecursiveExpr recExpr = (RecursiveExpr) expr;
-                    if (recExpr.getReferencedDeclaration().equals(this))
+                    Declaration refDecl = ((RecursiveExpr) expr).getReferencedDeclaration();
+                    if (refDecl.equals(this))
                         return false;
+                    if (!checkedDeclarations.add(refDecl))
+                        continue;
                 }
                 afterStaticQueue.addAll(expr.getSubTerms());
             }
