@@ -7,15 +7,17 @@ public interface Evaluator {
     /**
      * Evaluates a single expression.
      * @param expr the expression to evaluate.
+     * @return <code>true</code> if there was an error
      */
-    void evaluate(Expression expr);
+    boolean evaluate(Expression expr);
 
     /**
      * Evaluates an expression and all successor expressions, i.e. expressions
      * that are available through transitions (recursively).
-     * @param expr
-     * @param monitor
+     * @param expr the expression to evaluate
+     * @param monitor a monitor that is informed about new states and transitions
+     * @return <code>true</code> if there was an error
      */
-    void evaluateAll(Expression expr, EvaluationMonitor monitor);
+    boolean evaluateAll(Expression expr, EvaluationMonitor monitor);
 
 }

@@ -76,8 +76,8 @@ public class Program {
         evaluate(eval, null);
     }
 
-    public void evaluate(Evaluator eval, EvaluationMonitor monitor) {
-        eval.evaluateAll(mainExpression, monitor);
+    public boolean evaluate(Evaluator eval, EvaluationMonitor monitor) {
+        return eval.evaluateAll(mainExpression, monitor);
     }
 
     public List<Transition> getTransitions() {

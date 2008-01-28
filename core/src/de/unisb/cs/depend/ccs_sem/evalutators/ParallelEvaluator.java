@@ -1,5 +1,6 @@
 package de.unisb.cs.depend.ccs_sem.evalutators;
 
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -10,6 +11,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.InternalSystemException;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
@@ -30,6 +33,8 @@ public class ParallelEvaluator implements Evaluator {
 
     protected EvaluationMonitor monitor;
 
+    public boolean errorOccured = false;
+
     public ParallelEvaluator(int numThreads) {
         this.numThreads = numThreads;
     }
@@ -38,31 +43,27 @@ public class ParallelEvaluator implements Evaluator {
         this.numThreads = null;
     }
 
-    public void evaluate(Expression expr) {
-        evaluate(expr, null);
+    public boolean evaluate(Expression expr) {
+        return evaluate(expr, null);
     }
 
-    public void evaluate(Expression expr, EvaluationMonitor monitor) {
+    public boolean evaluate(Expression expr, EvaluationMonitor monitor) {
         if (expr.isEvaluated())
-            return;
+            return true;
 
-        evaluate0(expr, false, monitor);
+        return evaluate0(expr, false, monitor);
     }
 
-    public void evaluateAll(Expression expr) {
-        evaluateAll(expr, null);
-    }
-
-    public void evaluateAll(Expression expr, EvaluationMonitor monitor) {
-        evaluate0(expr, true, monitor);
+    public boolean evaluateAll(Expression expr, EvaluationMonitor monitor) {
+        return evaluate0(expr, true, monitor);
     }
 
     // synchronized s.t. it can only be called once at a time
-    private synchronized void evaluate0(Expression expr, boolean evaluateSuccessors, EvaluationMonitor monitor) {
-        initialize(evaluateSuccessors, monitor);
-
+    private synchronized boolean evaluate0(Expression expr, boolean evaluateSuccessors, EvaluationMonitor monitor) {
         try {
             synchronized (readyLock) {
+                initialize(evaluateSuccessors, monitor);
+
                 // the EvaluatorJob executes itself automatically
                 if (evaluateSuccessors)
                     evaluatedSuccessors.add(expr);
@@ -78,6 +79,8 @@ public class ParallelEvaluator implements Evaluator {
         } finally {
             shutdown();
         }
+
+        return !errorOccured;
     }
 
     private void initialize(boolean evaluateSuccessors, EvaluationMonitor monitor2) {
@@ -89,7 +92,21 @@ public class ParallelEvaluator implements Evaluator {
             ? Runtime.getRuntime().availableProcessors() + 1
             : numThreads;
 
-        executor = Executors.newFixedThreadPool(threadsToInstantiate);
+        final UncaughtExceptionHandler eh = new Thread.UncaughtExceptionHandler() {
+            public void uncaughtException(Thread t, Throwable e) {
+                errorOccured = true;
+                synchronized (readyLock) {
+                    System.err.print("Exception in thread \""
+                        + t.getName() + "\" ");
+                    e.printStackTrace(System.err);
+                    if (monitor != null)
+                        monitor.error(e.getClass().getName() + ": " + e.getMessage());
+                    readyLock.notifyAll();
+                }
+            }
+        };
+        final ThreadFactory myThreadFactory = new MyThreadFactory(eh);
+        executor = Executors.newFixedThreadPool(threadsToInstantiate, myThreadFactory);
 
         currentlyEvaluating = new ConcurrentHashMap<Expression, EvaluatorJob>();
 
@@ -97,13 +114,19 @@ public class ParallelEvaluator implements Evaluator {
             evaluatedSuccessors = new ConcurrentSet<Expression>(threadsToInstantiate);
 
         monitor = monitor2;
+
+        errorOccured = false;
     }
 
     private void shutdown() {
-        executor.shutdown();
+        if (errorOccured && executor != null)
+            executor.shutdownNow();
+
+        if (executor != null)
+            executor.shutdown();
         executor = null;
 
-        assert currentlyEvaluating.isEmpty();
+        assert errorOccured || currentlyEvaluating == null || currentlyEvaluating.isEmpty();
         currentlyEvaluating = null;
 
         evaluatedSuccessors = null;
@@ -186,13 +209,12 @@ public class ParallelEvaluator implements Evaluator {
             final Object removed = currentlyEvaluating.remove(expr);
             assert removed != null;
 
-            // TODO isEmpty could slow down the whole evaluation. there are a
-            // lot of locks (on each segment)
+            // if everything is evaluated, inform the waiting thread(s)
             if (currentlyEvaluating.isEmpty()) {
                 synchronized (readyLock) {
                     if (monitor != null)
                         monitor.ready();
-                    readyLock.notify();
+                    readyLock.notifyAll();
                 }
             }
         }
@@ -268,6 +290,32 @@ public class ParallelEvaluator implements Evaluator {
         @Override
         public boolean remove(Object o) {
             return map.remove(o) == PRESENT;
+        }
+    }
+
+    private static class MyThreadFactory implements ThreadFactory {
+        static final AtomicInteger poolNumber = new AtomicInteger(1);
+        final ThreadGroup group;
+        final AtomicInteger threadNumber = new AtomicInteger(1);
+        final String namePrefix;
+        private final UncaughtExceptionHandler eh;
+
+        public MyThreadFactory(UncaughtExceptionHandler eh) {
+            this.eh = eh;
+            group = Thread.currentThread().getThreadGroup();
+            namePrefix = "parallelEvaluator-";
+        }
+
+        public Thread newThread(Runnable r) {
+            final Thread t = new Thread(group, r,
+                                  namePrefix + threadNumber.getAndIncrement(),
+                                  0);
+            if (t.isDaemon())
+                t.setDaemon(false);
+            if (t.getPriority() != Thread.NORM_PRIORITY)
+                t.setPriority(Thread.NORM_PRIORITY);
+            t.setUncaughtExceptionHandler(eh);
+            return t;
         }
     }
 

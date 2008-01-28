@@ -664,7 +664,7 @@ public class CCSParser implements Parser {
                         }
                     }
                 }
-                return new ConstStringChannel(identifier.getName(), identifier.isQuoted());
+                return new ConstStringChannel(identifier.getName());
             }
             tokens.previous();
         }
@@ -982,7 +982,7 @@ public class CCSParser implements Parser {
                 if (constant != null)
                     return constant;
             }
-            return new ConstString(name, id.isQuoted());
+            return new ConstString(name);
         }
         if (nextToken instanceof LParenthesis) {
             final Value value = readArithmeticExpression(tokens);

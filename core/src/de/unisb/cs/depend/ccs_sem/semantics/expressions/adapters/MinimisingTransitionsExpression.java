@@ -84,7 +84,7 @@ public class MinimisingTransitionsExpression extends Expression {
         List<Transition> transitions = myExpr.getTransitions();
 
         boolean onlyTauOutgoing = true;
-        final Queue<Transition> tauSuccessors = new ArrayDeque<Transition>();
+        final Queue<Transition> tauTransitions = new ArrayDeque<Transition>();
 
         // if we have just one outgoing tau transition, we just move forward
         // to the target of this transition
@@ -104,7 +104,7 @@ public class MinimisingTransitionsExpression extends Expression {
         if (onlyTauOutgoing)
             for (final Transition trans: transitions) {
                 if (trans.getAction() instanceof TauAction) {
-                    tauSuccessors.add(trans);
+                    tauTransitions.add(trans);
                 } else {
                     onlyTauOutgoing = false;
                     break;
@@ -125,7 +125,7 @@ public class MinimisingTransitionsExpression extends Expression {
         final Set<Transition> newTransitions = new HashSet<Transition>(transitions.size() * 2);
 
         Transition trans = null;
-        while ((trans = tauSuccessors.poll()) != null) {
+        while ((trans = tauTransitions.poll()) != null) {
             onlyTauOutgoing = true;
             final List<Transition> targetTransitions = trans.getTarget().getTransitions();
             for (final Transition trans2: targetTransitions)
@@ -134,7 +134,7 @@ public class MinimisingTransitionsExpression extends Expression {
                     break;
                 }
             if (onlyTauOutgoing)
-                tauSuccessors.addAll(targetTransitions);
+                tauTransitions.addAll(targetTransitions);
             else {
                 MinimisingTransitionsExpression expr = new MinimisingTransitionsExpression(trans.getTarget());
                 expr = (MinimisingTransitionsExpression)ExpressionRepository.getExpression(expr);

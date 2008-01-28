@@ -11,29 +11,31 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 
 public class SequentialEvaluator implements Evaluator {
 
-    public void evaluate(Expression expr) {
+    public boolean evaluate(Expression expr) {
         if (expr.isEvaluated())
-            return;
+            return true;
 
         for (final Expression child: expr.getChildren()) {
             evaluate(child);
         }
 
         expr.evaluate();
+        return true;
     }
 
-    public void evaluateAll(Expression expr, EvaluationMonitor monitor) {
+    public boolean evaluateAll(Expression expr, EvaluationMonitor monitor) {
         final Queue<Expression> toEvaluate = new ArrayDeque<Expression>();
         toEvaluate.add(expr);
 
         final Set<Expression> seen = new HashSet<Expression>();
         seen.add(expr);
 
+        boolean ok = true;
         while (!toEvaluate.isEmpty()) {
             final Expression e = toEvaluate.poll();
             if (monitor != null)
                 monitor.newState();
-            evaluate(e);
+            ok &= evaluate(e);
             if (monitor != null)
                 monitor.newTransitions(e.getTransitions().size());
             for (final Transition trans: e.getTransitions()) {
@@ -45,6 +47,8 @@ public class SequentialEvaluator implements Evaluator {
 
         if (monitor != null)
             monitor.ready();
+
+        return ok;
     }
 
 }

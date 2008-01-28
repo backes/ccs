@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -130,9 +131,18 @@ public class RestrictExpr extends Expression {
     @Override
     public Expression instantiate(Map<Parameter, Value> parameters) {
         final Expression newExpr = innerExpr.instantiate(parameters);
-        if (newExpr.equals(innerExpr))
+        final Set<Action> newRestricted = new HashSet<Action>(restricted.size() * 4 / 3 + 1);
+        boolean restChanged = false;
+        for (final Action rest: restricted) {
+            final Action newRest = rest.instantiate(parameters);
+            if (!restChanged && !rest.equals(newRest))
+                restChanged = true;
+            newRestricted.add(newRest);
+        }
+
+        if (!restChanged && newExpr.equals(innerExpr))
             return this;
-        return ExpressionRepository.getExpression(new RestrictExpr(newExpr, restricted));
+        return ExpressionRepository.getExpression(new RestrictExpr(newExpr, newRestricted));
     }
 
     @Override

@@ -9,8 +9,8 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 // This is a constant string that can be either a channel or a value
 public class ConstStringChannel extends ConstString implements Channel {
 
-    public ConstStringChannel(String value, boolean needsQuotes) {
-        super(value, needsQuotes);
+    public ConstStringChannel(String value) {
+        super(value);
     }
 
     @Override

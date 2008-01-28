@@ -9,4 +9,6 @@ public interface EvaluationMonitor {
 
     void ready();
 
+    void error(String errorString);
+
 }

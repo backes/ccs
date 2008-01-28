@@ -18,7 +18,7 @@ public class ParameterRefChannel extends ParameterReference implements Channel {
             return (Channel)newValue;
         if (newValue instanceof ConstString) {
             final ConstString str = (ConstString)newValue;
-            return new ConstStringChannel(str.getValue(), str.isNeedsQuotes());
+            return new ConstStringChannel(str.getValue());
         }
         if (newValue instanceof ParameterReference)
             return new ParameterRefChannel(((ParameterReference)newValue).getParam());

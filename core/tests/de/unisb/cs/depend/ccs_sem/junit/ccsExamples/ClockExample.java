@@ -1,4 +1,4 @@
-package de.unisb.cs.depend.ccs_sem.junit.integrationtests;
+package de.unisb.cs.depend.ccs_sem.junit.ccsExamples;
 
 import de.unisb.cs.depend.ccs_sem.junit.IntegrationTest;
 

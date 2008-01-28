@@ -115,8 +115,15 @@ public class Main {
                 log("Evaluated " + states + " states and " + transitions + " transitions.");
             }
 
+            public void error(String errorString) {
+                log("An error occured during evaluation: " + errorString);
+            }
+
         };
-        program.evaluate(evaluator, monitor);
+        if (!program.evaluate(evaluator, monitor)) {
+            System.err.println("Exiting due to a severe error.");
+            System.exit(-1);
+        }
 
         /*
         log("Counting...");
