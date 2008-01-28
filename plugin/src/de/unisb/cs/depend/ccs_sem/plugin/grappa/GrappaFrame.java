@@ -54,6 +54,7 @@ public class GrappaFrame extends Composite {
     private boolean showEdgeLabels = true;
     private boolean showNodeLabels = true;
     protected boolean layoutLeftToRight = true;
+    private boolean minimizeGraph = false;
 
     public GrappaFrame(Composite parent, int style, CCSEditor editor) {
         super(parent, style);
@@ -122,6 +123,10 @@ public class GrappaFrame extends Composite {
         buttonShowEdgeLabels.setSelection(true);
         buttonShowEdgeLabels.setText("Show edge labels");
 
+        final Button buttonMinimize = new Button(controlsComposite, SWT.CHECK);
+        buttonMinimize.setSelection(false);
+        buttonMinimize.setText("Minimize LTS");
+
         final Button buttonLayoutTopToBottom = new Button(controlsComposite, SWT.RADIO);
         buttonLayoutTopToBottom.setSelection(false);
         buttonLayoutTopToBottom.setText("Layout top to bottom");
@@ -179,6 +184,15 @@ public class GrappaFrame extends Composite {
 
         });
 
+        buttonMinimize.addListener(SWT.Selection, new Listener() {
+
+            public void handleEvent(Event event) {
+                setMinimize(buttonMinimize.getSelection());
+                update();
+            }
+
+        });
+
         buttonLayoutTopToBottom.addListener(SWT.Selection, new Listener() {
 
             public void handleEvent(Event event) {
@@ -201,6 +215,10 @@ public class GrappaFrame extends Composite {
         });
     }
 
+    protected void setMinimize(boolean minimize) {
+        this.minimizeGraph  = minimize;
+    }
+
     protected void setShowEdgeLabels(boolean showEdgeLabels) {
         this.showEdgeLabels = showEdgeLabels;
     }
@@ -216,7 +234,7 @@ public class GrappaFrame extends Composite {
         Program ccsProgram = null;
         String warning = null;
         try {
-            ccsProgram = ccsEditor.getCCSProgram(true);
+            ccsProgram = ccsEditor.getCCSProgram(true, minimizeGraph);
         } catch (final LexException e) {
             warning = "Error lexing: " + e.getMessage() + "\\n"
                 + "(around this context: " + e.getEnvironment() + ")";

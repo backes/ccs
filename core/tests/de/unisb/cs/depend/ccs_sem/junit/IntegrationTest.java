@@ -70,6 +70,8 @@ public abstract class IntegrationTest {
         final String expressionString = getExpressionString();
         final Program program = new CCSParser().parse(expressionString);
         program.evaluate(getEvaluator());
+        if (isMinimize())
+            program.minimizeTransitions();
 
         addStates();
         addTransitions();
@@ -120,6 +122,11 @@ public abstract class IntegrationTest {
                     + "\"-> \"" + targetLabel + "\") that shouldn't be there.");
             }
         }
+    }
+
+    // can be overwritten to prevent from minimizing the lts
+    protected boolean isMinimize() {
+        return true;
     }
 
     protected String decode(String str) {

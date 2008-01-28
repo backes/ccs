@@ -170,7 +170,7 @@ public class IntegrationtestExporter implements Exporter {
             case '4': case '5': case '6': case '7': case '8': case '9': case '.':
             case ' ': case ':': case '{': case '}': case '_': case '!': case '?':
             case '=': case ',': case '[': case ']': case '|': case ';': case '+':
-            case '-': case '/': case '*': case '(': case ')':
+            case '-': case '/': case '*': case '(': case ')': case '>': case '<':
                 sb.append(c);
                 break;
             case '\\':

@@ -18,6 +18,13 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.Range;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 
+/**
+ * This is an adapter for an expression to indicate that it is a top most
+ * Expression. While evaluation, it substitutes all not-instantiated input
+ * actions by all possible values for it.
+ *
+ * @author Clemens Hammacher
+ */
 public class TopMostExpression extends Expression {
 
     Expression myExpr;

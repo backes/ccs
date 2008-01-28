@@ -54,10 +54,15 @@ public class AddRange extends AbstractRange {
 
     @Override
     public String toString() {
-        final boolean rightNeedsParenthesis = right instanceof AddRange;
+        final boolean leftNeedsParenthesis = left instanceof IntervalRange;
+        final boolean rightNeedsParenthesis = right instanceof AddRange
+            || right instanceof IntervalRange;
 
         final StringBuilder sb = new StringBuilder();
-        sb.append(left.toString());
+        if (leftNeedsParenthesis)
+            sb.append('(').append(left.toString()).append(')');
+        else
+            sb.append(left.toString());
         sb.append(isSub ? " - " : " + ");
         if (rightNeedsParenthesis)
             sb.append('(').append(right.toString()).append(')');

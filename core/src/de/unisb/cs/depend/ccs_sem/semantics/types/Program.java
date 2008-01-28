@@ -6,12 +6,20 @@ import de.unisb.cs.depend.ccs_sem.evalutators.EvaluationMonitor;
 import de.unisb.cs.depend.ccs_sem.evalutators.Evaluator;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.adapters.MinimisingTransitionsExpression;
+import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
 
+/**
+ * This class represents a whole program, containing all Declarations and
+ * the main expression that describes the program.
+ *
+ * @author Clemens Hammacher
+ */
 public class Program {
 
     private final List<Declaration> declarations;
-    private final Expression mainExpression;
+    private Expression mainExpression;
 
     public Program(List<Declaration> declarations, Expression expr) throws ParseException {
         this.mainExpression = expr.replaceRecursion(declarations);
@@ -22,8 +30,7 @@ public class Program {
 
     @Override
     public String toString() {
-        final String newLine = System.getProperty("line.separator");
-        assert newLine != null;
+        final String newLine = Globals.getNewline();
 
         final StringBuilder sb = new StringBuilder();
         for (final Declaration decl: declarations) {
@@ -81,8 +88,13 @@ public class Program {
         return mainExpression.isEvaluated();
     }
 
+    /**
+     * Before calling this method, the program must be evaluated.
+     */
     public void minimizeTransitions() {
-        mainExpression.minimize();
+        assert isEvaluated();
+
+        mainExpression = MinimisingTransitionsExpression.create(mainExpression);
     }
 
 }

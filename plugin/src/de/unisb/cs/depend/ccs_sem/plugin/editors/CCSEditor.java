@@ -21,6 +21,8 @@ public class CCSEditor extends TextEditor implements IDocumentListener {
     private Program ccsProgram = null;
     private final Evaluator evaluator = new SequentialEvaluator();
     private boolean listenerAdded = false;
+    private boolean lastMinimizeGraph = false;
+    private boolean lastEvaluate = true;
 
     public CCSEditor() {
         super();
@@ -57,14 +59,16 @@ public class CCSEditor extends TextEditor implements IDocumentListener {
         return getDocument().get();
     }
 
-    public Program getCCSProgram(boolean evaluate) throws ParseException, LexException {
+    public Program getCCSProgram(boolean evaluate, boolean minimizeGraph) throws ParseException, LexException {
         if (!listenerAdded) {
             getDocument().addDocumentListener(this);
             listenerAdded = true;
         }
 
-        if (ccsProgram == null) {
+        if (ccsProgram == null || minimizeGraph != lastMinimizeGraph || evaluate != lastEvaluate) {
             ccsProgram = new CCSParser().parse(getText());
+            lastMinimizeGraph = minimizeGraph;
+            lastEvaluate  = evaluate;
             if (!ccsProgram.isGuarded())
                 throw new ParseException("Your recursive definitions are not guarded.");
             if (!ccsProgram.isRegular())
@@ -75,6 +79,8 @@ public class CCSEditor extends TextEditor implements IDocumentListener {
             synchronized (evaluator ) {
                 ccsProgram.evaluate(evaluator);
             }
+            if (minimizeGraph)
+                ccsProgram.minimizeTransitions();
         }
 
         return ccsProgram;

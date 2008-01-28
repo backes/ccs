@@ -122,8 +122,8 @@ public class Transition {
                     if (newRange == null)
                         newRange = new FullRange();
                     newRange = newRange.subtract(new SetRange(Collections.singleton(restrictionValue)));
-                    final Parameter newParam = new Parameter(restrictionInputAction.getParameter().getName(), newRange);
-                    final Action newAction = new InputAction(action.getChannel(), newParam);
+                    final Parameter newParam = new Parameter(myParam.getName(), newRange);
+                    final Action newAction = new InputAction(myInputAction.getChannel(), newParam);
                     // in the target, the old parameter has to be substituted with the new one
                     final Map<Parameter, Value> map = Collections.singletonMap(
                         myParam, (Value)new ParameterReference(newParam));

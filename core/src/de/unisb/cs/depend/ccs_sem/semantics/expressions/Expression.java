@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
@@ -89,19 +88,6 @@ public abstract class Expression {
      * @return either <code>this</code> or a new created Expression
      */
     public abstract Expression instantiate(Map<Parameter, Value> parameters);
-
-    // TODO this is not good, as it changed the transitions of this expression.
-    // Idea: new parameter "minimized"
-    public void minimize() {
-        assert isEvaluated();
-
-        for (final ListIterator<Transition> it = getTransitions().listIterator(); it.hasNext(); ) {
-            final Transition oldTrans = it.next();
-            final Transition newTrans = oldTrans.minimize();
-            if (oldTrans != newTrans)
-                it.set(newTrans);
-        }
-    }
 
     // we store the hashCode so that we only compute it once
     @Override
