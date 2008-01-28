@@ -7,6 +7,8 @@ import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.Range;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterReference;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 
@@ -34,16 +36,23 @@ public class InputAction extends Action {
 
     @Override
     public String getLabel() {
-        final String channelValue = channel.getStringValue();
-        final String paramValue = param != null ? param.toString()
-                        : value != null ? value.getStringValue() : null;
+        final String channelString = channel.getStringValue();
+        String valueString = null;
+        if (param != null)
+            valueString = param.toString();
+        else if (value != null) {
+            if (value instanceof ConstantValue || value instanceof ParameterReference)
+                valueString = value.getStringValue();
+            else
+                valueString = '('+value.getStringValue()+')';
+        }
 
-        final int size = channelValue.length() + 1 +
-            (paramValue == null ? 0 : paramValue.length());
+        final int size = channelString.length() + 1 +
+            (valueString == null ? 0 : valueString.length());
         final StringBuilder sb = new StringBuilder(size);
-        sb.append(channelValue).append('?');
-        if (paramValue != null)
-            sb.append(paramValue);
+        sb.append(channelString).append('?');
+        if (valueString != null)
+            sb.append(valueString);
         return sb.toString();
     }
 

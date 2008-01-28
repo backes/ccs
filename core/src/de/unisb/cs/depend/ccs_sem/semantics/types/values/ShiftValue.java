@@ -5,7 +5,7 @@ import java.util.Map;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 
 
-public class ShiftValue extends IntegerValue {
+public class ShiftValue extends AbstractValue implements IntegerValue {
 
     // the types are checked by the parser
     private final Value left;

@@ -5,7 +5,7 @@ import java.util.Map;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 
 
-public class CompValue extends BooleanValue {
+public class CompValue extends AbstractValue implements BooleanValue {
 
     // the types are checked by the parser
     private final Value left;

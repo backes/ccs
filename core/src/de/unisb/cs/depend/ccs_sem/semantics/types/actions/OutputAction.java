@@ -5,31 +5,38 @@ import java.util.Map;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterReference;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 
 public class OutputAction extends Action {
 
     private final Channel channel;
-    private final Value message;
+    private final Value value;
 
-    public OutputAction(Channel channel, Value message) {
+    public OutputAction(Channel channel, Value value) {
         super();
         this.channel = channel;
-        this.message = message;
+        this.value = value;
     }
 
     @Override
     public String getLabel() {
-        final String channelValue = channel.getStringValue();
-        final String messageValue = message == null ? null : message.getStringValue();
+        final String channelString = channel.getStringValue();
+        String valueString;
+        if (value == null)
+            valueString = "";
+        else if (value instanceof ConstantValue || value instanceof ParameterReference)
+            valueString = value.getStringValue();
+        else
+            valueString = '('+value.getStringValue()+')';
 
-        final int size = channelValue.length() + 1 +
-            (messageValue == null ? 0 : messageValue.length());
+        final int size = channelString.length() + 1 +
+            (valueString == null ? 0 : valueString.length());
         final StringBuilder sb = new StringBuilder(size);
-        sb.append(channelValue).append('!');
-        if (messageValue != null)
-            sb.append(messageValue);
+        sb.append(channelString).append('!');
+        sb.append(valueString);
         return sb.toString();
     }
 
@@ -40,7 +47,7 @@ public class OutputAction extends Action {
 
     @Override
     public Value getValue() {
-        return message;
+        return value;
     }
 
     @Override
@@ -60,18 +67,18 @@ public class OutputAction extends Action {
     public Action instantiate(Map<Parameter, Value> parameters) {
         final Channel newChannel = channel.instantiate(parameters);
 
-        if (message == null) {
+        if (value == null) {
             if (channel.equals(newChannel))
                 return this;
             return new OutputAction(newChannel, null);
         }
 
-        final Value newMessage = message.instantiate(parameters);
+        final Value newValue = value.instantiate(parameters);
 
-        if (channel.equals(newChannel) && message.equals(newMessage))
+        if (channel.equals(newChannel) && value.equals(newValue))
             return this;
 
-        return new OutputAction(newChannel, newMessage);
+        return new OutputAction(newChannel, newValue);
     }
 
     @Override
@@ -79,7 +86,7 @@ public class OutputAction extends Action {
         final int PRIME = 31;
         int result = 1;
         result = PRIME * result + channel.hashCode();
-        result = PRIME * result + ((message == null) ? 0 : message.hashCode());
+        result = PRIME * result + ((value == null) ? 0 : value.hashCode());
         return result;
     }
 
@@ -97,10 +104,10 @@ public class OutputAction extends Action {
                 return false;
         } else if (!channel.equals(other.channel))
             return false;
-        if (message == null) {
-            if (other.message != null)
+        if (value == null) {
+            if (other.value != null)
                 return false;
-        } else if (!message.equals(other.message))
+        } else if (!value.equals(other.value))
             return false;
         return true;
     }

@@ -5,7 +5,8 @@ import java.util.Map;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 
 
-public class ConstIntegerValue extends IntegerValue implements ConstantValue {
+public class ConstIntegerValue extends AbstractValue
+    implements IntegerValue, ConstantValue {
 
     private final int value;
 

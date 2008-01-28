@@ -5,7 +5,7 @@ import java.util.Map;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 
 
-public class MultValue extends IntegerValue {
+public class MultValue extends AbstractValue implements IntegerValue {
 
     // the types are checked by the parser
     private final Value left;

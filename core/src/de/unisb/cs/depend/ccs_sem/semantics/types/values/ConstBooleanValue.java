@@ -5,7 +5,8 @@ import java.util.Map;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 
 
-public class ConstBooleanValue extends BooleanValue implements ConstantValue {
+public class ConstBooleanValue extends AbstractValue
+    implements BooleanValue, ConstantValue {
 
     private static ConstBooleanValue trueInstance = new ConstBooleanValue(true);
     private static ConstBooleanValue falseInstance = new ConstBooleanValue(false);

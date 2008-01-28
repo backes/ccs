@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.TreeSet;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
@@ -131,7 +131,7 @@ public class RestrictExpr extends Expression {
     @Override
     public Expression instantiate(Map<Parameter, Value> parameters) {
         final Expression newExpr = innerExpr.instantiate(parameters);
-        final Set<Action> newRestricted = new HashSet<Action>(restricted.size() * 4 / 3 + 1);
+        final Set<Action> newRestricted = new TreeSet<Action>();
         boolean restChanged = false;
         for (final Action rest: restricted) {
             final Action newRest = rest.instantiate(parameters);

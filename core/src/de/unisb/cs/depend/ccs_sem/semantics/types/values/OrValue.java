@@ -5,7 +5,7 @@ import java.util.Map;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 
 
-public class OrValue extends BooleanValue {
+public class OrValue extends AbstractValue implements BooleanValue {
 
     // the types are checked by the parser
     private final Value left;

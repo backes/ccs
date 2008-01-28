@@ -5,7 +5,7 @@ import java.util.Map;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 
 
-public class NotValue extends BooleanValue {
+public class NotValue extends AbstractValue implements BooleanValue {
 
     // the type is checked by the parser
     private final Value negatedValue;
@@ -19,16 +19,16 @@ public class NotValue extends BooleanValue {
         return negatedValue;
     }
 
-    public static BooleanValue create(Value negatedValue) {
+    public static Value create(Value negatedValue) {
         if (negatedValue instanceof ConstBooleanValue)
             return ConstBooleanValue.get(!((ConstBooleanValue)negatedValue).getValue());
         if (negatedValue instanceof NotValue)
-            return (BooleanValue) ((NotValue)negatedValue).getNegatedValue();
+            return ((NotValue)negatedValue).getNegatedValue();
         return new NotValue(negatedValue);
     }
 
     @Override
-    public BooleanValue instantiate(Map<Parameter, Value> parameters) {
+    public Value instantiate(Map<Parameter, Value> parameters) {
         final Value newNegatedValue = negatedValue.instantiate(parameters);
         if (negatedValue.equals(newNegatedValue))
             return this;
