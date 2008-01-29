@@ -59,11 +59,10 @@ public class GrappaFrame extends Composite {
     public GrappaFrame(Composite parent, int style, CCSEditor editor) {
         super(parent, style);
         this.ccsEditor = editor;
-        setLayout(new org.eclipse.swt.layout.GridLayout(1, true));
+        setLayout(new org.eclipse.swt.layout.GridLayout());
 
         final Composite controlsComposite = new Composite(this, SWT.None);
         controlsComposite.setLayout(new FillLayout(SWT.HORIZONTAL));
-        controlsComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
         /*
         final ScrolledComposite scrolledGraphComposite = new ScrolledComposite(this, SWT.H_SCROLL | SWT.V_SCROLL);
@@ -78,13 +77,11 @@ public class GrappaFrame extends Composite {
         final Composite graphComposite = new Composite(this, SWT.EMBEDDED);
         //scrolledGraphComposite.setContent(graphComposite);
         graphComposite.setLayout(new org.eclipse.swt.layout.GridLayout(1, true));
-        graphComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
 
         final Frame grappaFrame = SWT_AWT.new_Frame(graphComposite);
         grappaPanel = new GrappaPanel(graph);
         grappaPanel.addGrappaListener(new GrappaAdapter());
         grappaPanel.setScaleToFit(true);
-        grappaFrame.setLayout(new GridBagLayout());
         final JScrollPane scroll = new JScrollPane(grappaPanel);
         grappaFrame.setLayout(new GridLayout(1,1));
         grappaFrame.add(scroll);

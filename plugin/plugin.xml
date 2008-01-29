@@ -89,28 +89,37 @@
                icon="resources/icons/refresh.gif"
                id="de.unisb.cs.depend.ccs_sem.plugin.actions.ShowGraphAction"
                label="Show Graph"
+               menubarPath="ccsMenu/ccsGroup"
                style="push"
                toolbarPath="ccsGroup"
                tooltip="Open the Graph view and displays the CCS Graph">
          </action>
          <action
                class="de.unisb.cs.depend.ccs_sem.plugin.actions.SaveAsCCSFile"
+               enablesFor="1"
                icon="resources/icons/saveas.gif"
                id="de.unisb.cs.depend.ccs_sem.plugin.editorActions.SaveAsCCSFileAction"
                label="&amp;Save As..."
                style="push"
-               toolbarPath="ccsGroup"
+               toolbarPath="ccsToolbarGroup"
                tooltip="Save As...">
          </action>
          <action
                class="de.unisb.cs.depend.ccs_sem.plugin.actions.SaveCCSFile"
+               enablesFor="1"
                icon="resources/icons/save.gif"
                id="de.unisb.cs.depend.ccs_sem.plugin.editorActions.SaveCCSFileAction"
                label="&amp;Save File"
                style="push"
-               toolbarPath="ccsGroup"
+               toolbarPath="ccsToolbarGroup"
                tooltip="Save file">
          </action>
+         <menu
+               id="ccsMenu"
+               label="&amp;CCS"
+               >
+            <separator name="ccsGroup"/>
+         </menu>
       </editorContribution>
    </extension>
    <extension
