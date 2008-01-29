@@ -1,11 +1,12 @@
 package de.unisb.cs.depend.ccs_sem.evalutators;
 
-import java.util.ArrayDeque;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.AbstractExecutorService;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -15,19 +16,25 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
 
     private final int poolSize;
     private final ThreadFactory threadFactory;
-    private boolean isShutdown = false;
-    protected Map<Thread, Queue<Runnable>> threadJobs = null;
+    protected volatile boolean isShutdown = false;
+    protected final Map<Thread, Queue<Runnable>> threadJobs =
+        new ConcurrentHashMap<Thread, Queue<Runnable>>();
+    protected volatile boolean forcedStop = false;
+
+    // object for synchronization
+    protected Object newJobs = new Object();
 
     public ThreadBasedExecutor(int poolSize,
             ThreadFactory myThreadFactory) {
         super();
+        if (poolSize < 1)
+            throw new IllegalArgumentException("Poolsize must be > 0");
         this.poolSize = poolSize;
         this.threadFactory = myThreadFactory;
         initialize();
     }
 
     private void initialize() {
-        threadJobs = new HashMap<Thread, Queue<Runnable>>();
         for (int i = 0; i < poolSize; ++i) {
             final Thread newThread = threadFactory.newThread(new Worker());
             newThread.start();
@@ -51,14 +58,32 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
 
     public void shutdown() {
         isShutdown = true;
-
-        // TODO Auto-generated method stub
-
+        synchronized (newJobs) {
+            newJobs.notifyAll();
+        }
     }
 
     public List<Runnable> shutdownNow() {
-        // TODO Auto-generated method stub
-        return null;
+        forcedStop = true;
+        isShutdown = true;
+        for (final Thread thread: threadJobs.keySet()) {
+            thread.interrupt();
+        }
+
+        for (final Thread thread: threadJobs.keySet()) {
+            while (true) {
+                try {
+                    thread.join();
+                } catch (final InterruptedException e) {
+                    // ignore
+                }
+            }
+        }
+        final List<Runnable> list = new ArrayList<Runnable>();
+        for (final Queue<Runnable> q: threadJobs.values())
+            list.addAll(q);
+
+        return list;
     }
 
     public void execute(Runnable command) {
@@ -67,18 +92,17 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
 
         final Thread thread = Thread.currentThread();
         Queue<Runnable> jobs = threadJobs.get(thread);
-        if (jobs == null && threadJobs != null) {
-            synchronized (threadJobs) {
-                if (threadJobs.size() > 0) {
-                    // add to the first queue
-                    jobs = threadJobs.values().iterator().next();
-                }
-            }
+        if (jobs == null) {
+            while (threadJobs.size() == 0)
+                Thread.yield();
+            // add to the first queue
+            jobs = threadJobs.values().iterator().next();
         }
         if (jobs == null)
             throw new RejectedExecutionException("No running thread found ?!?");
-        synchronized (jobs) {
-            jobs.add(command);
+        jobs.add(command);
+        synchronized (newJobs) {
+            newJobs.notify();
         }
     }
 
@@ -93,45 +117,53 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
 
         public void run() {
             myThread = Thread.currentThread();
-            synchronized (threadJobs) {
-                myJobs = threadJobs.get(myThread);
-                if (myJobs == null)
-                    threadJobs.put(myThread, myJobs = new ArrayDeque<Runnable>());
-            }
-            while (true) {
-                final Runnable nextJob = getNextJob();
-                nextJob.run();
+            myJobs = threadJobs.get(myThread);
+            if (myJobs == null)
+                threadJobs.put(myThread, myJobs = new ConcurrentLinkedQueue<Runnable>());
+            while (!forcedStop) {
+                Runnable nextJob = getNextJob();
+                if (nextJob == null) {
+                    if (isShutdown) {
+                        // look a last time for a new job
+                        nextJob = getNextJob();
+                        if (nextJob == null)
+                            break;
+                    }
+                }
+                if (nextJob != null)
+                    nextJob.run();
             }
         }
 
         private Runnable getNextJob() {
             Runnable nextJob = null;
-            while (nextJob == null) {
-                synchronized (myJobs) {
-                    nextJob = myJobs.poll();
-                }
-                if (nextJob != null)
-                    return nextJob;
+            nextJob = myJobs.poll();
+            if (nextJob != null)
+                return nextJob;
 
-                Queue<Runnable> preferredQueue = null;
-                int maxSize = 0;
-                for (final Queue<Runnable> q: threadJobs.values()) {
-                    synchronized (q) {
-                        if (q.size() > maxSize) {
-                            maxSize = q.size();
-                            preferredQueue = q;
+            Queue<Runnable> preferredQueue = null;
+            int maxSize = 0;
+            for (final Queue<Runnable> q: threadJobs.values()) {
+                if (q.size() > maxSize) {
+                    maxSize = q.size();
+                    preferredQueue = q;
+                }
+            }
+
+            if (preferredQueue != null) {
+                nextJob = preferredQueue.poll();
+            }
+
+            if (nextJob == null && !isShutdown) {
+                synchronized (newJobs) {
+                    if (myJobs.isEmpty()) {
+                        try {
+                            newJobs.wait();
+                        } catch (final InterruptedException e) {
+                            // hm, then go on...
                         }
                     }
                 }
-
-                if (preferredQueue != null) {
-                    synchronized (preferredQueue) {
-                        nextJob = preferredQueue.poll();
-                    }
-                }
-
-                if (nextJob == null)
-                    Thread.yield();
             }
 
             return nextJob;
