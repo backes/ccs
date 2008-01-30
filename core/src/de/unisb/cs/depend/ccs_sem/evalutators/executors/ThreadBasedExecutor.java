@@ -25,7 +25,8 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
 
     private final ThreadFactory threadFactory;
     protected volatile boolean isShutdown = false;
-    protected Map<Thread, Queue<Runnable>> threadJobs = null;
+    protected Map<Thread, Queue<Runnable>> threadJobs =
+        new HashMap<Thread, Queue<Runnable>>();
     protected volatile boolean forcedStop = false;
 
     // object for synchronization
@@ -41,7 +42,6 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
     }
 
     private void initialize(int poolSize) {
-        threadJobs = new HashMap<Thread, Queue<Runnable>>();
         for (int i = 0; i < poolSize; ++i) {
             final Thread newThread = threadFactory.newThread(new Worker());
             newThread.start();
@@ -64,15 +64,19 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
     }
 
     public void shutdown() {
-        isShutdown = true;
         synchronized (newJobs) {
+            isShutdown = true;
             newJobs.notifyAll();
         }
     }
 
     public List<Runnable> shutdownNow() {
-        forcedStop = true;
-        isShutdown = true;
+        synchronized (newJobs) {
+            forcedStop = true;
+            isShutdown = true;
+            newJobs.notifyAll();
+        }
+        Thread.yield();
         for (final Thread thread: threadJobs.keySet()) {
             thread.interrupt();
         }
@@ -99,18 +103,23 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
 
         final Thread thread = Thread.currentThread();
         Queue<Runnable> jobs = threadJobs.get(thread);
-        if (jobs == null && threadJobs != null) {
+        if (jobs == null) {
             synchronized (threadJobs) {
-                if (threadJobs.size() > 0) {
-                    // add to the first queue
-                    jobs = threadJobs.values().iterator().next();
-                }
+                while (threadJobs.size() == 0)
+                    try {
+                        threadJobs.wait();
+                    } catch (final InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                // add to the first queue
+                jobs = threadJobs.values().iterator().next();
             }
         }
         if (jobs == null)
             throw new RejectedExecutionException("No running thread found ?!?");
-        synchronized (jobs) {
-            jobs.add(command);
+        jobs.add(command);
+        synchronized (newJobs) {
+            newJobs.notify();
         }
     }
 
@@ -127,15 +136,23 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
             myThread = Thread.currentThread();
             synchronized (threadJobs) {
                 myJobs = threadJobs.get(myThread);
-                if (myJobs == null)
+                if (myJobs == null) {
                     threadJobs.put(myThread, myJobs = new ArrayDeque<Runnable>());
+                    threadJobs.notifyAll();
+                }
             }
             while (!forcedStop) {
-                final Runnable nextJob = getNextJob();
+                Runnable nextJob = getNextJob();
+                if (nextJob == null) {
+                    if (isShutdown && !forcedStop) {
+                        // look a last time for a new job
+                        nextJob = getNextJob();
+                        if (nextJob == null)
+                            break;
+                    }
+                }
                 if (nextJob != null)
                     nextJob.run();
-                else if (isShutdown)
-                    break;
             }
         }
 
@@ -164,8 +181,17 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
                 }
             }
 
-            if (nextJob == null)
-                Thread.yield();
+            if (nextJob == null) {
+                synchronized (newJobs) {
+                    if (myJobs.isEmpty() && !isShutdown) {
+                        try {
+                            newJobs.wait();
+                        } catch (final InterruptedException e) {
+                            // hm, then go on...
+                        }
+                    }
+                }
+            }
 
             return nextJob;
         }
