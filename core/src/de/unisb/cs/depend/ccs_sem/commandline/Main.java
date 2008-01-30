@@ -168,7 +168,7 @@ public class Main {
             System.exit(-1);
         }
         if (evaluator == null) {
-            evaluator = new ParallelEvaluator();
+            evaluator = new ThreadBasedEvaluator();
             //evaluator = new SequentialEvaluator();
         }
     }
@@ -256,9 +256,9 @@ public class Main {
         else if (policy == 1)
             evaluator = new SequentialEvaluator();
         else if (policy < 0)
-            evaluator = new ThreadBasedEvaluator(-policy);
+            evaluator = new ParallelEvaluator(-policy);
         else
-            evaluator = new ParallelEvaluator(policy);
+            evaluator = new ThreadBasedEvaluator(policy);
     }
 
     private void parseOutputFile(String arg) {
