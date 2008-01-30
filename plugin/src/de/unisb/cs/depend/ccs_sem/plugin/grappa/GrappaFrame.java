@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.swing.JScrollPane;
 
@@ -54,6 +55,7 @@ public class GrappaFrame extends Composite {
     private boolean showNodeLabels = true;
     protected boolean layoutLeftToRight = true;
     private boolean minimizeGraph = false;
+    private final ReentrantLock layoutLock = new ReentrantLock();
 
     public GrappaFrame(Composite parent, int style, CCSEditor editor) {
         super(parent, style);
@@ -226,7 +228,7 @@ public class GrappaFrame extends Composite {
     }
 
     @Override
-    public synchronized void update() {
+    public void update() {
 
         // parse ccs term
         Program ccsProgram = null;
@@ -241,86 +243,93 @@ public class GrappaFrame extends Composite {
                 + "(around this context: " + e.getEnvironment() + ")";
         }
 
-        graph.reset();
-        graph.setAttribute("root", "node_0");
-        // set layout direction to "left to right"
-        if (layoutLeftToRight)
-            graph.setAttribute(GrappaConstants.RANKDIR_ATTR, "LR");
-        graph.setToolTipText("");
+        layoutLock.lock();
 
-        if (warning != null) {
-            final Node node = new Node(graph, "warn_node");
-            graph.addNode(node);
-            node.setAttribute(GrappaConstants.LABEL_ATTR, warning);
-            node.setAttribute(GrappaConstants.STYLE_ATTR, "filled");
-            node.setAttribute(GrappaConstants.FILLCOLOR_ATTR, warnNodeColor);
-            node.setAttribute(GrappaConstants.TIP_ATTR,
-                "The graph could not be built. This is the reason why.");
-            filterGraph(graph);
-            graph.repaint();
-            return;
-        }
+        try {
+            graph.reset();
 
+            graph.setAttribute("root", "node_0");
+            // set layout direction to "left to right"
+            if (layoutLeftToRight)
+                graph.setAttribute(GrappaConstants.RANKDIR_ATTR, "LR");
+            graph.setToolTipText("");
 
-        final Queue<Expression> queue = new ArrayDeque<Expression>();
-        queue.add(ccsProgram.getMainExpression());
-
-        final Set<Expression> written = new HashSet<Expression>();
-        written.add(ccsProgram.getMainExpression());
-
-        final Map<Expression, Node> nodes = new HashMap<Expression, Node>();
-
-        // first, create all nodes
-        int cnt = 0;
-        while (!queue.isEmpty()) {
-            final Expression e = queue.poll();
-            final Node node = new Node(graph, "node_" + cnt++);
-            node.setAttribute(GrappaConstants.LABEL_ATTR,
-                showNodeLabels ? e.toString() : "");
-            if (cnt == 1) {
+            if (warning != null) {
+                final Node node = new Node(graph, "warn_node");
+                graph.addNode(node);
+                node.setAttribute(GrappaConstants.LABEL_ATTR, warning);
                 node.setAttribute(GrappaConstants.STYLE_ATTR, "filled");
-                node.setAttribute(GrappaConstants.FILLCOLOR_ATTR, startNodeColor);
+                node.setAttribute(GrappaConstants.FILLCOLOR_ATTR, warnNodeColor);
+                node.setAttribute(GrappaConstants.TIP_ATTR,
+                    "The graph could not be built. This is the reason why.");
+                filterGraph(graph);
+                graph.repaint();
+                return;
             }
-            node.setAttribute(GrappaConstants.TIP_ATTR, "Node: " + e.toString());
-            nodes.put(e, node);
-            graph.addNode(node);
-            for (final Transition trans: e.getTransitions())
-                if (written.add(trans.getTarget()))
-                    queue.add(trans.getTarget());
-        }
 
-        // then, create the edges
-        queue.add(ccsProgram.getMainExpression());
-        written.clear();
-        written.add(ccsProgram.getMainExpression());
-        cnt = 0;
 
-        while (!queue.isEmpty()) {
-            final Expression e = queue.poll();
-            final Node tailNode = nodes.get(e);
+            final Queue<Expression> queue = new ArrayDeque<Expression>();
+            queue.add(ccsProgram.getMainExpression());
 
-            for (final Transition trans: e.getTransitions()) {
-                final Node headNode = nodes.get(trans.getTarget());
-                final Edge edge = new Edge(graph, tailNode, headNode, "edge_" + cnt++);
-                final String label = showEdgeLabels ? trans.getAction().getLabel() : "";
-                edge.setAttribute(GrappaConstants.LABEL_ATTR, label);
-                final StringBuilder tipBuilder = new StringBuilder(230);
-                tipBuilder.append("<html><table border=0>");
-                tipBuilder.append("<tr><td align=right><i>Transition:</i></td><td>").append(label).append("</td></tr>");
-                tipBuilder.append("<tr><td align=right><i>from:</i></td><td>").append(e.toString()).append("</td></tr>");
-                tipBuilder.append("<tr><td align=right><i>to:</i></td><td>").append(trans.getTarget().toString()).append("</td></tr>");
-                tipBuilder.append("</table></html>.");
-                edge.setAttribute(GrappaConstants.TIP_ATTR, tipBuilder.toString());
-                graph.addEdge(edge);
-                if (written.add(trans.getTarget()))
-                    queue.add(trans.getTarget());
+            final Set<Expression> written = new HashSet<Expression>();
+            written.add(ccsProgram.getMainExpression());
+
+            final Map<Expression, Node> nodes = new HashMap<Expression, Node>();
+
+            // first, create all nodes
+            int cnt = 0;
+            while (!queue.isEmpty()) {
+                final Expression e = queue.poll();
+                final Node node = new Node(graph, "node_" + cnt++);
+                node.setAttribute(GrappaConstants.LABEL_ATTR,
+                    showNodeLabels ? e.toString() : "");
+                if (cnt == 1) {
+                    node.setAttribute(GrappaConstants.STYLE_ATTR, "filled");
+                    node.setAttribute(GrappaConstants.FILLCOLOR_ATTR, startNodeColor);
+                }
+                node.setAttribute(GrappaConstants.TIP_ATTR, "Node: " + e.toString());
+                nodes.put(e, node);
+                graph.addNode(node);
+                for (final Transition trans: e.getTransitions())
+                    if (written.add(trans.getTarget()))
+                        queue.add(trans.getTarget());
             }
+
+            // then, create the edges
+            queue.add(ccsProgram.getMainExpression());
+            written.clear();
+            written.add(ccsProgram.getMainExpression());
+            cnt = 0;
+
+            while (!queue.isEmpty()) {
+                final Expression e = queue.poll();
+                final Node tailNode = nodes.get(e);
+
+                for (final Transition trans: e.getTransitions()) {
+                    final Node headNode = nodes.get(trans.getTarget());
+                    final Edge edge = new Edge(graph, tailNode, headNode, "edge_" + cnt++);
+                    final String label = showEdgeLabels ? trans.getAction().getLabel() : "";
+                    edge.setAttribute(GrappaConstants.LABEL_ATTR, label);
+                    final StringBuilder tipBuilder = new StringBuilder(230);
+                    tipBuilder.append("<html><table border=0>");
+                    tipBuilder.append("<tr><td align=right><i>Transition:</i></td><td>").append(label).append("</td></tr>");
+                    tipBuilder.append("<tr><td align=right><i>from:</i></td><td>").append(e.toString()).append("</td></tr>");
+                    tipBuilder.append("<tr><td align=right><i>to:</i></td><td>").append(trans.getTarget().toString()).append("</td></tr>");
+                    tipBuilder.append("</table></html>.");
+                    edge.setAttribute(GrappaConstants.TIP_ATTR, tipBuilder.toString());
+                    graph.addEdge(edge);
+                    if (written.add(trans.getTarget()))
+                        queue.add(trans.getTarget());
+                }
+            }
+
+            if (!filterGraph(graph))
+                System.err.println("Could not layout graph.");
+
+            graph.repaint();
+        } finally {
+            layoutLock.unlock();
         }
-
-        if (!filterGraph(graph))
-            System.err.println("Could not layout graph.");
-
-        graph.repaint();
     }
 
     private boolean filterGraph(Graph graph) {
