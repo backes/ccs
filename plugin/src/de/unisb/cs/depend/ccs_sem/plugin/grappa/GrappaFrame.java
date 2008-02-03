@@ -19,6 +19,8 @@ import javax.swing.JScrollPane;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
@@ -88,6 +90,16 @@ public class GrappaFrame extends Composite {
         final JScrollPane scroll = new JScrollPane(grappaPanel);
         grappaFrame.setLayout(new GridLayout(1,1));
         grappaFrame.add(scroll);
+        
+        // Eclipse <3.3 workaround:
+        graphComposite.addControlListener(new ControlAdapter() {
+            
+            @Override
+            public void controlResized(ControlEvent e) {
+                grappaFrame.setSize(graphComposite.getSize().x, graphComposite.getSize().y);
+            }
+        
+        });
 
         Grappa.antiAliasText = true;
         Grappa.useAntiAliasing = true;
