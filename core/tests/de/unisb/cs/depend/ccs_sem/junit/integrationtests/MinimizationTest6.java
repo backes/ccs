@@ -23,4 +23,9 @@ public class MinimizationTest6 extends IntegrationTest {
         addTransition(0, 2, "a");
         addTransition(1, 2, "b");
     }
+
+    @Override
+    protected boolean isMinimize() {
+        return true;
+    }
 }

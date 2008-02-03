@@ -1,9 +1,9 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types;
 
-import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -45,7 +45,7 @@ public class Declaration {
         final Set<Declaration> checkedDeclarations = new HashSet<Declaration>();
         checkedDeclarations.add(this);
         // a queue of expressions to check
-        final Queue<Expression> queue = new ArrayDeque<Expression>();
+        final Queue<Expression> queue = new LinkedList<Expression>();
         queue.add(value);
 
         while (!queue.isEmpty()) {
@@ -84,10 +84,10 @@ public class Declaration {
         final Set<Declaration> checkedDeclarations = new HashSet<Declaration>();
         checkedDeclarations.add(this);
         // a queue of expressions to check
-        final Queue<Expression> queue = new ArrayDeque<Expression>();
+        final Queue<Expression> queue = new LinkedList<Expression>();
         queue.add(value);
         // queue of expressions that occured after static operators
-        final Queue<Expression> afterStaticQueue = new ArrayDeque<Expression>();
+        final Queue<Expression> afterStaticQueue = new LinkedList<Expression>();
 
         // first, search for all expressions that occure after static operators
         while (!queue.isEmpty()) {

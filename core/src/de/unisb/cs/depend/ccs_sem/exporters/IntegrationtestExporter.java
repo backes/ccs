@@ -35,7 +35,7 @@ public class IntegrationtestExporter implements Exporter {
 
     private static String extractClassName(File javaFilename) {
         final String filename = javaFilename.getName();
-        if (filename.isEmpty())
+        if (filename.length() == 0)
             return randomClassName();
 
         final int dotIndex = filename.indexOf('.');

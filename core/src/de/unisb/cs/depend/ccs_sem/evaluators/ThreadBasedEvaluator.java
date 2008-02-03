@@ -1,9 +1,9 @@
-package de.unisb.cs.depend.ccs_sem.evalutators;
+package de.unisb.cs.depend.ccs_sem.evaluators;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadFactory;
 
-import de.unisb.cs.depend.ccs_sem.evalutators.executors.ThreadBasedExecutor;
+import de.unisb.cs.depend.ccs_sem.evaluators.executors.ThreadBasedExecutor;
 
 
 public class ThreadBasedEvaluator extends ParallelEvaluator {

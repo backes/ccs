@@ -2,11 +2,12 @@ package de.unisb.cs.depend.ccs_sem.semantics.types;
 
 import java.util.List;
 
-import de.unisb.cs.depend.ccs_sem.evalutators.EvaluationMonitor;
-import de.unisb.cs.depend.ccs_sem.evalutators.Evaluator;
+import de.unisb.cs.depend.ccs_sem.evaluators.EvaluationMonitor;
+import de.unisb.cs.depend.ccs_sem.evaluators.Evaluator;
+import de.unisb.cs.depend.ccs_sem.evaluators.SequentialEvaluator;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.adapters.MinimisingTransitionsExpression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.adapters.FastMinimisingTransitionsExpression;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
 
@@ -90,11 +91,20 @@ public class Program {
 
     /**
      * Before calling this method, the program must be evaluated.
+     * @param minimizationMonitor an EvaluationMonitor that is informed about the progress
+     * @param evaluator the preferred evaluator to use
      */
-    public void minimizeTransitions() {
+    public void minimizeTransitions(Evaluator evaluator, EvaluationMonitor minimizationMonitor) {
         assert isEvaluated();
 
-        mainExpression = MinimisingTransitionsExpression.create(mainExpression);
+        //mainExpression = MinimisingTransitionsExpression.create(mainExpression);
+        mainExpression = new FastMinimisingTransitionsExpression(mainExpression);
+
+        evaluate(evaluator, minimizationMonitor);
+    }
+
+    public void minimizeTransitions() {
+        minimizeTransitions(new SequentialEvaluator(), null);
     }
 
 }

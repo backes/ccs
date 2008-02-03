@@ -250,6 +250,9 @@ public class ParallelExpr extends Expression {
         if (getClass() != obj.getClass())
             return false;
         final ParallelExpr other = (ParallelExpr) obj;
+        // hashCode is cached, so we compare it first (it's cheap)
+        if (hashCode() != other.hashCode())
+            return false;
         if (!left.equals(other.left))
             return false;
         if (!right.equals(other.right))

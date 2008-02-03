@@ -4,17 +4,17 @@ package de.unisb.cs.depend.ccs_sem.junit;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import de.unisb.cs.depend.ccs_sem.evalutators.Evaluator;
-import de.unisb.cs.depend.ccs_sem.evalutators.SequentialEvaluator;
+import de.unisb.cs.depend.ccs_sem.evaluators.Evaluator;
+import de.unisb.cs.depend.ccs_sem.evaluators.SequentialEvaluator;
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.parser.CCSParser;
@@ -83,7 +83,7 @@ public abstract class IntegrationTest {
         // (starting at node 0)
 
         // the queue of expressions to check
-        final Deque<Integer> queue = new ArrayDeque<Integer>();
+        final Queue<Integer> queue = new LinkedList<Integer>();
         queue.add(0);
 
         // mapping from stateNr to expression in the program
@@ -95,7 +95,7 @@ public abstract class IntegrationTest {
             states.get(0).toString(), program.getMainExpression().toString());
 
         while (!queue.isEmpty()) {
-            final int stateNr = queue.pollFirst();
+            final int stateNr = queue.poll();
             final List<SimpleTrans> expectedTrans = transitions.get(stateNr);
             final Expression expr = generatedExpr.get(stateNr);
             final List<Transition> foundTrans = expr.getTransitions();
@@ -124,9 +124,9 @@ public abstract class IntegrationTest {
         }
     }
 
-    // can be overwritten to prevent from minimizing the lts
+    // can be overwritten to set whether the lts should be minimized
     protected boolean isMinimize() {
-        return true;
+        return false;
     }
 
     protected String decode(String str) {

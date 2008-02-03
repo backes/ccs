@@ -1,4 +1,4 @@
-package de.unisb.cs.depend.ccs_sem.evalutators;
+package de.unisb.cs.depend.ccs_sem.evaluators;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.AbstractSet;

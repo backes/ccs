@@ -139,6 +139,9 @@ public class UnknownString extends Expression {
         if (getClass() != obj.getClass())
             return false;
         final UnknownString other = (UnknownString) obj;
+        // hashCode is cached, so we compare it first (it's cheap)
+        if (hashCode() != other.hashCode())
+            return false;
         if (!name.equals(other.name))
             return false;
         if (!parameters.equals(other.parameters))

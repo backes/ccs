@@ -100,6 +100,9 @@ public class ConditionalExpression extends Expression {
         if (getClass() != obj.getClass())
             return false;
         final ConditionalExpression other = (ConditionalExpression) obj;
+        // hashCode is cached, so we compare it first (it's cheap)
+        if (hashCode() != other.hashCode())
+            return false;
         if (!condition.equals(other.condition))
             return false;
         if (!consequence.equals(other.consequence))

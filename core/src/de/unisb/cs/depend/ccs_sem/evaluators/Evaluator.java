@@ -1,4 +1,4 @@
-package de.unisb.cs.depend.ccs_sem.evalutators;
+package de.unisb.cs.depend.ccs_sem.evaluators;
 
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 

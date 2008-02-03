@@ -1,16 +1,15 @@
 package de.unisb.cs.depend.ccs_sem.semantics.expressions.adapters;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
-import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.ExpressionRepository;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
@@ -25,11 +24,13 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
  * i.e. it substitutes all chains of tau transitions (labeled by "i") by just
  * one tau transition to the corresponding target.
  *
- * TODO: document exactly how this algorithm works (and/or find a better algorithm)
+ * This implementation is very fast, but only does some simple minimisations.
+ * If you want to have the smallest weak bisimilar lts, you should use
+ * {@link MinimisingTransitionsExpression}.
  *
  * @author Clemens Hammacher
  */
-public class MinimisingTransitionsExpression extends Expression {
+public class FastMinimisingTransitionsExpression extends Expression {
 
     Expression myExpr;
 
@@ -39,44 +40,10 @@ public class MinimisingTransitionsExpression extends Expression {
      *
      * @param myExpr the main expression of the program to minimize
      */
-    private MinimisingTransitionsExpression(Expression myExpr) {
+    public FastMinimisingTransitionsExpression(Expression myExpr) {
         super();
         this.myExpr = myExpr;
         assert myExpr.isEvaluated();
-    }
-
-    /**
-     * Before calling this method, the given expression must be fully
-     * evaluated.
-     *
-     * @param myExpr the main expression of the program to minimize
-     * @return an expression that represents the minimized version of the given
-     *         expression
-     */
-    public static MinimisingTransitionsExpression create(Expression myExpr) {
-        MinimisingTransitionsExpression expr = new MinimisingTransitionsExpression(myExpr);
-        expr = (MinimisingTransitionsExpression)ExpressionRepository.getExpression(expr);
-        expr.evaluateAll();
-        return expr;
-    }
-
-    private void evaluateAll() {
-        // we have to recursively evaluate all successors of the actual expression
-        final Queue<Expression> toEvaluate = new ArrayDeque<Expression>();
-        toEvaluate.add(this);
-
-        final Set<Expression> seen = new HashSet<Expression>();
-        seen.add(this);
-
-        while (!toEvaluate.isEmpty()) {
-            final Expression e = toEvaluate.poll();
-            e.evaluate();
-            for (final Transition trans: e.getTransitions()) {
-                final Expression succ = trans.getTarget();
-                if (seen.add(succ))
-                    toEvaluate.add(succ);
-            }
-        }
     }
 
     @Override
@@ -84,7 +51,7 @@ public class MinimisingTransitionsExpression extends Expression {
         List<Transition> transitions = myExpr.getTransitions();
 
         boolean onlyTauOutgoing = true;
-        final Queue<Transition> tauTransitions = new ArrayDeque<Transition>();
+        final Queue<Transition> tauTransitions = new LinkedList<Transition>();
 
         // if we have just one outgoing tau transition, we just move forward
         // to the target of this transition
@@ -115,8 +82,8 @@ public class MinimisingTransitionsExpression extends Expression {
             // minimize the successors and return the transitions
             final Set<Transition> newTransitions = new HashSet<Transition>(transitions.size() * 3 / 2);
             for (final Transition trans: transitions) {
-                MinimisingTransitionsExpression expr = new MinimisingTransitionsExpression(trans.getTarget());
-                expr = (MinimisingTransitionsExpression)ExpressionRepository.getExpression(expr);
+                FastMinimisingTransitionsExpression expr = new FastMinimisingTransitionsExpression(trans.getTarget());
+                expr = (FastMinimisingTransitionsExpression)ExpressionRepository.getExpression(expr);
                 newTransitions.add(new Transition(trans.getAction(), expr));
             }
             return new ArrayList<Transition>(newTransitions);
@@ -136,8 +103,8 @@ public class MinimisingTransitionsExpression extends Expression {
             if (onlyTauOutgoing)
                 tauTransitions.addAll(targetTransitions);
             else {
-                MinimisingTransitionsExpression expr = new MinimisingTransitionsExpression(trans.getTarget());
-                expr = (MinimisingTransitionsExpression)ExpressionRepository.getExpression(expr);
+                FastMinimisingTransitionsExpression expr = new FastMinimisingTransitionsExpression(trans.getTarget());
+                expr = (FastMinimisingTransitionsExpression)ExpressionRepository.getExpression(expr);
                 newTransitions.add(new Transition(trans.getAction(), expr));
             }
         }
@@ -152,19 +119,12 @@ public class MinimisingTransitionsExpression extends Expression {
 
     @Override
     public Expression instantiate(Map<Parameter, Value> parameters) {
-        final Expression newExpr = myExpr.instantiate(parameters);
-        if (myExpr.equals(newExpr))
-            return this;
-        return create(newExpr);
+        throw new UnsupportedOperationException("An expression cannot be instantiated after minimization.");
     }
 
     @Override
-    public Expression replaceRecursion(List<Declaration> declarations)
-            throws ParseException {
-        final Expression newExpr = myExpr.replaceRecursion(declarations);
-        if (myExpr.equals(newExpr))
-            return this;
-        return create(newExpr);
+    public Expression replaceRecursion(List<Declaration> declarations) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -185,7 +145,7 @@ public class MinimisingTransitionsExpression extends Expression {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        final MinimisingTransitionsExpression other = (MinimisingTransitionsExpression) obj;
+        final FastMinimisingTransitionsExpression other = (FastMinimisingTransitionsExpression) obj;
         return myExpr.equals(other.myExpr);
     }
 

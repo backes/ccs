@@ -19,7 +19,7 @@ public abstract class Expression {
     private volatile List<Transition> transitions = null;
 
     // stores the hashcode of this expression
-    private int hash = 0;
+    private volatile int hash = 0;
 
     protected Expression() {
         // nothing to do
@@ -95,11 +95,11 @@ public abstract class Expression {
         int h = this.hash;
         if (h == 0) {
             synchronized (this) {
-                if (h == 0)
+                if ((h = this.hash) == 0)
                     h = hashCode0();
+                // we don't allow "0" as hashCode
+                this.hash = h == 0 ? 1 : h;
             }
-            // we don't allow "0" as hashCode
-            this.hash = h == 0 ? 1 : h;
         }
 
         assert h == hashCode0() || (h == 0 && hashCode0() == 1);

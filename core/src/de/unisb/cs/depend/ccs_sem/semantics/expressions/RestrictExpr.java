@@ -163,6 +163,9 @@ public class RestrictExpr extends Expression {
         if (getClass() != obj.getClass())
             return false;
         final RestrictExpr other = (RestrictExpr) obj;
+        // hashCode is cached, so we compare it first (it's cheap)
+        if (hashCode() != other.hashCode())
+            return false;
         if (!innerExpr.equals(other.innerExpr))
             return false;
         if (!restricted.equals(other.restricted))

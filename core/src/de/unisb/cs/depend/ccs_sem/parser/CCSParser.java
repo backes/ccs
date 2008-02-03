@@ -1,15 +1,14 @@
 package de.unisb.cs.depend.ccs_sem.parser;
 
 import java.io.Reader;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 import java.util.TreeSet;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
@@ -156,12 +155,11 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
  */
 public class CCSParser implements Parser {
 
-    // List of the currently read parameters, it's increased and decreased by
+    // Stack of the currently read parameters, it's increased and decreased by
     // the read... methods. When a string is read, we try to match it with one
-    // of these parameters *in ascending order*, that means from first to last.
-    // i.e. we can "overwrite" parameters by adding them to the front of this
-    // deque.
-    private Deque<Parameter> parameters;
+    // of these parameters *from top to bottom*.
+    // i.e. we can "overwrite" parameters by just pushing them to this stack.
+    private Stack<Parameter> parameters;
 
     // a Map of all constants that are defined in the current program
     private Map<String, ConstantValue> constants;
@@ -180,7 +178,7 @@ public class CCSParser implements Parser {
     // synchronized to make sure that this method is only called once at a time
     public synchronized Program parse(List<Token> tokens) throws ParseException {
         final ArrayList<Declaration> declarations = new ArrayList<Declaration>();
-        parameters = new ArrayDeque<Parameter>();
+        parameters = new Stack<Parameter>();
         constants = new HashMap<String, ConstantValue>();
         ranges = new HashMap<String, Range>();
 
@@ -324,8 +322,9 @@ public class CCSParser implements Parser {
             if (myParameters == null || !tokens.hasNext()
                     || !(tokens.peek() instanceof Equals) || ((Equals)tokens.next()).isComp())
                 return null;
-            final Deque<Parameter> oldParameters = parameters;
-            parameters = new ArrayDeque<Parameter>(myParameters);
+            final Stack<Parameter> oldParameters = parameters;
+            parameters = new Stack<Parameter>();
+            parameters.addAll(myParameters);
             try {
                 expr = readExpression(tokens);
             } finally {
@@ -720,12 +719,12 @@ public class CCSParser implements Parser {
                         newParam = ((InputAction)action).getParameter();
                         if (newParam != null) {
                             // add the new parameter to the front of the deque
-                            parameters.addFirst(newParam);
+                            parameters.push(newParam);
                         }
                     }
                     final Expression target = readPrefixExpression(tokens);
                     if (newParam != null) {
-                        final Parameter removedParam = parameters.pollFirst();
+                        final Parameter removedParam = parameters.pop();
                         assert removedParam == newParam;
                     }
                     return ExpressionRepository.getExpression(new PrefixExpr(action, target));

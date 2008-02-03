@@ -22,4 +22,9 @@ public class MinimizationTest3 extends IntegrationTest {
     protected void addTransitions() {
         // no transitions
     }
+
+    @Override
+    protected boolean isMinimize() {
+        return true;
+    }
 }

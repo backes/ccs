@@ -6,8 +6,8 @@ import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
-import de.unisb.cs.depend.ccs_sem.evalutators.Evaluator;
-import de.unisb.cs.depend.ccs_sem.evalutators.SequentialEvaluator;
+import de.unisb.cs.depend.ccs_sem.evaluators.Evaluator;
+import de.unisb.cs.depend.ccs_sem.evaluators.SequentialEvaluator;
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.parser.CCSParser;

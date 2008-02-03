@@ -9,11 +9,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import de.unisb.cs.depend.ccs_sem.evalutators.EvaluationMonitor;
-import de.unisb.cs.depend.ccs_sem.evalutators.Evaluator;
-import de.unisb.cs.depend.ccs_sem.evalutators.ParallelEvaluator;
-import de.unisb.cs.depend.ccs_sem.evalutators.SequentialEvaluator;
-import de.unisb.cs.depend.ccs_sem.evalutators.ThreadBasedEvaluator;
+import de.unisb.cs.depend.ccs_sem.evaluators.EvaluationMonitor;
+import de.unisb.cs.depend.ccs_sem.evaluators.Evaluator;
+import de.unisb.cs.depend.ccs_sem.evaluators.ParallelEvaluator;
+import de.unisb.cs.depend.ccs_sem.evaluators.SequentialEvaluator;
+import de.unisb.cs.depend.ccs_sem.evaluators.ThreadBasedEvaluator;
 import de.unisb.cs.depend.ccs_sem.exceptions.ExportException;
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
@@ -22,8 +22,6 @@ import de.unisb.cs.depend.ccs_sem.exporters.ETMCCExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.Exporter;
 import de.unisb.cs.depend.ccs_sem.exporters.IntegrationtestExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.bcg.BCGExporter;
-import de.unisb.cs.depend.ccs_sem.exporters.helpers.StateNumerator;
-import de.unisb.cs.depend.ccs_sem.exporters.helpers.TransitionCounter;
 import de.unisb.cs.depend.ccs_sem.lexer.CCSLexer;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Token;
 import de.unisb.cs.depend.ccs_sem.parser.CCSParser;
@@ -97,30 +95,7 @@ public class Main {
 
 
         log("Evaluating...");
-        final EvaluationMonitor monitor = new EvaluationMonitor() {
-
-            public int transitions = 0;
-            public int states = 0;
-
-            public synchronized void newTransitions(int size) {
-                transitions += size;
-            }
-
-            public synchronized void newState() {
-                ++states;
-                if (states % 10000 == 0)
-                    log(states + " states, " + transitions + " transitions so far...");
-            }
-
-            public void ready() {
-                log("Evaluated " + states + " states and " + transitions + " transitions.");
-            }
-
-            public void error(String errorString) {
-                log("An error occured during evaluation: " + errorString);
-            }
-
-        };
+        final EvaluationMonitor monitor = new EvalMonitor(false);
         if (!program.evaluate(evaluator, monitor)) {
             System.err.println("Exiting due to a severe error.");
             System.exit(-1);
@@ -135,11 +110,15 @@ public class Main {
 
         if (minimize) {
             log("Minimizing...");
-            program.minimizeTransitions();
+            final EvaluationMonitor minimizationMonitor = new EvalMonitor(true);
+            program.minimizeTransitions(evaluator, minimizationMonitor);
+
+            /*
             log("Counting...");
             final int newStateCount = StateNumerator.numerateStates(program.getMainExpression()).size();
             final int newTransitionCount = TransitionCounter.countTransitions(program.getMainExpression());
             log(newStateCount + " states, " + newTransitionCount + " Transitions.");
+            */
         }
 
 
@@ -326,7 +305,7 @@ public class Main {
         out.println();
     }
 
-    protected void log(String output) {
+    public static void log(String output) {
         final long newTime = System.currentTimeMillis();
         if (oldTime == 0)
             oldTime = newTime;
@@ -334,6 +313,40 @@ public class Main {
         final long diff = newTime - oldTime;
 
         System.out.format((Locale)null, "[%7.3f] %s%n", 1e-3 * diff, output);
+    }
+
+    private static class EvalMonitor implements EvaluationMonitor {
+
+        private static final int EVALUATION_INTERVAL = 10000;
+        private static final int MINIMIZATION_INTERVAL = 1000000;
+        private int transitions = 0;
+        private int states = 0;
+        private final boolean isMinimization;
+        private final int showInterval;
+
+        public EvalMonitor(boolean isMinimization) {
+            this.isMinimization = isMinimization;
+            this.showInterval = isMinimization ? MINIMIZATION_INTERVAL : EVALUATION_INTERVAL;
+        }
+
+        public synchronized void newTransitions(int size) {
+            transitions += size;
+        }
+
+        public synchronized void newState() {
+            ++states;
+            if (states % showInterval == 0)
+                log(states + " states, " + transitions + " transitions so far...");
+        }
+
+        public void ready() {
+            log((isMinimization ? "Minimized " : "Evaluated ") + states + " states and " + transitions + " transitions.");
+        }
+
+        public void error(String errorString) {
+            log("An error occured during " + (isMinimization ? "minimization: " : "evaluation: ") + errorString);
+        }
+
     }
 
 }

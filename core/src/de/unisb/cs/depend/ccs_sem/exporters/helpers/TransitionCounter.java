@@ -1,7 +1,7 @@
 package de.unisb.cs.depend.ccs_sem.exporters.helpers;
 
-import java.util.ArrayDeque;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
@@ -20,7 +20,7 @@ public class TransitionCounter {
         if (mainExpr.equals(lastExpression))
             return lastCount;
 
-        final Queue<Expression> toCount = new ArrayDeque<Expression>();
+        final Queue<Expression> toCount = new LinkedList<Expression>();
         toCount.add(mainExpr);
 
         final Set<Expression> counted = new HashSet<Expression>();

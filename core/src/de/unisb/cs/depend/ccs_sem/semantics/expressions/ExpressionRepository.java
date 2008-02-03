@@ -9,7 +9,9 @@ public class ExpressionRepository {
         new ConcurrentHashMap<Expression, Expression>();
 
     public static Expression getExpression(Expression expr) {
-        final Expression foundExpr = repository.putIfAbsent(expr, expr);
+        Expression foundExpr = repository.get(expr);
+        if (foundExpr == null)
+            foundExpr = repository.putIfAbsent(expr, expr);
         return foundExpr == null ? expr : foundExpr;
     }
 

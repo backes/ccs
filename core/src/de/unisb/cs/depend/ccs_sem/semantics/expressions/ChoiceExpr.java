@@ -123,6 +123,9 @@ public class ChoiceExpr extends Expression {
         if (getClass() != obj.getClass())
             return false;
         final ChoiceExpr other = (ChoiceExpr) obj;
+        // hashCode is cached, so we compare it first (it's cheap)
+        if (hashCode() != other.hashCode())
+            return false;
         if (!left.equals(other.left))
             return false;
         if (!right.equals(other.right))

@@ -1,7 +1,7 @@
-package de.unisb.cs.depend.ccs_sem.evalutators;
+package de.unisb.cs.depend.ccs_sem.evaluators;
 
-import java.util.ArrayDeque;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Set;
 
@@ -24,7 +24,7 @@ public class SequentialEvaluator implements Evaluator {
     }
 
     public boolean evaluateAll(Expression expr, EvaluationMonitor monitor) {
-        final Queue<Expression> toEvaluate = new ArrayDeque<Expression>();
+        final Queue<Expression> toEvaluate = new LinkedList<Expression>();
         toEvaluate.add(expr);
 
         final Set<Expression> seen = new HashSet<Expression>();

@@ -1,7 +1,7 @@
 package de.unisb.cs.depend.ccs_sem.exporters.helpers;
 
-import java.util.ArrayDeque;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 
@@ -32,7 +32,7 @@ public class StateNumerator {
         final Map<Expression, Integer> numbers = new HashMap<Expression, Integer>();
         numbers.put(mainExpression, startIndex);
 
-        final Queue<Expression> numerateSuccessors = new ArrayDeque<Expression>();
+        final Queue<Expression> numerateSuccessors = new LinkedList<Expression>();
         numerateSuccessors.add(mainExpression);
 
         int nextIndex = startIndex;

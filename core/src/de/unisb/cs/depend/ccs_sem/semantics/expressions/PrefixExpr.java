@@ -88,6 +88,9 @@ public class PrefixExpr extends Expression {
         if (getClass() != obj.getClass())
             return false;
         final PrefixExpr other = (PrefixExpr) obj;
+        // hashCode is cached, so we compare it first (it's cheap)
+        if (hashCode() != other.hashCode())
+            return false;
         if (!prefix.equals(other.prefix))
             return false;
         if (!target.equals(other.target))

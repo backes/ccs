@@ -1,9 +1,9 @@
-package de.unisb.cs.depend.ccs_sem.evalutators;
+package de.unisb.cs.depend.ccs_sem.evaluators;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadFactory;
 
-import de.unisb.cs.depend.ccs_sem.evalutators.executors.SimpleThreadPoolExecutor;
+import de.unisb.cs.depend.ccs_sem.evaluators.executors.SimpleThreadPoolExecutor;
 
 
 public class SimpleThreadPoolEvaluator extends ParallelEvaluator {

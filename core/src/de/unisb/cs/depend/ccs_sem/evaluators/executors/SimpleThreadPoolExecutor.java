@@ -1,8 +1,9 @@
-package de.unisb.cs.depend.ccs_sem.evalutators.executors;
+package de.unisb.cs.depend.ccs_sem.evaluators.executors;
 
 import java.util.ArrayList;
-import java.util.Deque;
+import java.util.EmptyStackException;
 import java.util.List;
+import java.util.Stack;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadFactory;
@@ -19,7 +20,7 @@ public class SimpleThreadPoolExecutor extends AbstractExecutorService {
     private final int poolSize;
     private final ThreadFactory threadFactory;
     protected boolean isShutdown = false;
-    protected Deque<Runnable> jobs = new SynchronizedArrayDeque<Runnable>();
+    protected Stack<Runnable> jobs = new Stack<Runnable>();
     private List<Worker> workers;
 
     public SimpleThreadPoolExecutor(int poolSize,
@@ -75,7 +76,7 @@ public class SimpleThreadPoolExecutor extends AbstractExecutorService {
         if (isShutdown)
             throw new RejectedExecutionException("Already shutdown.");
 
-        jobs.add(job);
+        jobs.push(job);
         synchronized (jobs) {
             jobs.notify();
         }
@@ -102,22 +103,26 @@ public class SimpleThreadPoolExecutor extends AbstractExecutorService {
         }
 
         private Runnable getNextJob() {
-            Runnable nextJob = jobs.poll();
-
-            if (nextJob != null)
-                return nextJob;
-
+            try {
+                return jobs.pop();
+            } catch (EmptyStackException e) {
+                // then wait for an incoming job...
+            }
+            
             synchronized (jobs) {
-                if (jobs.isEmpty())
+                if (jobs.isEmpty()) {
                     try {
                         jobs.wait();
-                        nextJob = jobs.poll();
-                    } catch (final InterruptedException e) {
-                        // then just go on...
+                        return jobs.pop();
+                    } catch (InterruptedException e) {
+                        return null;
+                    } catch (EmptyStackException e) {
+                        return null;
                     }
+                } else {
+                    return jobs.pop();
+                }
             }
-
-            return nextJob;
         }
 
         public void shutdownNow() {

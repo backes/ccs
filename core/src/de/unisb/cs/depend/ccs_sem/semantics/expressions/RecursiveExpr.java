@@ -119,6 +119,9 @@ public class RecursiveExpr extends Expression {
         if (getClass() != obj.getClass())
             return false;
         final RecursiveExpr other = (RecursiveExpr) obj;
+        // hashCode is cached, so we compare it first (it's cheap)
+        if (hashCode() != other.hashCode())
+            return false;
         if (!referencedDeclaration.equals(other.referencedDeclaration))
             return false;
         if (!parameterValues.equals(other.parameterValues))
