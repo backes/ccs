@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -58,7 +57,9 @@ public class MinimisingTransitionsExpression extends Expression {
                 }
             });
 
+        Main.log("...Creating first partition...");
         // first, fill the partitions list
+        ExprWrapper startingExprWrapper = null;
         {
             final Map<Expression, ExprWrapper> exprMap = new HashMap<Expression, ExprWrapper>();
 
@@ -71,6 +72,8 @@ public class MinimisingTransitionsExpression extends Expression {
             while (!queue.isEmpty()) {
                 final Expression expr = queue.poll();
                 exprMap.put(expr, new ExprWrapper(expr, null));
+                if (startingExprWrapper == null)
+                    startingExprWrapper = exprMap.get(expr);
 
                 assert expr.isEvaluated();
                 for (final Transition trans: expr.getTransitions()) {
@@ -99,61 +102,67 @@ public class MinimisingTransitionsExpression extends Expression {
         }
 
 
+        Main.log("...Computing partitions...");
         // now, divide the partitions into new partitions
         final Queue<Partition> readyPartitions = new LinkedList<Partition>();
         final Queue<Partition> unChangedPartitions = new LinkedList<Partition>();
         Partition partition;
         int changed = 0;
         int i = 0;
-        while ((partition = partitions.poll()) != null) {
-            if (++i % 10000 == 0)
-                Main.log(i + ": Ready: " + readyPartitions.size() + "; unchanged: " + unChangedPartitions.size() + "; changed: " + changed + "; queue: " + partitions.size());
-            if (partition.expressions.size() < 2) {
-                readyPartitions.add(partition);
-            } else if (partition.divide(partitions)) {
-                if (++changed * 10 >= unChangedPartitions.size()) {
-                    changed = 0;
-                    partitions.addAll(unChangedPartitions);
-                    unChangedPartitions.clear();
+        while (true) {
+            while ((partition = partitions.poll()) != null) {
+                if (++i % 10000 == 0)
+                    Main.log(i + ": Ready: " + readyPartitions.size() + "; unchanged: " + unChangedPartitions.size() + "; changed: " + changed + "; queue: " + partitions.size());
+                if (partition.expressions.size() < 2) {
+                    readyPartitions.add(partition);
+                } else if (partition.divide(partitions)) {
+                    if (++changed * 10 >= unChangedPartitions.size())
+                        break;
+                } else {
+                    unChangedPartitions.add(partition);
                 }
-            } else {
-                unChangedPartitions.add(partition);
             }
+            if (changed > 0) {
+                changed = 0;
+                partitions.addAll(unChangedPartitions);
+                unChangedPartitions.clear();
+            } else
+                break;
         }
         readyPartitions.addAll(unChangedPartitions);
-        readyPartitions.addAll(partitions);
 
 
-        // create the new Expressions
+        Main.log("...Creating new expressions...");
+        // create the new Expressions (in a BFS manner)
+        Queue<Partition> queue =
+            new LinkedList<Partition>();
+        queue.add(startingExprWrapper.part);
         int nextStateNr = 0;
-        MinimisingTransitionsExpression startingExpression = null;
         final Map<Partition, MinimisingTransitionsExpression> newExpressions =
             new HashMap<Partition, MinimisingTransitionsExpression>();
-        for (final Partition part: readyPartitions) {
-            final MinimisingTransitionsExpression newExpr =
-                new MinimisingTransitionsExpression(nextStateNr++);
-            newExpressions.put(part, newExpr);
+        Set<Partition> seen = new HashSet<Partition>();
+        Partition part;
+        while ((part = queue.poll()) != null) {
+            newExpressions.put(part, new MinimisingTransitionsExpression(nextStateNr++));
+            for (TransWrapperToPart trans: part.computeTransitions())
+                if (seen.add(trans.targetPart))
+                    queue.add(trans.targetPart);
         }
-        for (final Partition part: readyPartitions) {
-            final Set<Transition> transitions = new HashSet<Transition>();
-            MinimisingTransitionsExpression myGroup = null;
-            for (final ExprWrapper e: part.getExprWrappers()) {
-                if (myGroup == null)
-                    myGroup = newExpressions.get(e.part);
-                if (e.expr.equals(myExpr))
-                    startingExpression = myGroup;
-                for (final TransWrapper trans: e.transitions) {
-                    final Expression target = newExpressions.get(trans.target.part);
-                    if (trans.act instanceof TauAction && myGroup.equals(target))
-                        continue;
-                    transitions.add(new Transition(trans.act, target));
-                }
+        for (Entry<Partition, MinimisingTransitionsExpression> entry: newExpressions.entrySet()) {
+            Set<TransWrapperToPart> transitions = entry.getKey().computeTransitions();
+            ArrayList<Transition> newTransitions = new ArrayList<Transition>(transitions.size());
+            for (TransWrapperToPart trans: transitions) {
+                final Expression target = newExpressions.get(trans.targetPart);
+                if (trans.act instanceof TauAction && entry.getKey().equals(target))
+                    continue;
+                newTransitions.add(new Transition(trans.act, target));
             }
-            assert myGroup != null;
-            myGroup.setTransitions(new ArrayList<Transition>(transitions));
+            newTransitions.trimToSize();
+            entry.getValue().setTransitions(newTransitions);
         }
 
-        return startingExpression;
+        Main.log("...Minimizing ready...");
+        return newExpressions.get(startingExprWrapper.part);
     }
 
     @Override
@@ -208,22 +217,19 @@ public class MinimisingTransitionsExpression extends Expression {
 
     private static class Partition {
         final List<ExprWrapper> expressions;
-        // TODO remove lastSearchPos
-        Iterator<TransWrapper> lastSearchPos = null;
         boolean isNew = true;
-        Set<TransWrapper> transitions;
 
         public Partition(List<ExprWrapper> expressions) {
             this.expressions = expressions;
             for (final ExprWrapper ew: expressions)
                 ew.part = this;
-            this.transitions = null; //computeTransitions();
         }
 
-        private Set<TransWrapper> computeTransitions() {
-            final Set<TransWrapper> transitions = new HashSet<TransWrapper>();
+        public Set<TransWrapperToPart> computeTransitions() {
+            final Set<TransWrapperToPart> transitions = new HashSet<TransWrapperToPart>();
             for (final ExprWrapper ew: expressions)
-                transitions.addAll(ew.transitions);
+                for (TransWrapper tw: ew.transitions)
+                    transitions.add(new TransWrapperToPart(tw));
             return transitions;
         }
 
@@ -234,74 +240,59 @@ public class MinimisingTransitionsExpression extends Expression {
         public boolean divide(Queue<Partition> partitions) {
             isNew = false;
 
-            boolean began = false;
-            if (lastSearchPos == null || !lastSearchPos.hasNext()) {
-                began = true;
-                transitions = computeTransitions();
-                lastSearchPos = transitions.iterator();
-            }
-            while (true) {
-                while (lastSearchPos.hasNext()) {
-                    final TransWrapper trans = lastSearchPos.next();
-                    List<ExprWrapper> fulfills = null;
-                    List<ExprWrapper> fulfillsNot = null;
-                    for (final ExprWrapper otherExpr: expressions) {
-                        if (fulfills(otherExpr, trans)) {
-                            if (fulfills != null)
-                                fulfills.add(otherExpr);
-                        } else {
-                            if (fulfills == null) {
-                                fulfills = new ArrayList<ExprWrapper>();
-                                fulfillsNot = new ArrayList<ExprWrapper>();
-                                for (final ExprWrapper e2: expressions) {
-                                    if (e2.equals(otherExpr))
-                                        break;
-                                    fulfills.add(e2);
-                                }
+            Collection<TransWrapperToPart> transitions = computeTransitions();
+            for (TransWrapperToPart trans: transitions) {
+                List<ExprWrapper> fulfills = null;
+                List<ExprWrapper> fulfillsNot = null;
+                for (final ExprWrapper otherExpr: expressions) {
+                    if (fulfills(otherExpr, trans)) {
+                        if (fulfills != null)
+                            fulfills.add(otherExpr);
+                    } else {
+                        if (fulfills == null) {
+                            fulfills = new ArrayList<ExprWrapper>(expressions.size());
+                            fulfillsNot = new ArrayList<ExprWrapper>(expressions.size());
+                            for (final ExprWrapper e2: expressions) {
+                                if (e2.equals(otherExpr))
+                                    break;
+                                fulfills.add(e2);
                             }
-                            fulfillsNot.add(otherExpr);
                         }
-                    }
-                    if (fulfills != null) {
-                        final Partition part1 = new Partition(fulfills);
-                        final Partition part2 = new Partition(fulfillsNot);
-                        partitions.add(part1);
-                        partitions.add(part2);
-                        return true;
+                        fulfillsNot.add(otherExpr);
                     }
                 }
-                if (began)
-                    break;
-                lastSearchPos = transitions.iterator();
-                began = true;
+                if (fulfills != null) {
+                    final Partition part1 = new Partition(fulfills);
+                    final Partition part2 = new Partition(fulfillsNot);
+                    partitions.add(part1);
+                    partitions.add(part2);
+                    return true;
+                }
             }
             return false;
         }
 
-        private static boolean fulfills(ExprWrapper otherExpr, TransWrapper trans) {
+        private static boolean fulfills(ExprWrapper otherExpr, TransWrapperToPart trans) {
             if (trans.act instanceof TauAction) {
                 final Queue<ExprWrapper> tauReachable = new LinkedList<ExprWrapper>();
                 tauReachable.add(otherExpr);
                 final Set<ExprWrapper> seen = new HashSet<ExprWrapper>();
                 seen.add(otherExpr);
-                boolean ok = false;
                 ExprWrapper e;
                 while ((e = tauReachable.poll()) != null) {
-                    if (e.part.equals(trans.target.part)) {
-                        ok = true;
-                        break;
-                    }
+                    if (e.part.equals(trans.targetPart))
+                        return true;
+
                     for (final TransWrapper t: e.transitions)
                         if (t.act instanceof TauAction && seen.add(t.target))
                             tauReachable.add(t.target);
                 }
-                return ok;
+                return false;
             } else {
                 final Queue<ExprWrapper> tauReachable = new LinkedList<ExprWrapper>();
                 tauReachable.add(otherExpr);
                 final Set<ExprWrapper> seen = new HashSet<ExprWrapper>();
                 seen.add(otherExpr);
-                boolean ok = false;
                 ExprWrapper e;
                 while ((e = tauReachable.poll()) != null) {
                     for (final TransWrapper t: e.transitions) {
@@ -314,27 +305,21 @@ public class MinimisingTransitionsExpression extends Expression {
                                 final Queue<ExprWrapper> reachableAfter = new LinkedList<ExprWrapper>();
                                 reachableAfter.add(t.target);
                                 final Set<ExprWrapper> seenAfter = new HashSet<ExprWrapper>();
-                                seenAfter.add(otherExpr);
+                                seenAfter.add(t.target);
                                 ExprWrapper e2;
                                 while ((e2 = reachableAfter.poll()) != null) {
-                                    if (e2.part.equals(trans.target.part)) {
-                                        ok = true;
-                                        break;
-                                    }
-                                    for (final TransWrapper t2: e.transitions) {
-                                        if (t2.act instanceof TauAction) {
-                                            if (seenAfter.add(t2.target))
+                                    if (e2.part.equals(trans.targetPart))
+                                        return true;
+
+                                    for (final TransWrapper t2: e2.transitions)
+                                        if (t2.act instanceof TauAction && seenAfter.add(t2.target))
                                                 reachableAfter.add(t2.target);
-                                        }
-                                    }
                                 }
-                                if (ok)
-                                    break;
                             }
                         }
                     }
                 }
-                return ok;
+                return false;
             }
         }
 
@@ -367,6 +352,48 @@ public class MinimisingTransitionsExpression extends Expression {
 
         // no need for hashCode or equals because these objects are unique
         // for any combination of action and expression
+
+    }
+
+    private static class TransWrapperToPart {
+        public Action act;
+        public Partition targetPart;
+
+        public TransWrapperToPart(Action act, Partition targetPart) {
+            this.act = act;
+            this.targetPart = targetPart;
+        }
+
+        public TransWrapperToPart(TransWrapper tw) {
+            this(tw.act, tw.target.part);
+        }
+
+        @Override
+        public int hashCode() {
+            final int PRIME = 31;
+            int result = 1;
+            result = PRIME * result + act.hashCode();
+            result = PRIME * result + targetPart.hashCode();
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            final TransWrapperToPart other = (TransWrapperToPart) obj;
+            if (!act.equals(other.act))
+                return false;
+            if (!targetPart.equals(other.targetPart))
+                return false;
+            return true;
+        }
+
+        
 
     }
 
