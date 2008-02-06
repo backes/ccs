@@ -31,4 +31,9 @@ public class MinimizationTest2 extends IntegrationTest {
     protected boolean isMinimize() {
         return true;
     }
+
+    @Override
+    protected int getChecks() {
+        return CHECK_BISIMILARITY | CHECK_STATE_NR;
+    }
 }

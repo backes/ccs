@@ -1,4 +1,4 @@
-package de.unisb.cs.depend.ccs_sem.exporters.helpers;
+package de.unisb.cs.depend.ccs_sem.utils;
 
 import java.util.HashSet;
 import java.util.LinkedList;

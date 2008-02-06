@@ -109,5 +109,4 @@ public abstract class Expression {
 
     protected abstract int hashCode0();
 
-    // TODO minimizeExpression (e.g. push down restriction)
 }

@@ -11,12 +11,12 @@ import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ExportException;
 import de.unisb.cs.depend.ccs_sem.exporters.helpers.StateNumberComparator;
-import de.unisb.cs.depend.ccs_sem.exporters.helpers.StateNumerator;
-import de.unisb.cs.depend.ccs_sem.exporters.helpers.TransitionCounter;
 import de.unisb.cs.depend.ccs_sem.exporters.helpers.TransitionsTargetNumberComparator;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.utils.StateNumerator;
+import de.unisb.cs.depend.ccs_sem.utils.TransitionCounter;
 
 
 public class ETMCCExporter implements Exporter {
@@ -29,7 +29,7 @@ public class ETMCCExporter implements Exporter {
     }
 
     public void export(Program program) throws ExportException {
-        final Expression expr = program.getMainExpression();
+        final Expression expr = program.getExpression();
 
         final PrintWriter traWriter;
         try {

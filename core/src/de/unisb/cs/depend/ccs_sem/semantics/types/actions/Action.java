@@ -35,19 +35,6 @@ public abstract class Action implements Comparable<Action> {
 
     public abstract Action instantiate(Map<Parameter, Value> parameters);
 
-    /**
-     * Builds an Action that represents the restriction of some Action by
-     * another Action.
-     *
-     * @param actionToCheck the Action that gets restricted by this one
-     * @param oldTrans
-     * @return the given Action if it is not restricted, <code>null</code> if
-     *         it is fully restricted, or a new Action that's built of the
-     *         actionToCheck, but is more restricted (smaller input range)
-     */
-    // TODO remove
-    //public abstract Transition restrictBy(Action actionToCheck, Transition oldTrans);
-
     @Override
     public String toString() {
         return getLabel();

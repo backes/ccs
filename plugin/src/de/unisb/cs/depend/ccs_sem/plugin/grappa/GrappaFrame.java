@@ -90,15 +90,15 @@ public class GrappaFrame extends Composite {
         final JScrollPane scroll = new JScrollPane(grappaPanel);
         grappaFrame.setLayout(new GridLayout(1,1));
         grappaFrame.add(scroll);
-        
+
         // Eclipse <3.3 workaround:
         graphComposite.addControlListener(new ControlAdapter() {
-            
+
             @Override
             public void controlResized(ControlEvent e) {
                 grappaFrame.setSize(graphComposite.getSize().x, graphComposite.getSize().y);
             }
-        
+
         });
 
         Grappa.antiAliasText = true;
@@ -183,7 +183,7 @@ public class GrappaFrame extends Composite {
 
             public void handleEvent(Event event) {
                 setShowNodeLabels(buttonShowNodeLabels.getSelection());
-                update();
+                updateGraph();
             }
 
         });
@@ -191,7 +191,7 @@ public class GrappaFrame extends Composite {
 
             public void handleEvent(Event event) {
                 setShowEdgeLabels(buttonShowEdgeLabels.getSelection());
-                update();
+                updateGraph();
             }
 
         });
@@ -200,7 +200,7 @@ public class GrappaFrame extends Composite {
 
             public void handleEvent(Event event) {
                 setMinimize(buttonMinimize.getSelection());
-                update();
+                updateGraph();
             }
 
         });
@@ -210,7 +210,7 @@ public class GrappaFrame extends Composite {
             public void handleEvent(Event event) {
                 if (buttonLayoutTopToBottom.getSelection()) {
                     layoutLeftToRight = false;
-                    update();
+                    updateGraph();
                 }
             }
 
@@ -220,7 +220,7 @@ public class GrappaFrame extends Composite {
             public void handleEvent(Event event) {
                 if (buttonLayoutLeftToRight.getSelection()) {
                     layoutLeftToRight = true;
-                    update();
+                    updateGraph();
                 }
             }
 
@@ -239,8 +239,7 @@ public class GrappaFrame extends Composite {
         this.showNodeLabels = showNodeLabels;
     }
 
-    @Override
-    public void update() {
+    public void updateGraph() {
 
         // parse ccs term
         Program ccsProgram = null;
@@ -281,10 +280,10 @@ public class GrappaFrame extends Composite {
 
 
             final Queue<Expression> queue = new LinkedList<Expression>();
-            queue.add(ccsProgram.getMainExpression());
+            queue.add(ccsProgram.getExpression());
 
             final Set<Expression> written = new HashSet<Expression>();
-            written.add(ccsProgram.getMainExpression());
+            written.add(ccsProgram.getExpression());
 
             final Map<Expression, Node> nodes = new HashMap<Expression, Node>();
 

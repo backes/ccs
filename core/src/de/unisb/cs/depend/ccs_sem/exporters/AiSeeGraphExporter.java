@@ -10,10 +10,10 @@ import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ExportException;
 import de.unisb.cs.depend.ccs_sem.exporters.helpers.StateNumberComparator;
-import de.unisb.cs.depend.ccs_sem.exporters.helpers.StateNumerator;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.utils.StateNumerator;
 
 
 public class AiSeeGraphExporter implements Exporter {
@@ -26,7 +26,7 @@ public class AiSeeGraphExporter implements Exporter {
     }
 
     public void export(Program program) throws ExportException {
-        final Expression expr = program.getMainExpression();
+        final Expression expr = program.getExpression();
 
         final PrintWriter aiSeeWriter;
         try {

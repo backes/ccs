@@ -11,11 +11,11 @@ import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ExportException;
 import de.unisb.cs.depend.ccs_sem.exporters.helpers.StateNumberComparator;
-import de.unisb.cs.depend.ccs_sem.exporters.helpers.StateNumerator;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
+import de.unisb.cs.depend.ccs_sem.utils.StateNumerator;
 
 
 public class IntegrationtestExporter implements Exporter {
@@ -72,7 +72,7 @@ public class IntegrationtestExporter implements Exporter {
                     + e.getMessage(), e);
         }
 
-        final Expression expr = program.getMainExpression();
+        final Expression expr = program.getExpression();
 
         final Map<Expression, Integer> stateNumbers =
                 StateNumerator.numerateStates(expr);
@@ -86,14 +86,19 @@ public class IntegrationtestExporter implements Exporter {
         javaWriter.println("/*");
         javaWriter.println("The CCS program:");
         javaWriter.println();
-        javaWriter.println(program);
+        javaWriter.println(program.toString(true));
         javaWriter.println("*/");
         javaWriter.println();
         javaWriter.println("public class " + className + " extends IntegrationTest {");
         javaWriter.println();
         javaWriter.println("    @Override");
         javaWriter.println("    protected String getExpressionString() {");
-        javaWriter.println("        return " + encode0(program.toString()) + ";");
+        javaWriter.println("        return " + encode0(program.toString(true)) + ";");
+        javaWriter.println("    }");
+        javaWriter.println();
+        javaWriter.println("    @Override");
+        javaWriter.println("    protected boolean isMinimize() {");
+        javaWriter.println("        return " + program.isMinimized() + ";");
         javaWriter.println("    }");
         javaWriter.println();
         javaWriter.println("    @Override");
@@ -108,9 +113,17 @@ public class IntegrationtestExporter implements Exporter {
         final Set<Expression> written = new HashSet<Expression>(stateNumbers.size()*3/2);
         written.add(expr);
 
+        int stateCnt = 0;
+        int methodCnt = 0;
         while (!queue.isEmpty()) {
             final Expression e = queue.poll();
             javaWriter.println("        addState(" + encode0(e.toString()) + ");");
+            if (++stateCnt % 5000 == 0) {
+                javaWriter.println("        addStates" + methodCnt + "();");
+                javaWriter.println("    }");
+                javaWriter.println();
+                javaWriter.println("    protected void addStates" + methodCnt++ + "() {");
+            }
 
             for (final Transition trans: e.getTransitions()) {
                 final Expression targetExpr = trans.getTarget();
@@ -130,6 +143,7 @@ public class IntegrationtestExporter implements Exporter {
         written.clear();
         written.add(expr);
 
+        stateCnt = methodCnt = 0;
         while (!queue.isEmpty()) {
             final Expression e = queue.poll();
             final int sourceStateNr = stateNumbers.get(e);
@@ -139,6 +153,12 @@ public class IntegrationtestExporter implements Exporter {
                 final int targetStateNr = stateNumbers.get(targetExpr);
                 javaWriter.println("        addTransition(" + sourceStateNr + ", "
                     + targetStateNr + ", " + encode0(trans.getAction().getLabel()) + ");");
+                if (++stateCnt % 5000 == 0) {
+                    javaWriter.println("        addTransitions" + methodCnt + "();");
+                    javaWriter.println("    }");
+                    javaWriter.println();
+                    javaWriter.println("    protected void addTransitions" + methodCnt++ + "() {");
+                }
                 if (written.add(targetExpr))
                     queue.add(targetExpr);
             }

@@ -20,7 +20,9 @@ import de.unisb.cs.depend.ccs_sem.utils.Globals;
 public class Program {
 
     private final List<Declaration> declarations;
-    private Expression mainExpression;
+    private boolean isMinimized = false;
+    private Expression mainExpression = null;
+    private Expression minimizedExpression = null;
 
     public Program(List<Declaration> declarations, Expression expr) throws ParseException {
         this.mainExpression = expr.replaceRecursion(declarations);
@@ -31,6 +33,10 @@ public class Program {
 
     @Override
     public String toString() {
+        return toString(false);
+    }
+
+    public String toString(boolean useUnminimizedExpression) {
         final String newLine = Globals.getNewline();
 
         final StringBuilder sb = new StringBuilder();
@@ -40,13 +46,22 @@ public class Program {
         if (declarations.size() > 0)
             sb.append(newLine);
 
-        sb.append(mainExpression);
+        sb.append(isMinimized && !useUnminimizedExpression
+            ? minimizedExpression : mainExpression);
 
         return sb.toString();
     }
 
     public Expression getMainExpression() {
         return mainExpression;
+    }
+
+    public Expression getMinimizedExpression() {
+        return minimizedExpression;
+    }
+
+    public Expression getExpression() {
+        return isMinimized ? minimizedExpression : mainExpression;
     }
 
     /**
@@ -62,7 +77,7 @@ public class Program {
     }
 
     /**
-     * A program is guarded iff every recursive definition is regular.
+     * A program is guarded iff every recursive definition is guarded.
      * See {@link Declaration#isGuarded(List)}.
      */
     public boolean isGuarded() {
@@ -89,6 +104,10 @@ public class Program {
         return mainExpression.isEvaluated();
     }
 
+    public boolean isMinimized() {
+        return isMinimized;
+    }
+
     /**
      * Before calling this method, the program must be evaluated.
      * @param minimizationMonitor an EvaluationMonitor that is informed about the progress
@@ -97,10 +116,15 @@ public class Program {
     public void minimizeTransitions(Evaluator evaluator, EvaluationMonitor minimizationMonitor) {
         assert isEvaluated();
 
-        //mainExpression = MinimisingTransitionsExpression.create(mainExpression);
-        mainExpression = new FastMinimisingTransitionsExpression(mainExpression);
+        if (isMinimized)
+            return;
 
-        evaluate(evaluator, minimizationMonitor);
+        //minimizedExpression = MinimisingTransitionsExpression.create(mainExpression);
+        minimizedExpression = new FastMinimisingTransitionsExpression(mainExpression);
+
+        evaluator.evaluateAll(minimizedExpression, minimizationMonitor);
+
+        isMinimized = true;
     }
 
     public void minimizeTransitions() {

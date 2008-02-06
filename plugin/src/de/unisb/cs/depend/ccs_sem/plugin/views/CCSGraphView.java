@@ -71,7 +71,7 @@ public class CCSGraphView extends ViewPart implements ISelectionListener {
 
     public void update() {
         if (currentView instanceof GrappaFrame) {
-            ((GrappaFrame)currentView).update();
+            ((GrappaFrame)currentView).updateGraph();
         }
     }
 
@@ -89,7 +89,7 @@ public class CCSGraphView extends ViewPart implements ISelectionListener {
 
             myPages.showPage(currentView = gFrame);
             if (updateGraph)
-                gFrame.update();
+                gFrame.updateGraph();
         } else {
             myPages.showPage(currentView = defaultText);
         }
