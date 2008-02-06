@@ -5,7 +5,7 @@ regularität / guardedness
 channels/values, parameter zusammenhänge
 
 geänderte semantik
-- parallele stopexpressions fallen weg
+- parallele stopexpressions fallen weg (wahlweise? -> switch einfuehren)
 - dito für choice
 - when wird aufgelöst sobald condition ausgewertet ist
 
