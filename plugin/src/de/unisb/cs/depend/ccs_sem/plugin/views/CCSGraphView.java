@@ -73,7 +73,7 @@ public class CCSGraphView extends ViewPart implements ISelectionListener {
         }
     }
 
-    public void update() {
+    public synchronized void update() {
         if (currentView instanceof GrappaFrame) {
             ((GrappaFrame)currentView).updateGraph();
         }

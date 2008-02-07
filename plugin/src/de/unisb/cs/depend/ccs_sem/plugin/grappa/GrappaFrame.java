@@ -2,6 +2,7 @@ package de.unisb.cs.depend.ccs_sem.plugin.grappa;
 
 import java.awt.Color;
 import java.awt.Frame;
+import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -12,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantLock;
 
 import javax.swing.JScrollPane;
 
@@ -51,18 +51,30 @@ public class GrappaFrame extends Composite {
     private static final Color warnNodeColor = Color.RED;
 
     protected final GrappaPanel grappaPanel;
-    protected final Graph graph = new Graph("CSS-Graph");
+    protected final Graph graph; // guarded by layoutLock
     private final CCSEditor ccsEditor;
     private boolean showEdgeLabels = true;
     private boolean showNodeLabels = true;
     protected boolean layoutLeftToRight = true;
     private boolean minimizeGraph = false;
-    private final ReentrantLock layoutLock = new ReentrantLock();
 
     public GrappaFrame(Composite parent, int style, CCSEditor editor) {
         super(parent, style);
         this.ccsEditor = editor;
         setLayout(new org.eclipse.swt.layout.GridLayout());
+
+        graph = new Graph("CSS-Graph");
+        synchronized (graph) {
+            final Node node = new Node(graph, "warn_node");
+            node.setAttribute(GrappaConstants.LABEL_ATTR, "Not initialized...");
+            node.setAttribute(GrappaConstants.STYLE_ATTR, "filled");
+            node.setAttribute(GrappaConstants.COLOR_ATTR, warnNodeColor);
+            node.setAttribute(GrappaConstants.TIP_ATTR, "In the CCS Editor, click the \"Show Graph\" button to generate the graph.");
+            graph.addNode(node);
+            filterGraph(graph);
+            graph.repaint();
+            graph.printGraph(System.out);
+        }
 
         final Composite controlsComposite = new Composite(this, SWT.None);
         controlsComposite.setLayout(new FillLayout(SWT.HORIZONTAL));
@@ -84,7 +96,17 @@ public class GrappaFrame extends Composite {
         graphComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
 
         final Frame grappaFrame = SWT_AWT.new_Frame(graphComposite);
-        grappaPanel = new GrappaPanel(graph);
+        grappaPanel = new GrappaPanel(graph) {
+            private static final long serialVersionUID =
+                    368128314339198689L;
+
+            @Override
+            public void paintComponent(Graphics g) {
+                synchronized (graph) {
+                    super.paintComponent(g);
+                }
+            }
+        };
         grappaPanel.addGrappaListener(new GrappaAdapter());
         grappaPanel.setScaleToFit(true);
         final JScrollPane scroll = new JScrollPane(grappaPanel);
@@ -104,15 +126,6 @@ public class GrappaFrame extends Composite {
         Grappa.antiAliasText = true;
         Grappa.useAntiAliasing = true;
         Grappa.elementSelection = GrappaConstants.NODE | GrappaConstants.EDGE;
-
-        final Node node = new Node(graph, "warn_node");
-        graph.addNode(node);
-        node.setAttribute(GrappaConstants.LABEL_ATTR, "Not initialized...");
-        node.setAttribute(GrappaConstants.STYLE_ATTR, "filled");
-        node.setAttribute(GrappaConstants.COLOR_ATTR, warnNodeColor);
-        node.setAttribute(GrappaConstants.TIP_ATTR, "In the CCS Editor, click the \"Show Graph\" button to generate the graph.");
-        filterGraph(graph);
-        graph.repaint();
 
         // add control components
         final Button buttonScaleToFit = new Button(controlsComposite, SWT.CHECK);
@@ -254,9 +267,7 @@ public class GrappaFrame extends Composite {
                 + "(around this context: " + e.getEnvironment() + ")";
         }
 
-        layoutLock.lock();
-
-        try {
+        synchronized (graph) {
             graph.reset();
 
             graph.setAttribute("root", "node_0");
@@ -267,12 +278,12 @@ public class GrappaFrame extends Composite {
 
             if (warning != null) {
                 final Node node = new Node(graph, "warn_node");
-                graph.addNode(node);
                 node.setAttribute(GrappaConstants.LABEL_ATTR, warning);
                 node.setAttribute(GrappaConstants.STYLE_ATTR, "filled");
                 node.setAttribute(GrappaConstants.FILLCOLOR_ATTR, warnNodeColor);
                 node.setAttribute(GrappaConstants.TIP_ATTR,
                     "The graph could not be built. This is the reason why.");
+                graph.addNode(node);
                 filterGraph(graph);
                 graph.repaint();
                 return;
@@ -338,8 +349,6 @@ public class GrappaFrame extends Composite {
                 System.err.println("Could not layout graph.");
 
             graph.repaint();
-        } finally {
-            layoutLock.unlock();
         }
     }
 
@@ -376,10 +385,6 @@ public class GrappaFrame extends Composite {
     private String getDotExecutablePath() {
         final String dotExecutable = Global.getPreferenceDot();
         return dotExecutable;
-    }
-
-    public Graph getGraph() {
-        return graph;
     }
 
     public CCSEditor getCcsEditor() {
