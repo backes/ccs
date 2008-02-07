@@ -37,7 +37,9 @@ public class CCSGraphView extends ViewPart implements ISelectionListener {
     private final Map<CCSEditor, GrappaFrame> frames = new HashMap<CCSEditor, GrappaFrame>();
 
     public CCSGraphView() {
-        views.add(this);
+        synchronized (views) {
+            views.add(this);
+        }
     }
 
     @Override
@@ -65,8 +67,10 @@ public class CCSGraphView extends ViewPart implements ISelectionListener {
     }
 
     public static void updateViews() {
-        for (final CCSGraphView view: views)
-            view.update();
+        synchronized (views) {
+            for (final CCSGraphView view: views)
+                view.update();
+        }
     }
 
     public void update() {
@@ -76,11 +80,13 @@ public class CCSGraphView extends ViewPart implements ISelectionListener {
     }
 
     public static void showGraphFor(IEditorPart activeEditor, boolean updateGraph) {
-        for (final CCSGraphView view: views)
-            view.showGraphFor0(activeEditor, updateGraph);
+        synchronized (views) {
+            for (final CCSGraphView view: views)
+                view.showGraphFor0(activeEditor, updateGraph);
+        }
     }
 
-    private void showGraphFor0(IEditorPart activeEditor, boolean updateGraph) {
+    private synchronized void showGraphFor0(IEditorPart activeEditor, boolean updateGraph) {
         if (activeEditor instanceof CCSEditor) {
             final CCSEditor editor = (CCSEditor) activeEditor;
             GrappaFrame gFrame = frames.get(editor);
