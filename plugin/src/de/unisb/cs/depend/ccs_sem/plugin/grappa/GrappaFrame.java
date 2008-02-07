@@ -307,9 +307,9 @@ public class GrappaFrame extends Composite {
             }
 
             // then, create the edges
-            queue.add(ccsProgram.getMainExpression());
+            queue.add(ccsProgram.getExpression());
             written.clear();
-            written.add(ccsProgram.getMainExpression());
+            written.add(ccsProgram.getExpression());
             cnt = 0;
 
             while (!queue.isEmpty()) {
@@ -357,13 +357,17 @@ public class GrappaFrame extends Composite {
             success = false;
         }
 
-        if (success)
-            success &= GrappaSupport.filterGraph(graph, dotFilter);
+        try {
+            if (success)
+                success &= GrappaSupport.filterGraph(graph, dotFilter);
 
-        if (!success) {
-            MessageDialog.openError(getShell(), "Error layouting graph",
-                "The graph could not be layout, most probably there was an error with starting the dot tool.\n" +
-                "You can configure the path for this tool in your preferences on the \"CCS\" page.");
+            if (!success) {
+                MessageDialog.openError(getShell(), "Error layouting graph",
+                    "The graph could not be layout, most probably there was an error with starting the dot tool.\n" +
+                    "You can configure the path for this tool in your preferences on the \"CCS\" page.");
+            }
+        } finally {
+            dotFilter.destroy();
         }
 
         return success;

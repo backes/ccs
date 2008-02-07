@@ -81,7 +81,7 @@ public class ParallelExpr extends Expression {
                 && rightTransitions.size() > 3;
 
         // in debug mode switch between the two modes
-        assert (useComplexWay = new Random().nextBoolean()) || true;
+        assert (useComplexWay = new Random().nextBoolean()) || !useComplexWay;
 
         if (useComplexWay) {
             combineUsingComplexWay(leftTransitions, rightTransitions, transitions);

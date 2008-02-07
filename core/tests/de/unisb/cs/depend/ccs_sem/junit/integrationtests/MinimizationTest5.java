@@ -31,6 +31,6 @@ public class MinimizationTest5 extends IntegrationTest {
 
     @Override
     protected int getChecks() {
-        return CHECK_BISIMILARITY | CHECK_STATE_NR;
+        return CHECK_ALL ^ CHECK_STATE_NAMES;
     }
 }

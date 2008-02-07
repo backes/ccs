@@ -21,18 +21,29 @@ public class SynchronizationTest5 extends IntegrationTest {
     }
 
     @Override
+    protected boolean isMinimize() {
+        return false;
+    }
+
+    @Override
     protected void addStates() {
         addState("OUTPUT[1, 4] | (x?x.out!x.0 \\ {x?2, x?4}) \\ {x!, x?}");
-        addState("0 | (out!3.0 \\ {x?2, x?4}) \\ {x!, x?}");
         addState("0 | (out!1.0 \\ {x?2, x?4}) \\ {x!, x?}");
+        addState("OUTPUT[2, 4] | (x?x.out!x.0 \\ {x?2, x?4}) \\ {x!, x?}");
         addState("0 | (0 \\ {x?2, x?4}) \\ {x!, x?}");
+        addState("OUTPUT[3, 4] | (x?x.out!x.0 \\ {x?2, x?4}) \\ {x!, x?}");
+        addState("OUTPUT[4, 4] | (x?x.out!x.0 \\ {x?2, x?4}) \\ {x!, x?}");
+        addState("0 | (out!3.0 \\ {x?2, x?4}) \\ {x!, x?}");
     }
 
     @Override
     protected void addTransitions() {
         addTransition(0, 1, "i");
         addTransition(0, 2, "i");
-        addTransition(1, 3, "out!3");
-        addTransition(2, 3, "out!1");
+        addTransition(1, 3, "out!1");
+        addTransition(2, 4, "i");
+        addTransition(4, 5, "i");
+        addTransition(4, 6, "i");
+        addTransition(6, 3, "out!3");
     }
 }

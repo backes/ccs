@@ -108,9 +108,6 @@ public class Transition {
                 || restrictionInputAction.getValue() instanceof ConstantValue;
             final ConstantValue restrictionValue = (ConstantValue)restrictionInputAction.getValue();
 
-            // we cannot restrict over paremeters
-            assert restrictionInputAction.getParameter() == null;
-
             if (restrictionValue != null) {
                 // if both have a value and they match, return null
                 if (myValue != null)
@@ -135,10 +132,46 @@ public class Transition {
                 return this;
             }
 
+            if (restrictionInputAction.getParameter() != null) {
+                final Parameter restrictionParameter = restrictionInputAction.getParameter();
+
+                // restriction with a parameter means restricting everything
+                // that is within the range of the parameter
+
+                if (myValue != null) {
+                    if (restrictionParameter.getRange() == null
+                            || restrictionParameter.getRange().contains(myValue))
+                        return null;
+                    else
+                        return this;
+                }
+
+                // a bit more complex: my action has a parameter
+                if (myParam != null) {
+                    if (restrictionParameter.getRange() == null)
+                        return null;
+                    Range newRange = myParam.getRange();
+                    if (newRange == null)
+                        newRange = new FullRange();
+                    newRange = newRange.subtract(restrictionParameter.getRange());
+                    final Parameter newParam = new Parameter(myParam.getName(), newRange);
+                    final Action newAction = new InputAction(myInputAction.getChannel(), newParam);
+                    // in the target, the old parameter has to be substituted with the new one
+                    final Map<Parameter, Value> map = Collections.singletonMap(
+                        myParam, (Value)new ParameterReference(newParam));
+                    final Expression newTarget = target.instantiate(map);
+                    return new Transition(newAction, newTarget);
+                }
+
+                // if my action has no value and no parameter, there is no restriction
+                return this;
+            }
+
             // otherwise, the restrictionValue always restricts us
             return null;
         }
 
+        // no restriction found (e.g. TauAction)
         return this;
     }
 

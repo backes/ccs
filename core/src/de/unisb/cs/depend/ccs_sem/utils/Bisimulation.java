@@ -6,9 +6,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
@@ -27,17 +29,17 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.actions.TauAction;
  * It uses my very own algorithm and has a lot of strange optimisations to get
  * a very fast runtime.
  */
-public abstract class Bisimilarity {
+public abstract class Bisimulation {
 
-    private Bisimilarity() {
+    private Bisimulation() {
         // forbid instantiation
     }
 
-    public static Map<Expression, Partition> computePartitions(Expression expression) {
-        return computePartitions(Collections.singleton(expression));
+    public static Map<Expression, Partition> computePartitions(Expression expression, boolean strong) {
+        return computePartitions(Collections.singleton(expression), strong);
     }
 
-    public static Map<Expression, Partition> computePartitions(Collection<Expression> expressions) {
+    public static Map<Expression, Partition> computePartitions(Collection<Expression> expressions, boolean strong) {
         final Queue<Partition> partitions = new PriorityQueue<Partition>(128,
             new Comparator<Partition>() {
                 public int compare(Partition o1, Partition o2) {
@@ -105,7 +107,7 @@ public abstract class Bisimilarity {
                 */
                 if (partition.getExprWrappers().size() < 2) {
                     readyPartitions.add(partition);
-                } else if (partition.divide(partitions)) {
+                } else if (partition.divide(partitions, strong)) {
                     if (++changed * 10 >= unChangedPartitions.size())
                         break;
                 } else {
@@ -129,7 +131,7 @@ public abstract class Bisimilarity {
     }
 
     public static class Partition {
-        private final List<ExprWrapper> expressionWrappers;
+        protected final List<ExprWrapper> expressionWrappers;
         private boolean isNew = true;
 
         public Partition(List<ExprWrapper> expressionWrappers) {
@@ -138,7 +140,60 @@ public abstract class Bisimilarity {
                 ew.part = this;
         }
 
-        public Set<TransitionToPartition> computeTransitions() {
+        // usage of an iterator is better because we potentially don't have to
+        // iterate through all elements
+        public Iterator<TransitionToPartition> getTransitionsIterator() {
+            return new Iterator<TransitionToPartition>() {
+
+                private final Set<TransitionToPartition> seen
+                    = new HashSet<TransitionToPartition>();
+                private final Iterator<ExprWrapper> exprItr = expressionWrappers.iterator();
+                private Iterator<TransWrapper> transItr = null;
+                private TransitionToPartition next = null;
+
+                private TransitionToPartition getNext() {
+                    if (transItr == null) {
+                        if (exprItr.hasNext())
+                            transItr = exprItr.next().transitions.iterator();
+                        else
+                            return null;
+                    }
+
+                    while (transItr.hasNext() || exprItr.hasNext()) {
+                        if (transItr.hasNext()) {
+                            final TransWrapper found = transItr.next();
+                            final TransitionToPartition transToPart = new TransitionToPartition(found);
+                            if (seen.add(transToPart))
+                                return transToPart;
+                        } else
+                            transItr = exprItr.next().transitions.iterator();
+                    }
+
+                    return null;
+                }
+
+                public void remove() {
+                    throw new UnsupportedOperationException();
+                }
+
+                public TransitionToPartition next() {
+                    if (!hasNext())
+                        throw new NoSuchElementException();
+                    final TransitionToPartition oldNext = next;
+                    next = null;
+                    return oldNext;
+                }
+
+                public boolean hasNext() {
+                    if (next == null)
+                        next = getNext();
+                    return next != null;
+                }
+
+            };
+        }
+
+        public Set<TransitionToPartition> getAllTransitions() {
             final Set<TransitionToPartition> transitions = new HashSet<TransitionToPartition>();
             for (final ExprWrapper ew: expressionWrappers)
                 for (final TransWrapper tw: ew.transitions)
@@ -154,15 +209,16 @@ public abstract class Bisimilarity {
             return isNew;
         }
 
-        public boolean divide(Queue<Partition> partitions) {
+        public boolean divide(Queue<Partition> partitions, boolean strong) {
             isNew = false;
 
-            final Collection<TransitionToPartition> transitions = computeTransitions();
-            for (final TransitionToPartition trans: transitions) {
+            final Iterator<TransitionToPartition> transitions = getTransitionsIterator();
+            while (transitions.hasNext()) {
+                final TransitionToPartition trans = transitions.next();
                 List<ExprWrapper> fulfills = null;
                 List<ExprWrapper> fulfillsNot = null;
                 for (final ExprWrapper otherExpr: expressionWrappers) {
-                    if (fulfills(otherExpr, trans)) {
+                    if (strong ? fulfillsStrong(otherExpr, trans) : fulfillsWeak(otherExpr, trans)) {
                         if (fulfills != null)
                             fulfills.add(otherExpr);
                     } else {
@@ -189,7 +245,7 @@ public abstract class Bisimilarity {
             return false;
         }
 
-        private static boolean fulfills(ExprWrapper otherExpr, TransitionToPartition trans) {
+        private static boolean fulfillsWeak(ExprWrapper otherExpr, TransitionToPartition trans) {
             if (trans.act instanceof TauAction) {
                 final Queue<ExprWrapper> tauReachable = new LinkedList<ExprWrapper>();
                 tauReachable.add(otherExpr);
@@ -238,6 +294,14 @@ public abstract class Bisimilarity {
                 }
                 return false;
             }
+        }
+
+        private static boolean fulfillsStrong(ExprWrapper otherExpr, TransitionToPartition trans) {
+            for (final TransWrapper t: otherExpr.transitions)
+                if (t.act.equals(trans.act) && t.target.part.equals(trans.targetPart))
+                    return true;
+
+            return false;
         }
 
     }
@@ -309,8 +373,6 @@ public abstract class Bisimilarity {
                 return false;
             return true;
         }
-
-
 
     }
 

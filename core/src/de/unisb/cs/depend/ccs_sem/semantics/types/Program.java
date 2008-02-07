@@ -7,7 +7,7 @@ import de.unisb.cs.depend.ccs_sem.evaluators.Evaluator;
 import de.unisb.cs.depend.ccs_sem.evaluators.SequentialEvaluator;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.adapters.FastMinimisingTransitionsExpression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.adapters.MinimisingExpression;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
 
@@ -112,15 +112,17 @@ public class Program {
      * Before calling this method, the program must be evaluated.
      * @param minimizationMonitor an EvaluationMonitor that is informed about the progress
      * @param evaluator the preferred evaluator to use
+     * @param strong if <code>true</code>, the lts is minimized w.r.t. strong
+     *               bisimulation instead of weak bisimulation
      */
-    public void minimizeTransitions(Evaluator evaluator, EvaluationMonitor minimizationMonitor) {
+    public void minimizeTransitions(Evaluator evaluator, EvaluationMonitor minimizationMonitor, boolean strong) {
         assert isEvaluated();
 
         if (isMinimized)
             return;
 
-        //minimizedExpression = MinimisingTransitionsExpression.create(mainExpression);
-        minimizedExpression = new FastMinimisingTransitionsExpression(mainExpression);
+        minimizedExpression = MinimisingExpression.create(mainExpression, strong);
+        //minimizedExpression = new FastMinimisingExpression(mainExpression);
 
         evaluator.evaluateAll(minimizedExpression, minimizationMonitor);
 
@@ -128,7 +130,7 @@ public class Program {
     }
 
     public void minimizeTransitions() {
-        minimizeTransitions(new SequentialEvaluator(), null);
+        minimizeTransitions(new SequentialEvaluator(), null, false);
     }
 
 }

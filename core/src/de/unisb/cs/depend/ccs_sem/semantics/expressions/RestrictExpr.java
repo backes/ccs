@@ -43,7 +43,7 @@ public class RestrictExpr extends Expression {
         boolean useComplexWay = restricted.size() > 5;
 
         // in debug mode switch between the two modes
-        assert (useComplexWay = new Random().nextBoolean()) || true;
+        assert (useComplexWay = new Random().nextBoolean()) || !useComplexWay;
 
         if (useComplexWay) {
             restrictComplex(oldTransitions, newTransitions);

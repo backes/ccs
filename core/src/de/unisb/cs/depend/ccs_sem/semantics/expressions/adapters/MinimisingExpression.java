@@ -18,9 +18,9 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.TauAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
-import de.unisb.cs.depend.ccs_sem.utils.Bisimilarity;
-import de.unisb.cs.depend.ccs_sem.utils.Bisimilarity.Partition;
-import de.unisb.cs.depend.ccs_sem.utils.Bisimilarity.TransitionToPartition;
+import de.unisb.cs.depend.ccs_sem.utils.Bisimulation;
+import de.unisb.cs.depend.ccs_sem.utils.Bisimulation.Partition;
+import de.unisb.cs.depend.ccs_sem.utils.Bisimulation.TransitionToPartition;
 
 
 /**
@@ -33,45 +33,46 @@ import de.unisb.cs.depend.ccs_sem.utils.Bisimilarity.TransitionToPartition;
  *
  * @author Clemens Hammacher
  */
-public class MinimisingTransitionsExpression extends Expression {
+public class MinimisingExpression extends Expression {
 
     private final int stateNr;
     private List<Transition> transitions;
 
-    private MinimisingTransitionsExpression(int stateNr) {
+    private MinimisingExpression(int stateNr) {
         super();
         this.stateNr = stateNr;
         this.transitions = new ArrayList<Transition>();
     }
 
-    public static MinimisingTransitionsExpression create(Expression expr) {
-        final Map<Expression, Partition> partitions = Bisimilarity.computePartitions(expr);
+    public static MinimisingExpression create(Expression expr, boolean strong) {
+        final Map<Expression, Partition> partitions = Bisimulation.computePartitions(expr, strong);
 
         // create the new Expressions (in a BFS manner)
         final Queue<Partition> queue = new LinkedList<Partition>();
         queue.add(partitions.get(expr));
         int nextStateNr = 0;
-        final Map<Partition, MinimisingTransitionsExpression> newExpressions =
-            new HashMap<Partition, MinimisingTransitionsExpression>();
+        final Map<Partition, MinimisingExpression> newExpressions =
+            new HashMap<Partition, MinimisingExpression>();
         final Map<Partition, Set<TransitionToPartition>> partitionTransitions =
             new HashMap<Partition, Set<TransitionToPartition>>();
         final Set<Partition> seen = new HashSet<Partition>();
         seen.add(partitions.get(expr));
         Partition part;
         while ((part = queue.poll()) != null) {
-            newExpressions.put(part, new MinimisingTransitionsExpression(nextStateNr++));
-            final Set<TransitionToPartition> partTransitions = part.computeTransitions();
+            newExpressions.put(part, new MinimisingExpression(nextStateNr++));
+            final Set<TransitionToPartition> partTransitions = part.getAllTransitions();
             partitionTransitions.put(part, partTransitions);
             for (final TransitionToPartition trans: partTransitions)
                 if (seen.add(trans.targetPart))
                     queue.add(trans.targetPart);
         }
-        for (final Entry<Partition, MinimisingTransitionsExpression> entry: newExpressions.entrySet()) {
+        // now add the transitions
+        for (final Entry<Partition, MinimisingExpression> entry: newExpressions.entrySet()) {
             final Set<TransitionToPartition> transitions = partitionTransitions.get(entry.getKey());
             final ArrayList<Transition> newTransitions = new ArrayList<Transition>(transitions.size());
             for (final TransitionToPartition trans: transitions) {
                 final Expression target = newExpressions.get(trans.targetPart);
-                if (trans.act instanceof TauAction && entry.getKey().equals(target))
+                if (trans.act instanceof TauAction && entry.getValue().equals(target))
                     continue;
                 newTransitions.add(new Transition(trans.act, target));
             }

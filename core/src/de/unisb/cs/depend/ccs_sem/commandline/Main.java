@@ -34,7 +34,8 @@ public class Main {
     private File inputFile = null;
     private Evaluator evaluator = null;
     private final List<Exporter> exporters = new ArrayList<Exporter>(2);
-    private boolean minimize = false;
+    private boolean minimizeWeak = false;
+    private boolean minimizeStrong = false;
 
     public Main(String[] args) {
         parseCommandLine(args);
@@ -103,22 +104,26 @@ public class Main {
 
         /*
         log("Counting...");
-        int stateCount = StateNumerator.numerateStates(program.getMainExpression()).size();
-        int transitionCount = TransitionCounter.countTransitions(program.getMainExpression());
+        int stateCount = StateNumerator.numerateStates(program.getExpression()).size();
+        int transitionCount = TransitionCounter.countTransitions(program.getExpression());
         log(stateCount + " states, " + transitionCount + " Transitions.");
         */
 
-        if (minimize) {
-            log("Minimizing...");
+        if (minimizeStrong && !minimizeWeak) {
+            log("Minimizing (w.r.t. strong bisimulation)...");
             final EvaluationMonitor minimizationMonitor = new EvalMonitor(true);
-            program.minimizeTransitions(evaluator, minimizationMonitor);
+            program.minimizeTransitions(evaluator, minimizationMonitor, true);
 
             /*
             log("Counting...");
-            final int newStateCount = StateNumerator.numerateStates(program.getMainExpression()).size();
-            final int newTransitionCount = TransitionCounter.countTransitions(program.getMainExpression());
+            final int newStateCount = StateNumerator.numerateStates(program.getExpression()).size();
+            final int newTransitionCount = TransitionCounter.countTransitions(program.getExpression());
             log(newStateCount + " states, " + newTransitionCount + " Transitions.");
             */
+        } else if (minimizeWeak) {
+            log("Minimizing...");
+            final EvaluationMonitor minimizationMonitor = new EvalMonitor(true);
+            program.minimizeTransitions(evaluator, minimizationMonitor, false);
         }
 
 
@@ -177,8 +182,10 @@ public class Main {
                     System.err.println("Integer expected after \"--policy\" switch.");
                     System.exit(-1);
                 }
-            } else if ("--minimize".equals(arg)) {
-                minimize = true;
+            } else if ("--minimize".equals(arg) || "--minimizeWeak".equals(arg)) {
+                minimizeWeak = true;
+            } else if ("--minimizeStrong".equals(arg)) {
+                minimizeStrong = true;
             } else if (arg.length() >= 2 && arg.charAt(0) == '-' && arg.charAt(1) != '-') {
                 for (int i = 1; i < arg.length(); ++i) {
                     final char c = arg.charAt(i);
@@ -189,7 +196,11 @@ public class Main {
                         break;
 
                     case 'm':
-                        minimize = true;
+                        minimizeWeak = true;
+                        break;
+
+                    case 'M':
+                        minimizeStrong = true;
                         break;
 
                     case 'o':
@@ -287,7 +298,10 @@ public class Main {
         out.println("     shows this help");
         out.println();
         out.println("  -m, --minimize");
-        out.println("     to minimize the graph after evaluation (chains of tau-transitions are removed)");
+        out.println("     minimize the graph after evaluation w.r.t. weak bisimulation");
+        out.println();
+        out.println("  -M, --minimizeStrong");
+        out.println("     minimize the graph after evaluation w.r.t. strong bisimulation");
         out.println();
         out.println("  -o, --output=<format>:<filename>.<extension>");
         out.println("     sets the output file. This parameter can occure several times to several output files.");

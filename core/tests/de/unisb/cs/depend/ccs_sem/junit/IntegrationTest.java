@@ -32,14 +32,15 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.actions.InputAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.OutputAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.SimpleAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.TauAction;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstBooleanValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstIntegerValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstString;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstStringChannel;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
-import de.unisb.cs.depend.ccs_sem.utils.Bisimilarity;
+import de.unisb.cs.depend.ccs_sem.utils.Bisimulation;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
 import de.unisb.cs.depend.ccs_sem.utils.StateNumerator;
-import de.unisb.cs.depend.ccs_sem.utils.Bisimilarity.Partition;
+import de.unisb.cs.depend.ccs_sem.utils.Bisimulation.Partition;
 
 
 /**
@@ -50,10 +51,11 @@ import de.unisb.cs.depend.ccs_sem.utils.Bisimilarity.Partition;
  */
 public abstract class IntegrationTest {
 
-    protected static int CHECK_BISIMILARITY = 1<<1;
-    protected static int CHECK_STATE_NAMES  = 1<<2;
-    protected static int CHECK_STATE_NR     = 1<<3;
-    protected static int CHECK_ALL          = 1<<31 - 1;
+    protected static int CHECK_WEAK_BISIMILARITY   = 1<<1;
+    protected static int CHECK_STRONG_BISIMILARITY = 1<<2;
+    protected static int CHECK_STATE_NAMES         = 1<<3;
+    protected static int CHECK_STATE_NR            = 1<<4;
+    protected static int CHECK_ALL                 = (1<<31) - 1;
 
     private static class SimpleTrans {
         public String label;
@@ -116,8 +118,11 @@ public abstract class IntegrationTest {
 
     private void doChecks(final Program program) {
         final int checks = getChecks();
-        if ((checks & CHECK_BISIMILARITY) != 0) {
-            checkBisimilarity(program.getExpression());
+        if ((checks & CHECK_WEAK_BISIMILARITY) != 0) {
+            checkBisimilarity(program.getExpression(), false);
+        }
+        if ((checks & CHECK_STRONG_BISIMILARITY) != 0) {
+            checkBisimilarity(program.getExpression(), true);
         }
         if ((checks & CHECK_STATE_NR) != 0) {
             checkStatesNr(program.getExpression());
@@ -135,14 +140,15 @@ public abstract class IntegrationTest {
                 + states.size() + ", found " + foundNr);
     }
 
-    private void checkBisimilarity(Expression expression) {
+    private void checkBisimilarity(Expression expression, boolean strong) {
         final RebuiltExpression rebuiltExpr = RebuiltExpression.create(states, transitions);
         final List<Expression> exprList = new ArrayList<Expression>(2);
         exprList.add(expression);
         exprList.add(rebuiltExpr);
-        final Map<Expression, Partition> partitions = Bisimilarity.computePartitions(exprList);
+        final Map<Expression, Partition> partitions = Bisimulation.computePartitions(exprList, strong);
         if (!partitions.get(expression).equals(partitions.get(rebuiltExpr)))
-            fail("The transition system is not bisimilar to the expected one.");
+            fail("The transition system is not "
+                + (strong ? "strong" : "weak") + " bisimilar to the expected one.");
     }
 
     private void checkStatesExplicitely(final Expression expression) {
@@ -255,7 +261,7 @@ public abstract class IntegrationTest {
     }
 
     protected int getChecks() {
-        return CHECK_BISIMILARITY | CHECK_STATE_NAMES;
+        return CHECK_ALL;
     }
 
 
@@ -371,8 +377,15 @@ public abstract class IntegrationTest {
             try {
                 return new ConstIntegerValue(Integer.valueOf(valueString));
             } catch (final NumberFormatException e) {
-                return new ConstString(valueString);
+                // ignore
             }
+
+            if ("true".equals(valueString))
+                return ConstBooleanValue.get(true);
+            if ("false".equals(valueString))
+                return ConstBooleanValue.get(false);
+
+            return new ConstString(valueString);
         }
     }
 

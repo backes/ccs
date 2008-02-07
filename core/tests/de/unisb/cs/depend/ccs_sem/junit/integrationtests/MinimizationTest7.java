@@ -3,19 +3,16 @@ package de.unisb.cs.depend.ccs_sem.junit.integrationtests;
 import de.unisb.cs.depend.ccs_sem.junit.IntegrationTest;
 
 
-/**
- * Test whether the minimization algorithm detects cycles.
- */
-public class MinimizationTest4 extends IntegrationTest {
+public class MinimizationTest7 extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "X=i.X+a; X";
+        return "a.i + i.a";
     }
 
     @Override
     protected void addStates() {
-        addState("X");
+        addState("a.i.0 + i.a.0");
         addState("0");
     }
 

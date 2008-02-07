@@ -26,11 +26,11 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
  *
  * This implementation is very fast, but only does some simple minimisations.
  * If you want to have the smallest weak bisimilar lts, you should use
- * {@link MinimisingTransitionsExpression}.
+ * {@link MinimisingExpression}.
  *
  * @author Clemens Hammacher
  */
-public class FastMinimisingTransitionsExpression extends Expression {
+public class FastMinimisingExpression extends Expression {
 
     Expression myExpr;
 
@@ -40,7 +40,7 @@ public class FastMinimisingTransitionsExpression extends Expression {
      *
      * @param myExpr the main expression of the program to minimize
      */
-    public FastMinimisingTransitionsExpression(Expression myExpr) {
+    public FastMinimisingExpression(Expression myExpr) {
         super();
         this.myExpr = myExpr;
         assert myExpr.isEvaluated();
@@ -82,8 +82,8 @@ public class FastMinimisingTransitionsExpression extends Expression {
             // minimize the successors and return the transitions
             final Set<Transition> newTransitions = new HashSet<Transition>(transitions.size() * 3 / 2);
             for (final Transition trans: transitions) {
-                FastMinimisingTransitionsExpression expr = new FastMinimisingTransitionsExpression(trans.getTarget());
-                expr = (FastMinimisingTransitionsExpression)ExpressionRepository.getExpression(expr);
+                FastMinimisingExpression expr = new FastMinimisingExpression(trans.getTarget());
+                expr = (FastMinimisingExpression)ExpressionRepository.getExpression(expr);
                 newTransitions.add(new Transition(trans.getAction(), expr));
             }
             return new ArrayList<Transition>(newTransitions);
@@ -103,8 +103,8 @@ public class FastMinimisingTransitionsExpression extends Expression {
             if (onlyTauOutgoing)
                 tauTransitions.addAll(targetTransitions);
             else {
-                FastMinimisingTransitionsExpression expr = new FastMinimisingTransitionsExpression(trans.getTarget());
-                expr = (FastMinimisingTransitionsExpression)ExpressionRepository.getExpression(expr);
+                FastMinimisingExpression expr = new FastMinimisingExpression(trans.getTarget());
+                expr = (FastMinimisingExpression)ExpressionRepository.getExpression(expr);
                 newTransitions.add(new Transition(trans.getAction(), expr));
             }
         }
@@ -145,7 +145,7 @@ public class FastMinimisingTransitionsExpression extends Expression {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        final FastMinimisingTransitionsExpression other = (FastMinimisingTransitionsExpression) obj;
+        final FastMinimisingExpression other = (FastMinimisingExpression) obj;
         return myExpr.equals(other.myExpr);
     }
 
