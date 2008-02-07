@@ -1,5 +1,5 @@
-// let's assume we have a 3 digit display
-const max_value = 999;
+// let's assume we have just a 2 digit display
+const max_value = 99;
 range clock_range = 0 .. max_value;
 
 T = tick! . T;

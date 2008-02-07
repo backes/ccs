@@ -1,0 +1,13 @@
+const MAX_PER_LANE = 2;
+
+SEMA[channel, nr, max] = when nr < max channel?"up".SEMA[channel, nr+1, max]
+                         + when nr > 0 channel?"down".SEMA[channel, nr-1, max];
+
+PRODUCER[sema_ch] = sema_ch!produce.sema_ch!up.PRODUCER[sema_ch];
+CONSUMER[sema_ch] = sema_ch!down.sema_ch!consume.CONSUMER[sema_ch];
+
+TOGETHER[sema_ch] = PRODUCER[sema_ch] | CONSUMER[sema_ch] | SEMA[sema_ch, 0, MAX_PER_LANE]
+                    \ {sema_ch!down, sema_ch?"down", sema_ch!up, sema_ch?"up"};
+
+TOGETHER[firstlane] | TOGETHER[secondlane]
+

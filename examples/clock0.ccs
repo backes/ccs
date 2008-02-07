@@ -1,6 +1,8 @@
 (* An example of a stop watch with the buttons "start", "stop" and
    "reset", and a "get" operation to read the actual time on the watch *)
 
+const MAX = 5;
+
 T = tick! . T;
 
 CLOCK = (STOPPED[0] | T) \ {tick?, tick!};
@@ -11,13 +13,13 @@ STOPPED[x] = tick?.STOPPED[x]
   + reset?.STOPPED[0]
   + get!x.STOPPED[x];
 
-RUNNING[x] = tick?.(if x < 3 then RUNNING[x + 1])
+RUNNING[x] = tick?.(if x < MAX then RUNNING[x + 1])
   + start?.RUNNING[x]
   + stop?.STOPPED[x]
   + reset?.FREEZED[x, x]
   + get!x.RUNNING[x];
 
-FREEZED[x, y] = tick?.(when x < 3 FREEZED[x + 1, y])
+FREEZED[x, y] = tick?.(when x < MAX FREEZED[x + 1, y])
   + start?.FREEZED[x, y]
   + stop?.STOPPED[x]
   + reset?.RUNNING[x]

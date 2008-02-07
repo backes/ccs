@@ -1,5 +1,2 @@
-X[a,b] = a!b.(X[a,b] + (when b < 4 X[a,b+1]));
-
-X[out,2]
-
+x! | x?x
 
