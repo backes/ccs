@@ -6,6 +6,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 public interface Evaluator {
     /**
      * Evaluates a single expression.
+     *
      * @param expr the expression to evaluate.
      * @return <code>true</code> if there was an error
      */

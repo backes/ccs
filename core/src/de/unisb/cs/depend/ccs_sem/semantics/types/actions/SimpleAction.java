@@ -61,10 +61,7 @@ public class SimpleAction extends Action {
         if (getClass() != obj.getClass())
             return false;
         final SimpleAction other = (SimpleAction) obj;
-        if (channel == null) {
-            if (other.channel != null)
-                return false;
-        } else if (!channel.equals(other.channel))
+        if (!channel.equals(other.channel))
             return false;
         return true;
     }

@@ -109,10 +109,10 @@ public abstract class Bisimulation {
             while ((partition = partitions.poll()) != null) {
                 if (partition.getExprWrappers().size() < 2)
                     continue;
-                else if (partition.divide(partitions, strong))
+                if (partition.divide(partitions, strong)) {
                     if (++changed * 10 >= unChangedPartitions.size())
                         break;
-                else
+                } else
                     unChangedPartitions.add(partition);
             }
             if (changed == 0)
@@ -149,17 +149,10 @@ public abstract class Bisimulation {
                 private final Set<TransitionToPartition> seen
                     = new HashSet<TransitionToPartition>();
                 private final Iterator<ExprWrapper> exprItr = expressionWrappers.iterator();
-                private Iterator<TransWrapper> transItr = null;
+                private Iterator<TransWrapper> transItr = exprItr.next().transitions.iterator();
                 private TransitionToPartition next = null;
 
                 private TransitionToPartition getNext() {
-                    if (transItr == null) {
-                        if (exprItr.hasNext())
-                            transItr = exprItr.next().transitions.iterator();
-                        else
-                            return null;
-                    }
-
                     while (transItr.hasNext() || exprItr.hasNext()) {
                         if (transItr.hasNext()) {
                             final TransWrapper found = transItr.next();

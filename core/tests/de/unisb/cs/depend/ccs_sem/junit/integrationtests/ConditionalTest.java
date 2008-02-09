@@ -13,7 +13,7 @@ BOOLEAN[b] = out!(b ? false : true).when !b BOOLEAN[true];
 STRING[false]
 */
 
-public class Conditionals extends IntegrationTest {
+public class ConditionalTest extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {

@@ -26,7 +26,7 @@ public class RangeTest1 extends IntegrationTest {
         addState("X[1]");
         addState("X[2]");
         addState("X[3]");
-        addState("X[4]");
+        addState("error_X[4]");
     }
 
     @Override

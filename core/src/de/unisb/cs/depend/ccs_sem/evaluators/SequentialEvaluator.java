@@ -37,6 +37,7 @@ public class SequentialEvaluator implements Evaluator {
             for (final Expression child: e.getChildren())
                 if (!child.isEvaluated())
                     toEvaluate.push(child);
+            // have children been added?
             if (stackSizeBefore != toEvaluate.size())
                 continue;
             toEvaluate.pop();

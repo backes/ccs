@@ -46,7 +46,7 @@ public class ErrorExpression extends Expression {
 
     @Override
     public String toString() {
-        return "0";
+        return "ERROR";
     }
 
     @Override

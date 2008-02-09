@@ -37,6 +37,7 @@ public class Main {
     private boolean minimizeWeak = false;
     private boolean minimizeStrong = false;
 
+
     public Main(String[] args) {
         parseCommandLine(args);
     }
@@ -113,13 +114,6 @@ public class Main {
             log("Minimizing (w.r.t. strong bisimulation)...");
             final EvaluationMonitor minimizationMonitor = new EvalMonitor(true);
             program.minimizeTransitions(evaluator, minimizationMonitor, true);
-
-            /*
-            log("Counting...");
-            final int newStateCount = StateNumerator.numerateStates(program.getExpression()).size();
-            final int newTransitionCount = TransitionCounter.countTransitions(program.getExpression());
-            log(newStateCount + " states, " + newTransitionCount + " Transitions.");
-            */
         } else if (minimizeWeak) {
             log("Minimizing...");
             final EvaluationMonitor minimizationMonitor = new EvalMonitor(true);

@@ -159,7 +159,7 @@ public class ParallelEvaluator implements Evaluator {
         }
 
         public void run() {
-            if (!childrenEvaluated) {
+            if (!childrenEvaluated && !expr.isEvaluated()) {
                 Barrier barrier = null;
 
                 for (final Expression child: expr.getChildren()) {
@@ -205,11 +205,7 @@ public class ParallelEvaluator implements Evaluator {
                 for (final Transition trans: expr.getTransitions()) {
                     final Expression succ = trans.getTarget();
                     if (evaluatedSuccessors.add(succ)) {
-                        synchronized (succ) {
-                            // TODO ensure evaluation of successors
-                            if (currentlyEvaluating.get(succ) == null)
-                                new EvaluatorJob(succ, true);
-                        }
+                        new EvaluatorJob(succ, true);
                     }
                 }
             }

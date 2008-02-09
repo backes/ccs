@@ -27,7 +27,7 @@ public abstract class Expression {
 
     // precondition: children have been evaluated
     public void evaluate() {
-        if (transitions != null)
+        if (isEvaluated())
             return;
 
         List<Transition> transitions0;

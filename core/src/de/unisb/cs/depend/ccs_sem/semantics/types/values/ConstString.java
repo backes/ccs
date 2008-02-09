@@ -21,7 +21,7 @@ public class ConstString extends AbstractValue implements ConstantValue {
 
     @Override
     public int hashCode() {
-        int hashCode = value.hashCode();
+        final int hashCode = value.hashCode();
         return hashCode;
     }
 
@@ -34,10 +34,7 @@ public class ConstString extends AbstractValue implements ConstantValue {
         if (getClass() != obj.getClass())
             return false;
         final ConstString other = (ConstString) obj;
-        if (value == null) {
-            if (other.value != null)
-                return false;
-        } else if (!value.equals(other.value))
+        if (!value.equals(other.value))
             return false;
         return true;
     }

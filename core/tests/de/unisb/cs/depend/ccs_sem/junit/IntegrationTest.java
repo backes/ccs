@@ -40,6 +40,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 import de.unisb.cs.depend.ccs_sem.utils.Bisimulation;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
 import de.unisb.cs.depend.ccs_sem.utils.StateNumerator;
+import de.unisb.cs.depend.ccs_sem.utils.TransitionCounter;
 import de.unisb.cs.depend.ccs_sem.utils.Bisimulation.Partition;
 
 
@@ -50,12 +51,6 @@ import de.unisb.cs.depend.ccs_sem.utils.Bisimulation.Partition;
  * @author Clemens Hammacher
  */
 public abstract class IntegrationTest {
-
-    protected static int CHECK_WEAK_BISIMILARITY   = 1<<1;
-    protected static int CHECK_STRONG_BISIMILARITY = 1<<2;
-    protected static int CHECK_STATE_NAMES         = 1<<3;
-    protected static int CHECK_STATE_NR            = 1<<4;
-    protected static int CHECK_ALL                 = (1<<31) - 1;
 
     private static class SimpleTrans {
         public String label;
@@ -69,78 +64,66 @@ public abstract class IntegrationTest {
 
     private List<String> states;
     private List<List<SimpleTrans>> transitions;
-
-    @Before
-    public void setUp() throws Exception {
-        ExpressionRepository.reset();
-        states = new ArrayList<String>();
-        transitions = new ArrayList<List<SimpleTrans>>();
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        ExpressionRepository.reset();
-        states = null;
-        transitions = null;
-    }
+    private Program program;
 
     // may be overridden to use another evaluator
-    protected Evaluator getEvaluator() {
+    protected static Evaluator getEvaluator() {
         return new SequentialEvaluator();
     }
 
     @Before
-    public void initialize() {
+    public void initialize() throws ParseException, LexException {
+        ExpressionRepository.reset();
+        states = new ArrayList<String>();
+        transitions = new ArrayList<List<SimpleTrans>>();
+
         addStates();
         addTransitions();
-    }
 
-    @After
-    public void cleanUp() {
-        states = null;
-        transitions = null;
-    }
-
-    @Test
-    public void runTest() throws ParseException, LexException {
-        // first, evaluate the expression
+        // evaluate the expression
         final String expressionString = getExpressionString();
-        final Program program = new CCSParser().parse(expressionString);
+        program = new CCSParser().parse(expressionString);
         program.evaluate(getEvaluator());
+        System.out.println(StateNumerator.numerateStates(program.getExpression()).size());
+        System.out.println(TransitionCounter.countTransitions(program.getExpression()));
         if (isMinimize())
             program.minimizeTransitions();
 
         if (states.size() == 0)
             fail("This testcase contains no nodes.");
 
-        doChecks(program);
     }
 
-    private void doChecks(final Program program) {
-        final int checks = getChecks();
-        if ((checks & CHECK_WEAK_BISIMILARITY) != 0) {
-            checkBisimilarity(program.getExpression(), false);
-        }
-        if ((checks & CHECK_STRONG_BISIMILARITY) != 0) {
-            checkBisimilarity(program.getExpression(), true);
-        }
-        if ((checks & CHECK_STATE_NR) != 0) {
-            checkStatesNr(program.getExpression());
-        }
-        if ((checks & CHECK_STATE_NAMES) != 0) {
-            checkStatesExplicitely(program.getExpression());
-        }
+    @After
+    public void cleanUp() {
+        ExpressionRepository.reset();
+        states = null;
+        transitions = null;
+        states = null;
+        transitions = null;
     }
 
-    private void checkStatesNr(Expression expression) {
-        final int foundNr = StateNumerator.numerateStates(expression).size();
+    @Test
+    public void checkStatesNr() {
+        final int foundNr = StateNumerator.numerateStates(program.getExpression()).size();
 
         if (foundNr != states.size())
             fail("The number of states does not match. Expected "
                 + states.size() + ", found " + foundNr);
     }
 
-    private void checkBisimilarity(Expression expression, boolean strong) {
+    @Test
+    public void checkWeakBisimilarity() {
+        checkBisimilarity(false);
+    }
+
+    @Test
+    public void checkStrongBisimilarity() {
+        checkBisimilarity(true);
+    }
+
+    private void checkBisimilarity(boolean strong) {
+        final Expression expression = program.getExpression();
         final RebuiltExpression rebuiltExpr = RebuiltExpression.create(states, transitions);
         final List<Expression> exprList = new ArrayList<Expression>(2);
         exprList.add(expression);
@@ -151,7 +134,10 @@ public abstract class IntegrationTest {
                 + (strong ? "strong" : "weak") + " bisimilar to the expected one.");
     }
 
-    private void checkStatesExplicitely(final Expression expression) {
+    @Test
+    public void checkStatesExplicitely() {
+        final Expression expression = program.getExpression();
+
         // the queue of expressions to check
         final Queue<Integer> queue = new LinkedList<Integer>();
         queue.add(0);
@@ -180,8 +166,17 @@ public abstract class IntegrationTest {
                 final String transLabel = trans.getAction().getLabel();
                 final String targetLabel = trans.getTarget().toString();
                 for (final SimpleTrans sTrans: expectedTrans) {
+                    boolean isError = false;
+                    String label = states.get(sTrans.endNodeNr);
+                    if (label.startsWith("error_")) {
+                        isError = true;
+                        label = label.substring(6);
+                    } else if ("ERROR".equals(label)) {
+                        isError = true;
+                    }
                     if (sTrans.label.equals(transLabel) &&
-                            states.get(sTrans.endNodeNr).equals(targetLabel)) {
+                            label.equals(targetLabel) &&
+                            isError == trans.getTarget().isError()) {
                         while (generatedExpr.size() <= sTrans.endNodeNr)
                             generatedExpr.add(null);
                         generatedExpr.set(sTrans.endNodeNr, trans.getTarget());
@@ -197,7 +192,8 @@ public abstract class IntegrationTest {
 
     private void failAtState(int stateNr, Expression foundExpr, String message) {
         final StringBuilder sb = new StringBuilder();
-        sb.append(message).append(" at state ").append(states.get(stateNr)).append(Globals.getNewline());
+        sb.append(message).append(" at state \"").append(states.get(stateNr));
+        sb.append('"').append(Globals.getNewline());
         sb.append("Expected Transitions:").append(Globals.getNewline());
         final List<SimpleTrans> expectedTrans = transitions.get(stateNr);
         if (expectedTrans.isEmpty())
@@ -205,8 +201,16 @@ public abstract class IntegrationTest {
         else
             for (final SimpleTrans trans: expectedTrans) {
                 sb.append("    - \"").append(trans.label);
-                sb.append("\" to state \"").append(states.get(stateNr)).append('"');
-                sb.append(Globals.getNewline());
+                boolean isError = false;
+                String label = states.get(trans.endNodeNr);
+                if (label.startsWith("error_")) {
+                    isError = true;
+                    label = label.substring(6);
+                } else if ("ERROR".equals(label)) {
+                    isError = true;
+                }
+                sb.append(isError ? "\" to error state \"" : "\" to state \"");
+                sb.append(label).append('"').append(Globals.getNewline());
             }
         sb.append("Found Transitions:").append(Globals.getNewline());
         if (foundExpr.getTransitions().isEmpty())
@@ -214,7 +218,9 @@ public abstract class IntegrationTest {
         else
             for (final Transition trans: foundExpr.getTransitions()) {
                 sb.append("    - \"").append(trans.getAction().getLabel());
-                sb.append("\" to state \"").append(trans.getTarget()).append('"');
+                sb.append(trans.getTarget().isError()
+                    ? "\" to error state \"" : "\" to state \"");
+                sb.append(trans.getTarget()).append('"');
                 sb.append(Globals.getNewline());
             }
         fail(sb.toString());
@@ -260,10 +266,6 @@ public abstract class IntegrationTest {
         transitions.get(startNodeNr).add(new SimpleTrans(label, endNodeNr));
     }
 
-    protected int getChecks() {
-        return CHECK_ALL;
-    }
-
 
     // the methods to be implemented by subclasses:
 
@@ -277,10 +279,18 @@ public abstract class IntegrationTest {
 
         private List<Transition> transitions;
         private final String label;
+        private boolean isError = false;
 
         private RebuiltExpression(String label) {
             super();
-            this.label = label;
+            if (label.startsWith("error_")) {
+                isError = true;
+                this.label = label.substring(6);
+            } else {
+                if ("ERROR".equals(label))
+                    isError = true;
+                this.label = label;
+            }
         }
 
         public static RebuiltExpression create(List<String> states,
@@ -337,7 +347,7 @@ public abstract class IntegrationTest {
 
         @Override
         public boolean isError() {
-            return false;
+            return isError;
         }
 
     }

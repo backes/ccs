@@ -1,5 +1,8 @@
 package de.unisb.cs.depend.ccs_sem.junit.integrationtests;
 
+import org.junit.Ignore;
+import org.junit.Test;
+
 import de.unisb.cs.depend.ccs_sem.junit.IntegrationTest;
 
 
@@ -41,8 +44,8 @@ public class MinimizationTest8 extends IntegrationTest {
         return true;
     }
 
-    @Override
-    protected int getChecks() {
-        return CHECK_ALL ^ CHECK_STATE_NAMES;
+    @Override @Test @Ignore
+    public void checkStatesExplicitely() {
+        super.checkStatesExplicitely();
     }
 }

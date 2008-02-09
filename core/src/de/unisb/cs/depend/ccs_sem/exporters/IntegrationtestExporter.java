@@ -117,7 +117,10 @@ public class IntegrationtestExporter implements Exporter {
         int methodCnt = 0;
         while (!queue.isEmpty()) {
             final Expression e = queue.poll();
-            javaWriter.println("        addState(" + encode0(e.toString()) + ");");
+            String stateString = e.toString();
+            if (e.isError() && !"ERROR".equals(stateString))
+                stateString = "error_" + stateString;
+            javaWriter.println("        addState(" + encode0(stateString) + ");");
             if (++stateCnt % 5000 == 0) {
                 javaWriter.println("        addStates" + methodCnt + "();");
                 javaWriter.println("    }");
