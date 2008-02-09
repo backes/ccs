@@ -30,7 +30,11 @@ public abstract class Expression {
         if (transitions != null)
             return;
 
-        List<Transition> transitions0 = evaluate0();
+        List<Transition> transitions0;
+        if (isError())
+            transitions0 = Collections.emptyList();
+        else
+            transitions0 = evaluate0();
 
         assert transitions0 != null;
 
@@ -55,15 +59,24 @@ public abstract class Expression {
     // precondition: children have been evaluated
     protected abstract List<Transition> evaluate0();
 
-    // returns the children that have to be evaluated before calling evaluate()
+    /**
+     * @return the children that have to be evaluated before calling evaluate()
+     */
     public abstract Collection<Expression> getChildren();
 
-    // returns all subterms occuring in this expression. In general, it is the same
-    // as the children, but in some Expressions, it must be overwritten.
+    /**
+     * @return all subterms occuring in this expression. In general, it is the
+     *         same as the children, but in some Expressions, it must be overwritten.
+     */
     public Collection<Expression> getSubTerms() {
         return getChildren();
     }
 
+    /**
+     * Precondition: evaluate() has been called before.
+     *
+     * @return all outgoing transitions of this expression.
+     */
     public List<Transition> getTransitions() {
         assert transitions != null;
 
@@ -71,8 +84,8 @@ public abstract class Expression {
     }
 
     /**
-     * Replaces every {@link UnknownString} either by a {@link PrefixExpr} and
-     * a {@link StopExpr}, or by a {@link RecursiveExpr}, if a corresponding
+     * Replaces every {@link UnknownString} either by a {@link PrefixExpression} and
+     * a {@link StopExpression}, or by a {@link RecursiveExpression}, if a corresponding
      * Declaration has been found.
      * Typically delegates to it's subterms.
      * @return either itself or a new created Expression, if something changed
@@ -80,7 +93,7 @@ public abstract class Expression {
     public abstract Expression replaceRecursion(List<Declaration> declarations) throws ParseException;
 
     /**
-     * Is called in the constructor of a {@link RecursiveExpr}.
+     * Is called in the constructor of a {@link RecursiveExpression}.
      * Replaces all {@link ParameterReference}s that occure in the expression by
      * the corresponding {@link Value} from the parameter list.
      * Typically delegates to it's subterms.
@@ -88,6 +101,11 @@ public abstract class Expression {
      * @return either <code>this</code> or a new created Expression
      */
     public abstract Expression instantiate(Map<Parameter, Value> parameters);
+
+    /**
+     * @return whether this Expression represents an "error" expression
+     */
+    public abstract boolean isError();
 
     // we store the hashCode so that we only compute it once
     @Override

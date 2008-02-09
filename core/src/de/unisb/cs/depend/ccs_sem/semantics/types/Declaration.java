@@ -11,11 +11,12 @@ import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.ParallelExpr;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.PrefixExpr;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.RecursiveExpr;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.RestrictExpr;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.ParallelExpression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.PrefixExpression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.RecursiveExpression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.RestrictExpression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.Range;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 
@@ -52,12 +53,12 @@ public class Declaration {
             final Expression expr = queue.poll();
             if (checked.add(expr)) {
                 // not checked before...
-                if (expr instanceof PrefixExpr)
+                if (expr instanceof PrefixExpression)
                     // then, it is guarded
                     continue;
                 // every RecursiveExpr has to be checked only once
-                if (expr instanceof RecursiveExpr) {
-                    final Declaration referencedDeclaration = ((RecursiveExpr)expr).getReferencedDeclaration();
+                if (expr instanceof RecursiveExpression) {
+                    final Declaration referencedDeclaration = ((RecursiveExpression)expr).getReferencedDeclaration();
                     if (referencedDeclaration.equals(this))
                         return false;
                     if (!checkedDeclarations.add(referencedDeclaration))
@@ -94,12 +95,12 @@ public class Declaration {
             final Expression expr = queue.poll();
             if (checked.add(expr)) {
                 // not checked before...
-                if (expr instanceof ParallelExpr || expr instanceof RestrictExpr) {
+                if (expr instanceof ParallelExpression || expr instanceof RestrictExpression) {
                     afterStaticQueue.addAll(expr.getSubTerms());
                 } else {
                     // every RecursiveExpr has to be checked only once
-                    if (expr instanceof RecursiveExpr)
-                        if (!checkedDeclarations.add(((RecursiveExpr)expr).getReferencedDeclaration()))
+                    if (expr instanceof RecursiveExpression)
+                        if (!checkedDeclarations.add(((RecursiveExpression)expr).getReferencedDeclaration()))
                             continue;
                     queue.addAll(expr.getSubTerms());
                 }
@@ -113,8 +114,8 @@ public class Declaration {
             final Expression expr = afterStaticQueue.poll();
             if (checked.add(expr)) {
                 // not checked before...
-                if (expr instanceof RecursiveExpr) {
-                    Declaration refDecl = ((RecursiveExpr) expr).getReferencedDeclaration();
+                if (expr instanceof RecursiveExpression) {
+                    final Declaration refDecl = ((RecursiveExpression) expr).getReferencedDeclaration();
                     if (refDecl.equals(this))
                         return false;
                     if (!checkedDeclarations.add(refDecl))
@@ -206,10 +207,19 @@ public class Declaration {
         return name + parameters;
     }
 
+    /**
+     * Checks whether the given parameter values fit into the parameter ranges
+     * of this declaration's parameters.
+     *
+     * @param parameterValues the values to check
+     * @return <code>true</code> if the values fit into the parameter ranges,
+     *         <code>false</code> otherwise
+     */
     public boolean checkRanges(List<Value> parameterValues) {
         assert parameters.size() == parameterValues.size();
 
         for (int i = 0; i < parameters.size(); ++i) {
+            assert parameterValues.get(i) instanceof ConstantValue;
             final Range range = parameters.get(i).getRange();
             if (range != null && !range.contains(parameterValues.get(i)))
                 return false;

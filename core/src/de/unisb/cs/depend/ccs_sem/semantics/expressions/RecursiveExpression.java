@@ -13,13 +13,13 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 
-public class RecursiveExpr extends Expression {
+public class RecursiveExpression extends Expression {
 
     private final Declaration referencedDeclaration;
     private final List<Value> parameterValues;
     private Expression instantiatedExpression = null;
 
-    public RecursiveExpr(Declaration referencedDeclaration, List<Value> parameters) {
+    public RecursiveExpression(Declaration referencedDeclaration, List<Value> parameters) {
         super();
         this.referencedDeclaration = referencedDeclaration;
         this.parameterValues = parameters;
@@ -39,22 +39,20 @@ public class RecursiveExpr extends Expression {
     public Expression getInstantiatedExpression() {
         if (instantiatedExpression == null) {
             // if all parameters are fully instantiated, check if the parameters
-            // are in the correct range
+            // are in the correct range. if not, we just do no tests, they are
+            // done later, when the expression is further instantiated
             boolean readyForCheck = true;
             for (final Value value: parameterValues)
-                if (!(value instanceof ConstantValue))
+                if (!(value instanceof ConstantValue)) {
                     readyForCheck = false;
+                    break;
+                }
 
             final boolean rangesOK = readyForCheck
                 ? referencedDeclaration.checkRanges(parameterValues) : true;
-            if (rangesOK)
-                instantiatedExpression = referencedDeclaration.instantiate(parameterValues);
-            else {
-                // TODO
-                System.err.println("Warning: The recursive expression \"" + this
-                    + "\" was replaced by a STOP expression because the parameters were out of range.");
-                instantiatedExpression = StopExpr.get();
-            }
+            instantiatedExpression = rangesOK
+                ? referencedDeclaration.instantiate(parameterValues)
+                : ErrorExpression.get();
         }
 
         return instantiatedExpression;
@@ -90,7 +88,12 @@ public class RecursiveExpr extends Expression {
         if (!changed)
             return this;
 
-        return ExpressionRepository.getExpression(new RecursiveExpr(referencedDeclaration, newParameters));
+        return ExpressionRepository.getExpression(new RecursiveExpression(referencedDeclaration, newParameters));
+    }
+
+    @Override
+    public boolean isError() {
+        return getInstantiatedExpression().isError();
     }
 
     @Override
@@ -118,7 +121,7 @@ public class RecursiveExpr extends Expression {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        final RecursiveExpr other = (RecursiveExpr) obj;
+        final RecursiveExpression other = (RecursiveExpression) obj;
         // hashCode is cached, so we compare it first (it's cheap)
         if (hashCode() != other.hashCode())
             return false;

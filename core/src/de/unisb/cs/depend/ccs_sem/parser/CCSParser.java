@@ -22,6 +22,7 @@ import de.unisb.cs.depend.ccs_sem.lexer.tokens.Division;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Dot;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Else;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Equals;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Error;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Exclamation;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.False;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Geq;
@@ -55,14 +56,15 @@ import de.unisb.cs.depend.ccs_sem.lexer.tokens.Then;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Token;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.True;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.When;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.ChoiceExpr;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.ChoiceExpression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.ConditionalExpression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.ErrorExpression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.ExpressionRepository;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.ParallelExpr;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.PrefixExpr;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.RestrictExpr;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.StopExpr;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.ParallelExpression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.PrefixExpression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.RestrictExpression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.StopExpression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.UnknownString;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.adapters.TopMostExpression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
@@ -90,6 +92,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.EqValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.IntegerValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.MultValue;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.NegativeValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.NotValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.OrValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterRefChannel;
@@ -118,6 +121,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
  *                          | action "." prefixExpression
  * whenExpression      --> baseExpression | "when" arithExpression prefixExpression
  * baseExpression      --> "0"
+ *                          | "ERROR"
  *                          | "(" expression ")"
  *                          | recursionVariable
  *                          | action
@@ -136,7 +140,9 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
  * rangeDef            --> Identifier | arithExpression ".." arithExpression
  *                          | "{" ( ( arithExpression "," )* arithExpression)? "}"
  * rangeBase           --> Identifier
- * rangeElem           --> digit+ | Identifier
+ * rangeElem           --> integer | Identifier
+ *
+ * integer             --> ( "+" | "-" )? digit+
  *
  * arithExpression     --> arithCond
  * arithCond           --> arithOr | arithOr "?" arithCond ":" arithCond
@@ -146,9 +152,9 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
  * arithComp           --> arithShift | arithShift ("<" | "<=" | ">" | ">=") arithShift
  * arithShift          --> arithAdd | arithShift (">>" | "<<") arithAdd
  * arithAdd            --> arithMult | arithAdd ("+" | "-") arithMult
- * arithMult           --> arithNot | arithMult ("*" | "/" | "%" | "mod") arithNot
- * arithNot            --> arithBase | "!" arithNot
- * arithBase           --> digit+ | "true" | "false" | "(" arithExpression ")" | identifier
+ * arithMult           --> arithNot | arithMult ("*" | "/" | "%" | "mod") arithUnary
+ * arithUnary          --> arithBase | "!" arithUnary | "+" arithUnary | "-" arithUnary
+ * arithBase           --> integer | "true" | "false" | "(" arithExpression ")" | identifier
  *
  *
  * @author Clemens Hammacher
@@ -547,7 +553,7 @@ public class CCSParser implements Parser {
             if (!tokens.hasNext() || !(tokens.next() instanceof LBrace))
                 throw new ParseException("Expected '{'");
             final Set<Action> restricted = readRestrictionActionSet(tokens);
-            expr = ExpressionRepository.getExpression(new RestrictExpr(expr, restricted));
+            expr = ExpressionRepository.getExpression(new RestrictExpression(expr, restricted));
         }
 
         return expr;
@@ -678,7 +684,7 @@ public class CCSParser implements Parser {
         while (tokens.hasNext() && tokens.peek() instanceof Parallel) {
             tokens.next();
             final Expression newExpr = readChoiceExpression(tokens);
-            expr = ParallelExpr.create(expr, newExpr);
+            expr = ParallelExpression.create(expr, newExpr);
         }
 
         return expr;
@@ -692,7 +698,7 @@ public class CCSParser implements Parser {
         while (tokens.hasNext() && tokens.peek() instanceof Plus) {
             tokens.next();
             final Expression newExpr = readPrefixExpression(tokens);
-            expr = ChoiceExpr.create(expr, newExpr);
+            expr = ChoiceExpression.create(expr, newExpr);
         }
 
         return expr;
@@ -727,7 +733,7 @@ public class CCSParser implements Parser {
                         final Parameter removedParam = parameters.pop();
                         assert removedParam == newParam;
                     }
-                    return ExpressionRepository.getExpression(new PrefixExpr(action, target));
+                    return ExpressionRepository.getExpression(new PrefixExpression(action, target));
                 }
                 // if it was not a SimpleAction, it must be a
                 // PrefixExpression (followed by Stop)
@@ -740,7 +746,7 @@ public class CCSParser implements Parser {
                     }
                     return ExpressionRepository.getExpression(new UnknownString(action.getLabel(), myParameters));
                 } else {
-                    return ExpressionRepository.getExpression(new PrefixExpr(action, StopExpr.get()));
+                    return ExpressionRepository.getExpression(new PrefixExpression(action, StopExpression.get()));
                 }
             } catch (final ParseException e) {
                 if (foundDot)
@@ -778,7 +784,7 @@ public class CCSParser implements Parser {
                     ? ((NotValue)condition).getNegatedValue()
                     : NotValue.create(condition);
                 alternative = ConditionalExpression.create(negatedCondition, alternative);
-                condExpr = ChoiceExpr.create(condExpr, alternative);
+                condExpr = ChoiceExpression.create(condExpr, alternative);
             }
             return condExpr;
         }
@@ -793,7 +799,10 @@ public class CCSParser implements Parser {
             final Token nextToken = tokens.next();
 
             if (nextToken instanceof Stop)
-                return ExpressionRepository.getExpression(new StopExpr());
+                return ExpressionRepository.getExpression(StopExpression.get());
+
+            if (nextToken instanceof Error)
+                return ExpressionRepository.getExpression(ErrorExpression.get());
 
             if (nextToken instanceof LParenthesis) {
                 final Expression expr = readExpression(tokens);
@@ -921,7 +930,7 @@ public class CCSParser implements Parser {
     }
 
     private Value readArithmeticMultExpression(ExtendedIterator<Token> tokens) throws ParseException {
-        Value value = readArithmeticNotExpression(tokens);
+        Value value = readArithmeticUnaryExpression(tokens);
         while (tokens.hasNext()) {
             final Token nextToken = tokens.next();
             MultValue.Type type = null;
@@ -937,7 +946,7 @@ public class CCSParser implements Parser {
                 break;
             }
             ensureInteger(value, "Both sides of a multiplication/division must be integer expressions.");
-            final Value secondValue = readArithmeticNotExpression(tokens);
+            final Value secondValue = readArithmeticUnaryExpression(tokens);
             ensureInteger(secondValue, "Both sides of a multiplication/division must be integer expressions.");
             value = MultValue.create(value, secondValue, type);
         }
@@ -945,12 +954,23 @@ public class CCSParser implements Parser {
         return value;
     }
 
-    private Value readArithmeticNotExpression(ExtendedIterator<Token> tokens) throws ParseException {
-        if (tokens.hasNext() && tokens.peek() instanceof Exclamation) {
-            tokens.next();
-            final Value negatedValue = readArithmeticNotExpression(tokens);
-            ensureBoolean(negatedValue, "The negated value must be a boolean expression.");
-            return NotValue.create(negatedValue);
+    private Value readArithmeticUnaryExpression(ExtendedIterator<Token> tokens) throws ParseException {
+        if (tokens.hasNext()) {
+            final Token nextToken = tokens.peek();
+            if (nextToken instanceof Exclamation) {
+                tokens.next();
+                final Value negatedValue = readArithmeticUnaryExpression(tokens);
+                ensureBoolean(negatedValue, "The negated value must be a boolean expression.");
+                return NotValue.create(negatedValue);
+            } else if (nextToken instanceof Plus) {
+                tokens.next();
+                return readArithmeticUnaryExpression(tokens);
+            } else if (nextToken instanceof Minus) {
+                tokens.next();
+                final Value negativeValue = readArithmeticUnaryExpression(tokens);
+                ensureInteger(negativeValue, "The negated value must be an integer expression.");
+                return NegativeValue.create(negativeValue);
+            }
         }
         return readArithmeticBaseExpression(tokens);
     }

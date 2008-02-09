@@ -335,6 +335,11 @@ public abstract class IntegrationTest {
             return label;
         }
 
+        @Override
+        public boolean isError() {
+            return false;
+        }
+
     }
 
     private static class RebuiltTransition extends Transition {

@@ -14,12 +14,12 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
 
-public class ChoiceExpr extends Expression {
+public class ChoiceExpression extends Expression {
 
     private final Expression left;
     private final Expression right;
 
-    private ChoiceExpr(Expression left, Expression right) {
+    private ChoiceExpression(Expression left, Expression right) {
         super();
         this.left = left;
         this.right = right;
@@ -27,12 +27,12 @@ public class ChoiceExpr extends Expression {
 
     public static Expression create(Expression left, Expression right) {
         if (Globals.isMinimizeExpressions()) {
-            if (left instanceof StopExpr)
+            if (left instanceof StopExpression)
                 return right;
-            if (right instanceof StopExpr)
+            if (right instanceof StopExpression)
                 return left;
         }
-        return ExpressionRepository.getExpression(new ChoiceExpr(left, right));
+        return ExpressionRepository.getExpression(new ChoiceExpression(left, right));
     }
 
     @Override
@@ -88,15 +88,20 @@ public class ChoiceExpr extends Expression {
     }
 
     @Override
+    public boolean isError() {
+        return left.isError() || right.isError();
+    }
+
+    @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
-        if (left instanceof RestrictExpr || left instanceof ParallelExpr) {
+        if (left instanceof RestrictExpression || left instanceof ParallelExpression) {
             sb.append('(').append(left).append(')');
         } else {
             sb.append(left);
         }
         sb.append(" + ");
-        if (right instanceof RestrictExpr || right instanceof ParallelExpr) {
+        if (right instanceof RestrictExpression || right instanceof ParallelExpression) {
             sb.append('(').append(right).append(')');
         } else {
             sb.append(right);
@@ -122,7 +127,7 @@ public class ChoiceExpr extends Expression {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        final ChoiceExpr other = (ChoiceExpr) obj;
+        final ChoiceExpression other = (ChoiceExpression) obj;
         // hashCode is cached, so we compare it first (it's cheap)
         if (hashCode() != other.hashCode())
             return false;

@@ -59,7 +59,11 @@ public class MinimisingExpression extends Expression {
         seen.add(partitions.get(expr));
         Partition part;
         while ((part = queue.poll()) != null) {
-            newExpressions.put(part, new MinimisingExpression(nextStateNr++));
+            if (part.isError()) {
+                assert part.getAllTransitions().isEmpty();
+                newExpressions.put(part, new MinimisingExpression(-1));
+            } else
+                newExpressions.put(part, new MinimisingExpression(nextStateNr++));
             final Set<TransitionToPartition> partTransitions = part.getAllTransitions();
             partitionTransitions.put(part, partTransitions);
             for (final TransitionToPartition trans: partTransitions)
@@ -101,6 +105,11 @@ public class MinimisingExpression extends Expression {
     @Override
     public Expression replaceRecursion(List<Declaration> declarations) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isError() {
+        return stateNr == -1;
     }
 
     @Override

@@ -93,6 +93,11 @@ public class TopMostExpression extends Expression {
     }
 
     @Override
+    public boolean isError() {
+        return myExpr.isError();
+    }
+
+    @Override
     public String toString() {
         return myExpr.toString();
     }

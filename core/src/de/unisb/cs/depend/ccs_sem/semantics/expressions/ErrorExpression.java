@@ -11,11 +11,11 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 
-public class StopExpr extends Expression {
+public class ErrorExpression extends Expression {
 
-    private static StopExpr instance;
+    private static ErrorExpression instance;
 
-    public StopExpr() {
+    private ErrorExpression() {
         super();
     }
 
@@ -40,23 +40,28 @@ public class StopExpr extends Expression {
     }
 
     @Override
+    public boolean isError() {
+        return true;
+    }
+
+    @Override
     public String toString() {
         return "0";
     }
 
     @Override
     protected int hashCode0() {
-        return 7;
+        return 11;
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof StopExpr;
+        return obj instanceof ErrorExpression;
     }
 
-    public static StopExpr get() {
+    public static ErrorExpression get() {
         if (instance == null)
-            instance = new StopExpr();
+            instance = new ErrorExpression();
         return instance;
     }
 

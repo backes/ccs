@@ -14,6 +14,7 @@ import de.unisb.cs.depend.ccs_sem.lexer.tokens.Division;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Dot;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Else;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Equals;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Error;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Exclamation;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.False;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Geq;
@@ -306,6 +307,8 @@ public class CCSLexer extends AbstractLexer {
                     tokens.add(new RangeToken(position, position += str.length() - 1));
                 else if ("const".equals(str))
                     tokens.add(new ConstToken(position, position += str.length() - 1));
+                else if ("ERROR".equals(str))
+                    tokens.add(new Error(position, position += str.length() - 1));
                 else
                     tokens.add(new Identifier(position, position += str.length() - 1, str, false));
 

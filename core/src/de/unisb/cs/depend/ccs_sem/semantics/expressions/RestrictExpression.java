@@ -19,12 +19,12 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 
-public class RestrictExpr extends Expression {
+public class RestrictExpression extends Expression {
 
     private final Expression innerExpr;
     private final Set<Action> restricted;
 
-    public RestrictExpr(Expression innerExpr, Set<Action> restricted) {
+    public RestrictExpression(Expression innerExpr, Set<Action> restricted) {
         super();
         this.innerExpr = innerExpr;
         this.restricted = restricted;
@@ -64,7 +64,7 @@ public class RestrictExpr extends Expression {
                     continue outer;
             }
 
-            Expression newExpr = new RestrictExpr(trans.getTarget(), restricted);
+            Expression newExpr = new RestrictExpression(trans.getTarget(), restricted);
             // search if this expression is already known
             newExpr = ExpressionRepository.getExpression(newExpr);
             // search if this transition is already known (otherwise create it)
@@ -94,7 +94,7 @@ public class RestrictExpr extends Expression {
                         continue outer;
                 }
 
-            Expression newExpr = new RestrictExpr(trans.getTarget(), restricted);
+            Expression newExpr = new RestrictExpression(trans.getTarget(), restricted);
             // search if this expression is already known
             newExpr = ExpressionRepository.getExpression(newExpr);
             // search if this transition is already known (otherwise create it)
@@ -108,7 +108,12 @@ public class RestrictExpr extends Expression {
         final Expression newInnerExpr = innerExpr.replaceRecursion(declarations);
         if (innerExpr.equals(newInnerExpr))
             return this;
-        return new RestrictExpr(newInnerExpr, restricted);
+        return new RestrictExpression(newInnerExpr, restricted);
+    }
+
+    @Override
+    public boolean isError() {
+        return innerExpr.isError();
     }
 
     @Override
@@ -142,7 +147,7 @@ public class RestrictExpr extends Expression {
 
         if (!restChanged && newExpr.equals(innerExpr))
             return this;
-        return ExpressionRepository.getExpression(new RestrictExpr(newExpr, newRestricted));
+        return ExpressionRepository.getExpression(new RestrictExpression(newExpr, newRestricted));
     }
 
     @Override
@@ -162,7 +167,7 @@ public class RestrictExpr extends Expression {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        final RestrictExpr other = (RestrictExpr) obj;
+        final RestrictExpression other = (RestrictExpression) obj;
         // hashCode is cached, so we compare it first (it's cheap)
         if (hashCode() != other.hashCode())
             return false;

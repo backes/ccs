@@ -20,12 +20,12 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
 
-public class ParallelExpr extends Expression {
+public class ParallelExpression extends Expression {
 
     private final Expression left;
     private final Expression right;
 
-    protected ParallelExpr(Expression left, Expression right) {
+    protected ParallelExpression(Expression left, Expression right) {
         super();
         this.left = left;
         this.right = right;
@@ -33,12 +33,12 @@ public class ParallelExpr extends Expression {
 
     public static Expression create(Expression left, Expression right) {
         if (Globals.isMinimizeExpressions()) {
-            if (left instanceof StopExpr)
+            if (left instanceof StopExpression)
                 return right;
-            if (right instanceof StopExpr)
+            if (right instanceof StopExpression)
                 return left;
         }
-        return ExpressionRepository.getExpression(new ParallelExpr(left, right));
+        return ExpressionRepository.getExpression(new ParallelExpression(left, right));
     }
 
     @Override
@@ -215,15 +215,20 @@ public class ParallelExpr extends Expression {
     }
 
     @Override
+    public boolean isError() {
+        return left.isError() || right.isError();
+    }
+
+    @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
-        if (left instanceof RestrictExpr) {
+        if (left instanceof RestrictExpression) {
             sb.append('(').append(left).append(')');
         } else {
             sb.append(left);
         }
         sb.append(" | ");
-        if (right instanceof RestrictExpr) {
+        if (right instanceof RestrictExpression) {
             sb.append('(').append(right).append(')');
         } else {
             sb.append(right);
@@ -249,7 +254,7 @@ public class ParallelExpr extends Expression {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        final ParallelExpr other = (ParallelExpr) obj;
+        final ParallelExpression other = (ParallelExpression) obj;
         // hashCode is cached, so we compare it first (it's cheap)
         if (hashCode() != other.hashCode())
             return false;

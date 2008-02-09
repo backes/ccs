@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import de.unisb.cs.depend.ccs_sem.exceptions.InternalSystemException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
@@ -43,23 +42,17 @@ public class UnknownString extends Expression {
 
     @Override
     public Collection<Expression> getChildren() {
-        final StackTraceElement topmostStackTraceElement = Thread.currentThread().getStackTrace()[0];
-        throw new InternalSystemException(topmostStackTraceElement.getClassName()
-            + "." + topmostStackTraceElement.getMethodName()
-            + " should never be called. Did you forget to call replaceRecursion?");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     protected List<Transition> evaluate0() {
-        final StackTraceElement topmostStackTraceElement = Thread.currentThread().getStackTrace()[0];
-        throw new InternalSystemException(topmostStackTraceElement.getClassName()
-            + "." + topmostStackTraceElement.getMethodName()
-            + " should never be called. Did you forget to call replaceRecursion?");
+        throw new UnsupportedOperationException();
     }
 
     /**
-     * Replaces this {@link UnknownString} by either a {@link RecursiveExpr} or
-     * a {@link PrefixExpr} with a {@link StopExpr} on the right hand side.
+     * Replaces this {@link UnknownString} by either a {@link RecursiveExpression} or
+     * a {@link PrefixExpression} with a {@link StopExpression} on the right hand side.
      */
     @Override
     public Expression replaceRecursion(List<Declaration> declarations) throws ParseException {
@@ -68,7 +61,7 @@ public class UnknownString extends Expression {
                 // check if parameters match
                 // this possibly throws a ParseException
                 decl.checkMatch(parameters);
-                final RecursiveExpr newExpr = new RecursiveExpr(decl, parameters);
+                final RecursiveExpression newExpr = new RecursiveExpression(decl, parameters);
                 return ExpressionRepository.getExpression(newExpr);
             }
         }
@@ -92,8 +85,8 @@ public class UnknownString extends Expression {
             throw new ParseException(sb.toString());
         }
         final Action prefix = new SimpleAction(new ConstStringChannel(name));
-        final Expression stopExpression = ExpressionRepository.getExpression(new StopExpr());
-        return ExpressionRepository.getExpression(new PrefixExpr(prefix, stopExpression));
+        final Expression stopExpression = ExpressionRepository.getExpression(StopExpression.get());
+        return ExpressionRepository.getExpression(new PrefixExpression(prefix, stopExpression));
     }
 
     @Override
@@ -111,6 +104,11 @@ public class UnknownString extends Expression {
             return this;
 
         return ExpressionRepository.getExpression(new UnknownString(name, newParameters));
+    }
+
+    @Override
+    public boolean isError() {
+        throw new UnsupportedOperationException();
     }
 
     @Override

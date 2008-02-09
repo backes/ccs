@@ -60,9 +60,15 @@ public abstract class Bisimulation {
             final Queue<Expression> queue = new LinkedList<Expression>();
             queue.addAll(expressions);
 
+            final List<ExprWrapper> nonErrorExpressions = new ArrayList<ExprWrapper>();
+            final List<ExprWrapper> errorExpressions = new ArrayList<ExprWrapper>();
+
             Expression expr2;
             while ((expr2 = queue.poll()) != null) {
-                exprMap.put(expr2, new ExprWrapper(expr2, null));
+                final ExprWrapper wrapper = new ExprWrapper(expr2, null);
+                exprMap.put(expr2, wrapper);
+
+                (expr2.isError() ? errorExpressions : nonErrorExpressions).add(wrapper);
 
                 if (!expr2.isEvaluated())
                     throw new IllegalArgumentException("Expression or one of it's successors is not evaluated.");
@@ -88,13 +94,14 @@ public abstract class Bisimulation {
                 entry.getValue().transitions = newTransitions;
             }
 
-            final Partition partition = new Partition(new ArrayList<ExprWrapper>(exprMap.values()));
-            partitions.add(partition);
+            // create the ErrorPartition (not needed any more afterwards)
+            new ErrorPartition(errorExpressions);
+            final Partition nonErrorpartition = new Partition(nonErrorExpressions);
+            partitions.add(nonErrorpartition);
         }
 
 
         // now, divide the partitions into new partitions
-        final List<Partition> readyPartitions = new ArrayList<Partition>();
         final List<Partition> unChangedPartitions = new ArrayList<Partition>();
         Partition partition;
         int changed = 0;
@@ -105,14 +112,13 @@ public abstract class Bisimulation {
                 if (++i % 10000 == 0)
                     Main.log(i + ": Ready: " + readyPartitions.size() + "; unchanged: " + unChangedPartitions.size() + "; changed: " + changed + "; queue: " + partitions.size());
                 */
-                if (partition.getExprWrappers().size() < 2) {
-                    readyPartitions.add(partition);
-                } else if (partition.divide(partitions, strong)) {
+                if (partition.getExprWrappers().size() < 2)
+                    continue;
+                else if (partition.divide(partitions, strong))
                     if (++changed * 10 >= unChangedPartitions.size())
                         break;
-                } else {
+                else
                     unChangedPartitions.add(partition);
-                }
             }
             if (changed == 0)
                 break;
@@ -304,6 +310,21 @@ public abstract class Bisimulation {
             return false;
         }
 
+        public boolean isError() {
+            return false;
+        }
+    }
+
+    public static class ErrorPartition extends Partition {
+
+        public ErrorPartition(List<ExprWrapper> expressionWrappers) {
+            super(expressionWrappers);
+        }
+
+        @Override
+        public boolean isError() {
+            return true;
+        }
     }
 
     private static class ExprWrapper {

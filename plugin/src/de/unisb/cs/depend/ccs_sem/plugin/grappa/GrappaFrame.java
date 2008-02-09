@@ -49,6 +49,7 @@ public class GrappaFrame extends Composite {
 
     private static final Color startNodeColor = Color.LIGHT_GRAY;
     private static final Color warnNodeColor = Color.RED;
+    private static final Color errorNodeColor = Color.RED;
 
     protected final GrappaPanel grappaPanel;
     protected final Graph graph; // guarded by layoutLock
@@ -73,7 +74,6 @@ public class GrappaFrame extends Composite {
             graph.addNode(node);
             filterGraph(graph);
             graph.repaint();
-            graph.printGraph(System.out);
         }
 
         final Composite controlsComposite = new Composite(this, SWT.None);
@@ -305,11 +305,17 @@ public class GrappaFrame extends Composite {
                 final Node node = new Node(graph, "node_" + cnt++);
                 node.setAttribute(GrappaConstants.LABEL_ATTR,
                     showNodeLabels ? e.toString() : "");
+                node.setAttribute(GrappaConstants.TIP_ATTR, "Node: " + e.toString());
                 if (cnt == 1) {
                     node.setAttribute(GrappaConstants.STYLE_ATTR, "filled");
                     node.setAttribute(GrappaConstants.FILLCOLOR_ATTR, startNodeColor);
                 }
-                node.setAttribute(GrappaConstants.TIP_ATTR, "Node: " + e.toString());
+                if (e.isError()) {
+                    node.setAttribute(GrappaConstants.STYLE_ATTR, "filled");
+                    node.setAttribute(GrappaConstants.FILLCOLOR_ATTR, errorNodeColor);
+                    node.setAttribute(GrappaConstants.SHAPE_ATTR, "octagon");
+                    node.setAttribute(GrappaConstants.TIP_ATTR, "Error node: " + e.toString());
+                }
                 nodes.put(e, node);
                 graph.addNode(node);
                 for (final Transition trans: e.getTransitions())

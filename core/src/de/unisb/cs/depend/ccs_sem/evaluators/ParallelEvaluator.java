@@ -204,9 +204,13 @@ public class ParallelEvaluator implements Evaluator {
 
                 for (final Transition trans: expr.getTransitions()) {
                     final Expression succ = trans.getTarget();
-                    if (evaluatedSuccessors.add(succ))
-                        if (currentlyEvaluating.get(succ) == null)
-                            new EvaluatorJob(succ, true);
+                    if (evaluatedSuccessors.add(succ)) {
+                        synchronized (succ) {
+                            // TODO ensure evaluation of successors
+                            if (currentlyEvaluating.get(succ) == null)
+                                new EvaluatorJob(succ, true);
+                        }
+                    }
                 }
             }
 

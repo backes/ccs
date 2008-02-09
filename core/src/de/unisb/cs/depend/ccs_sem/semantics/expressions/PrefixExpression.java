@@ -13,12 +13,12 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 
-public class PrefixExpr extends Expression {
+public class PrefixExpression extends Expression {
 
     private final Action prefix;
     private final Expression target;
 
-    public PrefixExpr(Action prefix, Expression target) {
+    public PrefixExpression(Action prefix, Expression target) {
         super();
         this.prefix = prefix;
         this.target = target;
@@ -45,7 +45,7 @@ public class PrefixExpr extends Expression {
         final Expression newTarget = target.replaceRecursion(declarations);
         if (newTarget.equals(target))
             return this;
-        return ExpressionRepository.getExpression(new PrefixExpr(prefix, newTarget));
+        return ExpressionRepository.getExpression(new PrefixExpression(prefix, newTarget));
     }
 
     @Override
@@ -54,15 +54,20 @@ public class PrefixExpr extends Expression {
         final Expression newTarget = target.instantiate(parameters);
         if (newPrefix.equals(prefix) && newTarget.equals(target))
             return this;
-        return ExpressionRepository.getExpression(new PrefixExpr(newPrefix, newTarget));
+        return ExpressionRepository.getExpression(new PrefixExpression(newPrefix, newTarget));
+    }
+
+    @Override
+    public boolean isError() {
+        return false;
     }
 
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
         sb.append(prefix).append('.');
-        if (target instanceof ChoiceExpr || target instanceof ParallelExpr
-                || target instanceof RestrictExpr)
+        if (target instanceof ChoiceExpression || target instanceof ParallelExpression
+                || target instanceof RestrictExpression)
             sb.append('(').append(target).append(')');
         else
             sb.append(target);
@@ -87,7 +92,7 @@ public class PrefixExpr extends Expression {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        final PrefixExpr other = (PrefixExpr) obj;
+        final PrefixExpression other = (PrefixExpression) obj;
         // hashCode is cached, so we compare it first (it's cheap)
         if (hashCode() != other.hashCode())
             return false;
