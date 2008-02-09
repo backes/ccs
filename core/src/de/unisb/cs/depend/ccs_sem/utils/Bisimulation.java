@@ -24,7 +24,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.actions.TauAction;
 
 /**
  * This class provides some methods to compute the quotient of the LTS w.r.t
- * weak bisimulation (i.e. it computes the smalles weak bisimilar LTS).
+ * weak or strong bisimulation (i.e. it computes the smalles weak/strong bisimilar LTS).
  *
  * It uses my very own algorithm and has a lot of strange optimisations to get
  * a very fast runtime.
@@ -105,13 +105,8 @@ public abstract class Bisimulation {
         final List<Partition> unChangedPartitions = new ArrayList<Partition>();
         Partition partition;
         int changed = 0;
-        //final int i = 0;
         while (true) {
             while ((partition = partitions.poll()) != null) {
-                /*
-                if (++i % 10000 == 0)
-                    Main.log(i + ": Ready: " + readyPartitions.size() + "; unchanged: " + unChangedPartitions.size() + "; changed: " + changed + "; queue: " + partitions.size());
-                */
                 if (partition.getExprWrappers().size() < 2)
                     continue;
                 else if (partition.divide(partitions, strong))
