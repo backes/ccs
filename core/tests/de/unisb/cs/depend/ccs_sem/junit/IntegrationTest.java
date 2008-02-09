@@ -40,7 +40,6 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 import de.unisb.cs.depend.ccs_sem.utils.Bisimulation;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
 import de.unisb.cs.depend.ccs_sem.utils.StateNumerator;
-import de.unisb.cs.depend.ccs_sem.utils.TransitionCounter;
 import de.unisb.cs.depend.ccs_sem.utils.Bisimulation.Partition;
 
 
@@ -84,8 +83,7 @@ public abstract class IntegrationTest {
         final String expressionString = getExpressionString();
         program = new CCSParser().parse(expressionString);
         program.evaluate(getEvaluator());
-        System.out.println(StateNumerator.numerateStates(program.getExpression()).size());
-        System.out.println(TransitionCounter.countTransitions(program.getExpression()));
+
         if (isMinimize())
             program.minimizeTransitions();
 
