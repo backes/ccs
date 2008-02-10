@@ -9,6 +9,7 @@ import java.util.Map;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.Range;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
@@ -36,6 +37,16 @@ public class RecursiveExpression extends Expression {
         return referencedDeclaration;
     }
 
+    /**
+     * Creates the instantiated {@link Expression} of this {@link RecursiveExpression},
+     * i.e. the {@link Expression} of the referenced {@link Declaration},
+     * instantiated by the parameters of this {@link RecursiveExpression}.
+     * If the parameters are not in the valid {@link Range} of the
+     * {@link Declaration}'s {@link Parameter}s, an {@link ErrorExpression} is
+     * generated.
+     *
+     * @return the generated {@link Expression}
+     */
     public Expression getInstantiatedExpression() {
         if (instantiatedExpression == null) {
             // if all parameters are fully instantiated, check if the parameters

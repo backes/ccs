@@ -48,9 +48,6 @@ public class ParallelEvaluator implements Evaluator {
     }
 
     public boolean evaluate(Expression expr, EvaluationMonitor monitor) {
-        if (expr.isEvaluated())
-            return true;
-
         return evaluate0(expr, false, monitor);
     }
 
@@ -111,7 +108,7 @@ public class ParallelEvaluator implements Evaluator {
         currentlyEvaluating = new ConcurrentHashMap<Expression, EvaluatorJob>();
 
         if (evaluateSuccessors)
-            evaluatedSuccessors = new ConcurrentSet<Expression>(threadsToInstantiate);
+            evaluatedSuccessors = new ConcurrentSet<Expression>(threadsToInstantiate*2);
 
         monitor = monitor2;
 

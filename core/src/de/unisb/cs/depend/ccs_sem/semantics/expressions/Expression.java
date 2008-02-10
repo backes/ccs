@@ -25,7 +25,12 @@ public abstract class Expression {
         // nothing to do
     }
 
-    // precondition: children have been evaluated
+    /**
+     * Evaluates this expression, i.e. creates a List of all outgoing {@link Transition}s.
+     *
+     * Before calling this method, all children (see {@link #getChildren()})
+     * must have been evaluated.
+     */
     public void evaluate() {
         if (isEvaluated())
             return;

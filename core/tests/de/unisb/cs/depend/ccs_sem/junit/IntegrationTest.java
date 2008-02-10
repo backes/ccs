@@ -66,7 +66,7 @@ public abstract class IntegrationTest {
     private Program program;
 
     // may be overridden to use another evaluator
-    protected static Evaluator getEvaluator() {
+    protected Evaluator getEvaluator() {
         return new SequentialEvaluator();
     }
 

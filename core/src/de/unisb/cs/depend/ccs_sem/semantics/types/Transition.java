@@ -77,7 +77,14 @@ public class Transition {
         return action.synchronizeWith(otherAction, target);
     }
 
-    // TODO document
+    /**
+     * Build a Transition that is this one, restricted by a specific action.
+     *
+     * @param restrictionAction the action that is forbidden
+     * @return either <code>this</code> (if the Transition is not affected by
+     *         the restriction), <code>null</code> (if the Transition is totally
+     *         forbidden), or a new (modified) Transition
+     */
     public Transition restrictBy(Action restrictionAction) {
         // at least the actions must have the same class and the same channel
         if (!action.getClass().equals(restrictionAction.getClass())
