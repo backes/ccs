@@ -5,7 +5,7 @@ public interface EvaluationMonitor {
 
     void newState();
 
-    void newTransitions(int size);
+    void newTransitions(int count);
 
     void ready();
 

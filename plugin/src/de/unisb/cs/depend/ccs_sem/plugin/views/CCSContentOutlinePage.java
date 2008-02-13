@@ -1,5 +1,8 @@
 package de.unisb.cs.depend.ccs_sem.plugin.views;
 
+import java.util.Observable;
+import java.util.Observer;
+
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.swt.SWT;
@@ -8,18 +11,20 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IActionBars;
-import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 
 
-public class CCSContentOutlinePage implements IContentOutlinePage {
-    Composite outerOne;
+public class CCSContentOutlinePage implements IContentOutlinePage, Observer {
+    private Composite outerOne;
+    private final CCSEditor editor;
+    private Program program;
 
-    public CCSContentOutlinePage(IDocumentProvider documentProvider, CCSEditor editor) {
-        // TODO Auto-generated constructor stub
+    public CCSContentOutlinePage(CCSEditor editor) {
+        this.editor = editor;
+        editor.newParseReadyObserver(this);
     }
 
     public void createControl(Composite parent) {
@@ -34,7 +39,7 @@ public class CCSContentOutlinePage implements IContentOutlinePage {
     }
 
     public void dispose() {
-        // nothing to do
+        outerOne.dispose();
     }
 
     public Control getControl() {
@@ -42,8 +47,7 @@ public class CCSContentOutlinePage implements IContentOutlinePage {
     }
 
     public void setActionBars(IActionBars actionBars) {
-        // TODO Auto-generated method stub
-
+        // nothing to do
     }
 
     public void setFocus() {
@@ -51,8 +55,7 @@ public class CCSContentOutlinePage implements IContentOutlinePage {
     }
 
     public void addSelectionChangedListener(ISelectionChangedListener listener) {
-        // TODO Auto-generated method stub
-
+        // nothing to do
     }
 
     public ISelection getSelection() {
@@ -71,8 +74,14 @@ public class CCSContentOutlinePage implements IContentOutlinePage {
 
     }
 
-    public void setInput(IEditorInput input) {
-        // TODO Auto-generated method stub
+    public void update(Observable o, Object arg) {
+        // check if there was a change
+        if (arg instanceof Program) {
+            final Program newProgram = (Program) arg;
+            if (newProgram.equals(program))
+                return;
+        }
+        // TODO
     }
 
 }

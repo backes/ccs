@@ -114,19 +114,22 @@ public class Program {
      * @param evaluator the preferred evaluator to use
      * @param strong if <code>true</code>, the lts is minimized w.r.t. strong
      *               bisimulation instead of weak bisimulation
+     * @return <code>true</code> if minimization was successfull
      */
-    public void minimizeTransitions(Evaluator evaluator, EvaluationMonitor minimizationMonitor, boolean strong) {
+    public boolean minimizeTransitions(Evaluator evaluator, EvaluationMonitor minimizationMonitor, boolean strong) {
         assert isEvaluated();
-
-        if (isMinimized)
-            return;
 
         minimizedExpression = MinimisingExpression.create(mainExpression, strong);
         //minimizedExpression = new FastMinimisingExpression(mainExpression);
 
-        evaluator.evaluateAll(minimizedExpression, minimizationMonitor);
+        if (minimizedExpression == null)
+            return false;
+
+        if (!evaluator.evaluateAll(minimizedExpression, minimizationMonitor))
+            return false;
 
         isMinimized = true;
+        return true;
     }
 
     public void minimizeTransitions() {

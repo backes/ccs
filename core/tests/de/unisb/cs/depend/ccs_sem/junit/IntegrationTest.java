@@ -40,6 +40,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 import de.unisb.cs.depend.ccs_sem.utils.Bisimulation;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
 import de.unisb.cs.depend.ccs_sem.utils.StateNumerator;
+import de.unisb.cs.depend.ccs_sem.utils.TransitionCounter;
 import de.unisb.cs.depend.ccs_sem.utils.Bisimulation.Partition;
 
 
@@ -102,12 +103,24 @@ public abstract class IntegrationTest {
     }
 
     @Test
-    public void checkStatesNr() {
+    public void checkStateNr() {
         final int foundNr = StateNumerator.numerateStates(program.getExpression()).size();
 
         if (foundNr != states.size())
             fail("The number of states does not match. Expected "
                 + states.size() + ", found " + foundNr);
+    }
+
+    @Test
+    public void checkTransitionNr() {
+        final int foundNr = TransitionCounter.countTransitions(program.getExpression());
+        int expectedNr = 0;
+        for (final List<SimpleTrans> trans: transitions)
+            expectedNr += trans.size();
+
+        if (foundNr != expectedNr)
+            fail("The number of transitions does not match. Expected "
+                + expectedNr + ", found " + foundNr);
     }
 
     @Test

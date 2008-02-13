@@ -20,6 +20,7 @@ import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.exporters.AiSeeGraphExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.ETMCCExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.Exporter;
+import de.unisb.cs.depend.ccs_sem.exporters.GraphVizExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.IntegrationtestExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.bcg.BCGExporter;
 import de.unisb.cs.depend.ccs_sem.lexer.CCSLexer;
@@ -270,6 +271,8 @@ public class Main {
             exporters.add(new ETMCCExporter(new File(filename)));
         } else if ("integrationtest".equalsIgnoreCase(format) || "junit".equalsIgnoreCase(format)) {
             exporters.add(new IntegrationtestExporter(new File(filename)));
+        } else if ("graphviz".equalsIgnoreCase(format) || "dot".equalsIgnoreCase(format)) {
+            exporters.add(new GraphVizExporter(new File(filename)));
         } else if ("bcg".equalsIgnoreCase(format)) {
             try {
                 exporters.add(new BCGExporter(new File(filename)));
@@ -303,6 +306,7 @@ public class Main {
         out.println("     Currently the following formats are accepted:");
         out.println("       - tra (for ETMCC)");
         out.println("       - gdl (for aiSee)");
+        out.println("       - dot (for GraphViz)");
         out.println();
         out.println("  -p, --policy=<integer>");
         out.println("     sets the number of threads used to evaluate the ccs expression.");
