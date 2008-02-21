@@ -24,7 +24,7 @@ public class CCSContentOutlinePage implements IContentOutlinePage, Observer {
 
     public CCSContentOutlinePage(CCSEditor editor) {
         this.editor = editor;
-        editor.newParseReadyObserver(this);
+        editor.registerReparsingListener(this);
     }
 
     public void createControl(Composite parent) {

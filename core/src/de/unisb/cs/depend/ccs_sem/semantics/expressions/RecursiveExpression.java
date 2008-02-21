@@ -103,7 +103,7 @@ public class RecursiveExpression extends Expression {
     }
 
     @Override
-    public boolean isError() {
+    protected boolean isError0() {
         return getInstantiatedExpression().isError();
     }
 

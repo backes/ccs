@@ -108,7 +108,7 @@ public class MinimisingExpression extends Expression {
     }
 
     @Override
-    public boolean isError() {
+    protected boolean isError0() {
         return stateNr == -1;
     }
 

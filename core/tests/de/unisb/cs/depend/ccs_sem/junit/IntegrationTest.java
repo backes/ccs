@@ -357,7 +357,7 @@ public abstract class IntegrationTest {
         }
 
         @Override
-        public boolean isError() {
+        protected boolean isError0() {
             return isError;
         }
 

@@ -128,7 +128,7 @@ public class FastMinimisingExpression extends Expression {
     }
 
     @Override
-    public boolean isError() {
+    protected boolean isError0() {
         return myExpr.isError();
     }
 

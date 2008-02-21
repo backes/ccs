@@ -9,6 +9,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.Range;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.SetRange;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.BooleanValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConditionalValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstString;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.IntegerValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterReference;
@@ -101,6 +102,10 @@ public class Parameter {
             setType(Type.INTEGERVALUE);
         } else if (value instanceof ConstString) {
             setType(Type.STRING);
+        } else if (value instanceof ConditionalValue) {
+            final ConditionalValue cond = (ConditionalValue) value;
+            match(cond.getThenValue());
+            match(cond.getElseValue());
         } else {
             // we should never get to here
             assert false;

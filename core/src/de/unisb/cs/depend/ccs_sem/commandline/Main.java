@@ -31,7 +31,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 
 public class Main {
 
-    private static long oldTime;
+    private static long startTime;
     private File inputFile = null;
     private Evaluator evaluator = null;
     private final List<Exporter> exporters = new ArrayList<Exporter>(2);
@@ -319,10 +319,10 @@ public class Main {
 
     public static void log(String output) {
         final long newTime = System.nanoTime();
-        if (oldTime == 0)
-            oldTime = newTime;
+        if (startTime == 0)
+            startTime = newTime;
 
-        final long diff = newTime - oldTime;
+        final long diff = newTime - startTime;
 
         System.out.format((Locale)null, "[%7.3f] %s%n", 1e-9 * diff, output);
     }

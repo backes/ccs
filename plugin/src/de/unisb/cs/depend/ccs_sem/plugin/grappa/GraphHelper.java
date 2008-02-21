@@ -4,6 +4,11 @@ import java.awt.Color;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.PlatformUI;
@@ -23,11 +28,11 @@ public class GraphHelper {
         // prohibit instantiation
     }
 
-    public static boolean filterGraph(Graph graph) {
+    public static boolean filterGraph(Graph graph) throws InterruptedException {
         return filterGraph(graph, true);
     }
 
-    public static boolean filterGraph(Graph graph, boolean showDialogOnError) {
+    public static boolean filterGraph(final Graph graph, boolean showDialogOnError) throws InterruptedException {
         // start dot
         final List<String> command = new ArrayList<String>();
         command.add(getDotExecutablePath());
@@ -35,15 +40,36 @@ public class GraphHelper {
         final ProcessBuilder pb = new ProcessBuilder(command);
         Process dotFilter = null;
         boolean success = true;
-        try {
-            dotFilter = pb.start();
-        } catch (final IOException e) {
-            success = false;
-        }
 
         try {
-            if (success)
-                success &= GrappaSupport.filterGraph(graph, dotFilter);
+            dotFilter = pb.start();
+            final Process finalDotFilter = dotFilter;
+
+            // graph filtering in another thread, for that we can control it and
+            // terminate it
+            final Callable<Boolean> filterGraphCall = new Callable<Boolean>() {
+                public Boolean call() {
+                    return GrappaSupport.filterGraph(graph, finalDotFilter);
+                }
+            };
+            final FutureTask<Boolean> filterGraphTask = new FutureTask<Boolean>(filterGraphCall);
+            new Thread(filterGraphTask, "filterGraph").start();
+
+            while (true) {
+                try {
+                    success &= filterGraphTask.get(100, TimeUnit.MILLISECONDS);
+                    break;
+                } catch (final ExecutionException e) {
+                    // should not occure (GrappaSupport.filterGraph does not
+                    // throw any Exception)
+                    throw new RuntimeException(e);
+                } catch (final TimeoutException e) {
+                    if (Thread.currentThread().isInterrupted()) {
+                        filterGraphTask.cancel(true);
+                        return false;
+                    }
+                }
+            }
 
             if (!success && showDialogOnError) {
                 MessageDialog.openError(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
@@ -51,8 +77,11 @@ public class GraphHelper {
                     "The graph could not be layout, most probably there was an error with starting the dot tool.\n" +
                     "You can configure the path for this tool in your preferences on the \"CCS\" page.");
             }
+        } catch (final IOException e) {
+            success = false;
         } finally {
-            dotFilter.destroy();
+            if (dotFilter != null)
+                dotFilter.destroy();
         }
 
         return success;

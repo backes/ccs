@@ -2,10 +2,12 @@ package de.unisb.cs.depend.ccs_sem.evaluators;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -59,10 +61,9 @@ public class ParallelEvaluator implements Evaluator {
             synchronized (readyLock) {
                 initialize(evaluateSuccessors, monitor);
 
-                // the EvaluatorJob executes itself automatically
                 if (evaluateSuccessors)
                     evaluatedSuccessors.add(expr);
-                new EvaluatorJob(expr, evaluateSuccessors);
+                executor.execute(new EvaluatorJob(expr, evaluateSuccessors));
 
                 try {
                     readyLock.wait();
@@ -143,11 +144,9 @@ public class ParallelEvaluator implements Evaluator {
             this.expr = expr;
             this.evaluateSuccessors = evaluateSuccessors;
             currentlyEvaluating.put(expr, this);
-            executor.execute(this);
         }
 
-        // is externally synchronized (over the expression)
-        private void addWaiter(Barrier waiter) {
+        private synchronized void addWaiter(Barrier waiter) {
             if (waiters == null)
                 waiters = new ArrayList<Barrier>(2);
             waiters.add(waiter);
@@ -155,24 +154,26 @@ public class ParallelEvaluator implements Evaluator {
 
         public void run() {
             if (!childrenEvaluated && !expr.isEvaluated()) {
-                Barrier barrier = null;
+                List<EvaluatorJob> childrenJobsToStart = null;
 
-                for (final Expression child: expr.getChildren()) {
-                    if (child.isEvaluated()) {
-                        //System.out.println("1");
-                        continue;
-                    }// else
-                       // System.out.println("0");
+                final Collection<Expression> children = expr.getChildren();
+
+                Barrier barrier = null;
+                for (final Expression child: children) {
                     synchronized (child) {
                         if (!child.isEvaluated()) {
                             if (barrier == null)
-                                barrier = new Barrier(executor, this, 1);
+                                barrier = new Barrier(this, 2);
+                            else
+                                barrier.inc();
 
                             EvaluatorJob childEvaluator =
                                     currentlyEvaluating.get(child);
-                            if (childEvaluator == null)
-                                childEvaluator = new EvaluatorJob(child, false);
-                            barrier.inc();
+                            if (childEvaluator == null) {
+                                if (childrenJobsToStart == null)
+                                    childrenJobsToStart = new ArrayList<EvaluatorJob>(children.size());
+                                childrenJobsToStart.add(childEvaluator = new EvaluatorJob(child, false));
+                            }
                             childEvaluator.addWaiter(barrier);
                         }
                     }
@@ -180,9 +181,24 @@ public class ParallelEvaluator implements Evaluator {
 
                 childrenEvaluated = true;
 
+                // if barrier == null, then all children have been evaluated
+                // and we use this thread to continue evaluation
                 if (barrier != null) {
-                    // inform barrier that all children have been added
-                    barrier.inform();
+
+                    // if there are at least 2 new children jobs, we evaluate
+                    // them in new threads. otherwise, we use this thread to
+                    // evaluate the child
+                    if (childrenJobsToStart.size() > 1) {
+                        for (final EvaluatorJob job: childrenJobsToStart)
+                            executor.execute(job);
+                    } else if (childrenJobsToStart.size() == 1) {
+                        final EvaluatorJob job = childrenJobsToStart.get(0);
+                        job.run();
+                    }
+
+                    // inform barrier that there are no more new children coming...
+                    barrier.inform(null);
+
                     // the barrier will call us again when all children are evaluated
                     return;
                 }
@@ -191,9 +207,13 @@ public class ParallelEvaluator implements Evaluator {
             expr.evaluate();
 
             synchronized (expr) {
-                if (waiters != null)
-                    for (final Barrier waiter: waiters)
-                        waiter.inform();
+                if (waiters != null) {
+                    if (waiters.size() == 1)
+                        waiters.get(0).inform(null);
+                    else
+                        for (final Barrier waiter: waiters)
+                            waiter.inform(executor);
+                }
             }
 
             if (evaluateSuccessors) {
@@ -204,9 +224,8 @@ public class ParallelEvaluator implements Evaluator {
 
                 for (final Transition trans: expr.getTransitions()) {
                     final Expression succ = trans.getTarget();
-                    if (evaluatedSuccessors.add(succ)) {
-                        new EvaluatorJob(succ, true);
-                    }
+                    if (evaluatedSuccessors.add(succ))
+                        executor.execute(new EvaluatorJob(succ, true));
                 }
             }
 
@@ -230,24 +249,27 @@ public class ParallelEvaluator implements Evaluator {
     private static class Barrier {
 
         private final Runnable job;
-        private int waitNr = 0;
-        private final ExecutorService executor;
+        private final AtomicInteger waitNr;
 
-        public Barrier(ExecutorService executor, Runnable jobToRun, int startNr) {
-            this.executor = executor;
+        public Barrier(Runnable jobToRun, int startNr) {
             this.job = jobToRun;
-            this.waitNr = startNr;
+            this.waitNr = new AtomicInteger(startNr);
         }
 
         public void inc() {
-            ++waitNr;
+            waitNr.incrementAndGet();
         }
 
-        public synchronized void inform() {
-            assert waitNr > 0;
-            --waitNr;
-            if (waitNr == 0)
-                executor.execute(job);
+        public void inform(Executor executor) {
+            assert waitNr.get() > 0;
+
+            final int remaining = waitNr.decrementAndGet();
+            if (remaining == 0) {
+                if (executor == null)
+                    job.run();
+                else
+                    executor.execute(job);
+            }
         }
 
     }

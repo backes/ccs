@@ -74,7 +74,7 @@ public class ConditionalExpression extends Expression {
     }
 
     @Override
-    public boolean isError() {
+    protected boolean isError0() {
         // if the condition is not evaluatable so far, we cannot detect an error
         return false;
     }

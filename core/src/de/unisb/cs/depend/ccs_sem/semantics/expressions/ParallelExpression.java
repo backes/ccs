@@ -215,7 +215,7 @@ public class ParallelExpression extends Expression {
     }
 
     @Override
-    public boolean isError() {
+    protected boolean isError0() {
         return left.isError() || right.isError();
     }
 

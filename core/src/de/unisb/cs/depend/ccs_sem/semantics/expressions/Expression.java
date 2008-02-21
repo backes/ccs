@@ -21,6 +21,9 @@ public abstract class Expression {
     // stores the hashcode of this expression
     private volatile int hash = 0;
 
+    // cache for isError()
+    private Boolean isError = null;
+
     protected Expression() {
         // nothing to do
     }
@@ -110,7 +113,14 @@ public abstract class Expression {
     /**
      * @return whether this Expression represents an "error" expression
      */
-    public abstract boolean isError();
+    public boolean isError() {
+        if (isError == null)
+            isError = Boolean.valueOf(isError0());
+        return isError;
+    }
+
+    // see isError()
+    protected abstract boolean isError0();
 
     // we store the hashCode so that we only compute it once
     @Override

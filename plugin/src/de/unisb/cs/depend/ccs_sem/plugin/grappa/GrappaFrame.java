@@ -73,7 +73,11 @@ public class GrappaFrame extends Composite implements Observer {
             node.setAttribute(GrappaConstants.COLOR_ATTR, GraphHelper.WARN_NODE_COLOR);
             node.setAttribute(GrappaConstants.TIP_ATTR, "In the CCS Editor, click the \"Show Graph\" button to generate the graph.");
             graph.addNode(node);
-            GraphHelper.filterGraph(graph);
+            try {
+                GraphHelper.filterGraph(graph);
+            } catch (final InterruptedException ignore) {
+                // ignore
+            }
             graph.repaint();
         } finally {
             graphLock.unlock();

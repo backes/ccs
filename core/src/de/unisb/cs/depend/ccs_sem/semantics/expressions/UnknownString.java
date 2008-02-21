@@ -107,7 +107,7 @@ public class UnknownString extends Expression {
     }
 
     @Override
-    public boolean isError() {
+    protected boolean isError0() {
         throw new UnsupportedOperationException();
     }
 

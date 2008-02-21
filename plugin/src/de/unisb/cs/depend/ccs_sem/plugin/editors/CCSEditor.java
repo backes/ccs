@@ -1,8 +1,7 @@
 package de.unisb.cs.depend.ccs_sem.plugin.editors;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Observer;
+import java.util.Set;
 
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
@@ -11,7 +10,9 @@ import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.ParseCCSProgramJob;
+import de.unisb.cs.depend.ccs_sem.plugin.jobs.ParseCCSProgramJob.ParseStatus;
 import de.unisb.cs.depend.ccs_sem.plugin.views.CCSContentOutlinePage;
+import de.unisb.cs.depend.ccs_sem.utils.ConcurrentSet;
 
 public class CCSEditor extends TextEditor implements IDocumentListener {
 
@@ -21,7 +22,8 @@ public class CCSEditor extends TextEditor implements IDocumentListener {
 
     private final ParseCCSProgramJob parseJob;
 
-    private final List<Observer> parseReadyObservers = new ArrayList<Observer>();
+    private final Set<Observer> reparsingListeners =
+        new ConcurrentSet<Observer>();
 
     public CCSEditor() {
         super();
@@ -64,8 +66,17 @@ public class CCSEditor extends TextEditor implements IDocumentListener {
         parseJob.schedule(REPARSE_INTERVAL);
     }
 
-    public void newParseReadyObserver(Observer observer) {
-        parseReadyObservers.add(observer);
+    public void registerReparsingListener(Observer observer) {
+        reparsingListeners.add(observer);
+    }
+
+    public void reparsed(ParseStatus status) {
+
+        // TODO Auto-generated method stub
+
+        for (final Observer obs: reparsingListeners)
+            obs.update(null, status);
+
     }
 
 }

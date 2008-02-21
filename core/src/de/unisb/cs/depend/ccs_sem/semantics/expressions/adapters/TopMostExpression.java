@@ -93,7 +93,7 @@ public class TopMostExpression extends Expression {
     }
 
     @Override
-    public boolean isError() {
+    protected boolean isError0() {
         return myExpr.isError();
     }
 
