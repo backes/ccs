@@ -95,11 +95,9 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
             }
         }
         final List<Runnable> list = new ArrayList<Runnable>();
-        synchronized (threadJobs) {
-            for (final Stack<Runnable> q: threadJobs.values()) {
-                list.addAll(q);
-                q.clear();
-            }
+        for (final Stack<Runnable> q: threadJobs.values()) {
+            list.addAll(q);
+            q.clear();
         }
 
         return list;
@@ -112,16 +110,10 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
         final Thread thread = Thread.currentThread();
         Stack<Runnable> jobs = threadJobs.get(thread);
         if (jobs == null) {
-            synchronized (threadJobs) {
-                while (threadJobs.size() == 0)
-                    try {
-                        threadJobs.wait();
-                    } catch (final InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                // add to the first queue
-                jobs = threadJobs.values().iterator().next();
-            }
+            while (threadJobs.isEmpty())
+                Thread.yield();
+            // get the first queue
+            jobs = threadJobs.values().iterator().next();
         }
         jobs.push(command);
         synchronized (waitForNewJobs) {
@@ -145,9 +137,6 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
                 myJobs = new Stack<Runnable>();
                 if (threadJobs.putIfAbsent(myThread, myJobs) != null)
                     myJobs = threadJobs.get(myThread);
-                synchronized (threadJobs) {
-                    threadJobs.notifyAll();
-                }
             }
             while (!forcedStop) {
                 Runnable nextJob = getNextJob();

@@ -1,14 +1,11 @@
 package de.unisb.cs.depend.ccs_sem.evaluators;
 
 import java.lang.Thread.UncaughtExceptionHandler;
-import java.util.AbstractSet;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -17,6 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import de.unisb.cs.depend.ccs_sem.exceptions.InternalSystemException;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.utils.ConcurrentSet;
 
 
 public class ParallelEvaluator implements Evaluator {
@@ -160,6 +158,11 @@ public class ParallelEvaluator implements Evaluator {
                 Barrier barrier = null;
 
                 for (final Expression child: expr.getChildren()) {
+                    if (child.isEvaluated()) {
+                        //System.out.println("1");
+                        continue;
+                    }// else
+                       // System.out.println("0");
                     synchronized (child) {
                         if (!child.isEvaluated()) {
                             if (barrier == null)
@@ -247,52 +250,6 @@ public class ParallelEvaluator implements Evaluator {
                 executor.execute(job);
         }
 
-    }
-
-    public static class ConcurrentSet<E> extends AbstractSet<E> {
-
-        private transient final ConcurrentMap<E, Object> map;
-
-        // Dummy value to associate with an Object in the backing Map
-        private static final Object PRESENT = new Object();
-
-        public ConcurrentSet() {
-            map = new ConcurrentHashMap<E, Object>();
-        }
-
-        public ConcurrentSet(int concurrencyLevel) {
-            map = new ConcurrentHashMap<E, Object>(16, .75f, concurrencyLevel);
-        }
-
-        @Override
-        public Iterator<E> iterator() {
-            return map.keySet().iterator();
-        }
-
-        @Override
-        public int size() {
-            return map.size();
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return map.isEmpty();
-        }
-
-        @Override
-        public boolean contains(Object o) {
-            return map.containsKey(o);
-        }
-
-        @Override
-        public boolean add(E e) {
-            return map.putIfAbsent(e, PRESENT) == null;
-        }
-
-        @Override
-        public boolean remove(Object o) {
-            return map.remove(o) == PRESENT;
-        }
     }
 
     private static class MyThreadFactory implements ThreadFactory {

@@ -318,13 +318,13 @@ public class Main {
     }
 
     public static void log(String output) {
-        final long newTime = System.currentTimeMillis();
+        final long newTime = System.nanoTime();
         if (oldTime == 0)
             oldTime = newTime;
 
         final long diff = newTime - oldTime;
 
-        System.out.format((Locale)null, "[%7.3f] %s%n", 1e-3 * diff, output);
+        System.out.format((Locale)null, "[%7.3f] %s%n", 1e-9 * diff, output);
     }
 
     private static class EvalMonitor implements EvaluationMonitor {

@@ -53,14 +53,14 @@ public class GraphVizExporter implements Exporter {
             final Expression e = queue.poll();
 
             final int sourceStateNr = stateNumbers.get(e);
-            writer.println(sourceStateNr + " [ label=\"" + quote(e.toString()) + "\"];");
+            writer.println(sourceStateNr + " [label=\"" + quote(e.toString()) + "\"];");
 
             for (final Transition trans: e.getTransitions()) {
                 final Expression targetExpr = trans.getTarget();
                 final int targetStateNr = stateNumbers.get(targetExpr);
 
                 writer.println(sourceStateNr + "->" + targetStateNr
-                            + " [ label=\"" + quote(trans.getAction().getLabel()) + "\"];");
+                            + " [label=\"" + quote(trans.getAction().getLabel()) + "\"];");
                 if (written.add(targetExpr))
                     queue.add(targetExpr);
             }
