@@ -13,6 +13,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
@@ -104,19 +106,19 @@ public class GrappaFrame extends Composite implements Observer {
         grappaFrame.add(grappaPanel);
 
         // Eclipse <3.3 workaround:
-        /*
         addControlListener(new ControlAdapter() {
             @Override
             public void controlResized(ControlEvent e) {
                 graphLock.lock();
                 try {
+                    // resized automatically to smalles needed size on next paint
+                    grappaPanel.setSize(1, 1);
                     scrollComposite.setSize(embeddedComposite.getSize().x, embeddedComposite.getSize().y);
                 } finally {
                     graphLock.unlock();
                 }
             }
         });
-        */
 
         Grappa.antiAliasText = true;
         Grappa.useAntiAliasing = true;
