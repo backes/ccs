@@ -1,5 +1,6 @@
 package de.unisb.cs.depend.ccs_sem.plugin.grappa;
 
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.Graphics;
@@ -59,6 +60,7 @@ public class GrappaFrame extends Composite implements Observer {
     protected Button buttonLayoutLeftToRight;
     protected Frame grappaFrame;
     protected ScrolledComposite scrollComposite;
+    protected Graph graph;
 
     public GrappaFrame(Composite parent, int style, CCSEditor editor) {
         super(parent, style);
@@ -67,9 +69,8 @@ public class GrappaFrame extends Composite implements Observer {
         setLayout(new org.eclipse.swt.layout.GridLayout());
 
         graphLock.lock();
-        Graph graph;
         try {
-            graph = new Graph("CSS-Graph");
+            graph = createGraph();
             final Node node = new Node(graph, "warn_node");
             node.setAttribute(GrappaConstants.LABEL_ATTR, "Not initialized...");
             node.setAttribute(GrappaConstants.STYLE_ATTR, "filled");
@@ -113,7 +114,6 @@ public class GrappaFrame extends Composite implements Observer {
                 try {
                     // resized automatically to smalles needed size on next paint
                     grappaPanel.setSize(1, 1);
-                    scrollComposite.setSize(embeddedComposite.getSize().x, embeddedComposite.getSize().y);
                 } finally {
                     graphLock.unlock();
                 }
@@ -278,6 +278,12 @@ public class GrappaFrame extends Composite implements Observer {
         });
     }
 
+    private Graph createGraph() {
+        final Graph newGraph = new Graph("CSS-Graph");
+        //newGraph.setAttribute(GrappaConstants.MARGIN_ATTR, "0.1,0.1");
+        return newGraph;
+    }
+
     private GrappaPanel createGrappaPanel(Graph newGraph) {
         final GrappaPanel newGrappaPanel = new SynchronizedGrappaPanel(newGraph);
         newGrappaPanel.addGrappaListener(new GrappaAdapter());
@@ -290,8 +296,9 @@ public class GrappaFrame extends Composite implements Observer {
                     public void run() {
                         graphLock.lock();
                         try {
-                            scrollComposite.setMinWidth(grappaPanel.getSize().width);
-                            scrollComposite.setMinHeight(grappaPanel.getSize().height);
+                            final Dimension size = grappaPanel.getSize();
+                            scrollComposite.setMinWidth(size.width);
+                            scrollComposite.setMinHeight(size.height);
                         } finally {
                             graphLock.unlock();
                         }
@@ -327,8 +334,8 @@ public class GrappaFrame extends Composite implements Observer {
     private void setGraph(GraphUpdateStatus status) {
         graphLock.lock();
         try {
-            final Graph newGraph = status.getGraph();
-            grappaPanel = createGrappaPanel(newGraph);
+            final Graph graph = status.getGraph();
+            grappaPanel = createGrappaPanel(graph);
             EventQueue.invokeLater(new Runnable() {
                 public void run() {
                     grappaFrame.removeAll();

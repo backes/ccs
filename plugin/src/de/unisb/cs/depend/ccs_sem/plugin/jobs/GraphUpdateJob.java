@@ -13,14 +13,11 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 
 import att.grappa.Edge;
 import att.grappa.Graph;
@@ -55,8 +52,6 @@ public class GraphUpdateJob extends Job {
 
     protected final Set<Observer> observers = new HashSet<Observer>();
 
-    private final AtomicBoolean isCancelled = new AtomicBoolean(false);
-
     private final static int WORK_LEXING = 1;
     private final static int WORK_PARSING = 3;
     private final static int WORK_CHECKING = 1;
@@ -75,17 +70,6 @@ public class GraphUpdateJob extends Job {
         this.showNodeLabels = showNodeLabels;
         this.showEdgeLabels = showEdgeLabels;
         setUser(true);
-        addJobChangeListener(new JobChangeAdapter() {
-        
-            @Override
-            public void done(IJobChangeEvent event) {
-                super.done(event);
-                // workaround for eclipse <3.3, because there was no canceling method
-                if (event.getResult().equals(Status.CANCEL_STATUS))
-                    canceling();
-            }
-        
-        });
     }
 
     @Override
@@ -98,7 +82,6 @@ public class GraphUpdateJob extends Job {
         while (true) {
             try {
                 final GraphUpdateStatus graphUpdateStatus = status.get(100, TimeUnit.MILLISECONDS);
-                isCancelled.set(false);
                 return graphUpdateStatus;
             } catch (final InterruptedException e) {
                 // the *job* should not be interrupted. If cancel is pressed,
@@ -108,7 +91,7 @@ public class GraphUpdateJob extends Job {
                 // an abnormal exception: let eclipse show it to the user
                 throw new RuntimeException(e);
             } catch (final TimeoutException e) {
-                if (getAndResetCancelled()) {
+                if (monitor.isCanceled()) {
                     status.cancel(true);
                     return new GraphUpdateStatus(IStatus.CANCEL, "Cancelled.");
                 }
@@ -116,14 +99,28 @@ public class GraphUpdateJob extends Job {
         }
     }
 
-    protected boolean getAndResetCancelled() {
-        return isCancelled.getAndSet(false);
+    public void addObserver(Observer obs) {
+        synchronized (observers) {
+            observers.add(obs);
+        }
     }
 
-    // before eclipse 3.3, there was no canceling method, so we cannot "override" it
-    protected void canceling() {
-        isCancelled.set(true);
+    public boolean isMinimize() {
+        return minimize;
     }
+
+    public boolean isLayoutLeftToRight() {
+        return layoutLeftToRight;
+    }
+
+    public boolean isShowNodeLabels() {
+        return showNodeLabels;
+    }
+
+    public boolean isShowEdgeLabels() {
+        return showEdgeLabels;
+    }
+
 
     public class EvalMonitor implements EvaluationMonitor {
 
@@ -165,28 +162,6 @@ public class GraphUpdateJob extends Job {
 
     }
 
-    public void addObserver(Observer obs) {
-        synchronized (observers ) {
-            observers.add(obs);
-        }
-    }
-
-    public boolean isMinimize() {
-        return minimize;
-    }
-
-    public boolean isLayoutLeftToRight() {
-        return layoutLeftToRight;
-    }
-
-    public boolean isShowNodeLabels() {
-        return showNodeLabels;
-    }
-
-    public boolean isShowEdgeLabels() {
-        return showEdgeLabels;
-    }
-
     private class ConcurrentJob implements Callable<GraphUpdateStatus> {
 
         private final IProgressMonitor monitor;
@@ -204,7 +179,7 @@ public class GraphUpdateJob extends Job {
 
             monitor.beginTask(getName(), totalWork);
 
-            if (getAndResetCancelled())
+            if (monitor.isCanceled())
                 return new GraphUpdateStatus(IStatus.CANCEL, "cancelled");
 
             // parse ccs term
@@ -215,14 +190,14 @@ public class GraphUpdateJob extends Job {
                 final List<Token> tokens = new CCSLexer().lex(ccsCode);
                 monitor.worked(WORK_LEXING);
 
-                if (getAndResetCancelled())
+                if (monitor.isCanceled())
                     return new GraphUpdateStatus(IStatus.CANCEL, "cancelled");
 
                 monitor.subTask("Parsing...");
                 ccsProgram = new CCSParser().parse(tokens);
                 monitor.worked(WORK_PARSING);
 
-                if (getAndResetCancelled())
+                if (monitor.isCanceled())
                     return new GraphUpdateStatus(IStatus.CANCEL, "cancelled");
 
                 monitor.subTask("Checking expression...");
@@ -232,7 +207,7 @@ public class GraphUpdateJob extends Job {
                     throw new ParseException("Your recursive definitions are not regular.");
                 monitor.worked(WORK_CHECKING);
 
-                if (getAndResetCancelled())
+                if (monitor.isCanceled())
                     return new GraphUpdateStatus(IStatus.CANCEL, "cancelled");
 
                 monitor.subTask("Evaluating...");
@@ -245,7 +220,7 @@ public class GraphUpdateJob extends Job {
                 }
                 monitor.worked(WORK_EVALUATING);
 
-                if (getAndResetCancelled())
+                if (monitor.isCanceled())
                     return new GraphUpdateStatus(IStatus.CANCEL, "cancelled");
 
                 if (minimize) {
@@ -266,7 +241,7 @@ public class GraphUpdateJob extends Job {
                     + "(around this context: " + e.getEnvironment() + ")";
             }
 
-            if (getAndResetCancelled())
+            if (monitor.isCanceled())
                 return new GraphUpdateStatus(IStatus.CANCEL, "cancelled");
 
             monitor.subTask("Creating graph...");
@@ -355,7 +330,7 @@ public class GraphUpdateJob extends Job {
 
             monitor.worked(WORK_CREATE_GRAPH);
 
-            if (getAndResetCancelled())
+            if (monitor.isCanceled())
                 return new GraphUpdateStatus(IStatus.CANCEL, "cancelled");
 
             monitor.subTask("Layouting graph...");
@@ -363,7 +338,7 @@ public class GraphUpdateJob extends Job {
                 return new GraphUpdateStatus(IStatus.ERROR, "Error layouting graph.");
             monitor.worked(WORK_LAYOUT_GRAPH);
 
-            if (getAndResetCancelled())
+            if (monitor.isCanceled())
                 return new GraphUpdateStatus(IStatus.CANCEL, "cancelled");
 
             monitor.subTask("Supplying changes...");
