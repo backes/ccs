@@ -14,3 +14,12 @@
 - semantik von "x!1 + x!foo \ {x!foo}": ist foo (in der restriction) ein parameter oder eine string-constante?
 
 - Unterschied when/if
+
+- Namen von Prozessvariablen als Aktionen verbieten, um Fehler auszuschlieﬂen?
+Bsp.:
+X = a.X;
+b.X.c
+
+- hashcode und equals in declaration + program
+
+- caching vom minimierten ausdruecken
