@@ -18,7 +18,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 
 import att.grappa.Edge;
 import att.grappa.Graph;
@@ -73,6 +75,17 @@ public class GraphUpdateJob extends Job {
         this.showNodeLabels = showNodeLabels;
         this.showEdgeLabels = showEdgeLabels;
         setUser(true);
+        addJobChangeListener(new JobChangeAdapter() {
+        
+            @Override
+            public void done(IJobChangeEvent event) {
+                super.done(event);
+                // workaround for eclipse <3.3, because there was no canceling method
+                if (event.getResult().equals(Status.CANCEL_STATUS))
+                    canceling();
+            }
+        
+        });
     }
 
     @Override
@@ -107,9 +120,8 @@ public class GraphUpdateJob extends Job {
         return isCancelled.getAndSet(false);
     }
 
-    @Override
+    // before eclipse 3.3, there was no canceling method, so we cannot "override" it
     protected void canceling() {
-        super.canceling();
         isCancelled.set(true);
     }
 
@@ -375,7 +387,7 @@ public class GraphUpdateJob extends Job {
         private Graph graph;
 
         public GraphUpdateStatus(int severity, String message) {
-            super(severity, Global.getPluginID(), message);
+            super(severity, Global.getPluginID(), IStatus.OK, message, null);
         }
 
         public GraphUpdateStatus(int severity, String message, Graph graph) {
