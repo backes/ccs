@@ -3,20 +3,20 @@ package de.unisb.cs.depend.ccs_sem.plugin.grappa;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.Graphics;
-import java.awt.GridLayout;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.swing.JScrollPane;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
-import org.eclipse.swt.events.ControlAdapter;
-import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
@@ -36,18 +36,17 @@ import de.unisb.cs.depend.ccs_sem.plugin.jobs.GraphUpdateJob.GraphUpdateStatus;
 
 public class GrappaFrame extends Composite implements Observer {
 
-    protected GrappaPanel grappaPanel;
-    protected final Graph graph;
+    protected volatile GrappaPanel grappaPanel;
     private final CCSEditor ccsEditor;
-    protected boolean showEdgeLabels = true;
-    protected boolean showNodeLabels = true;
-    protected boolean layoutLeftToRight = true;
-    protected boolean minimizeGraph = false;
+    protected volatile boolean showEdgeLabels = true;
+    protected volatile boolean showNodeLabels = true;
+    protected volatile boolean layoutLeftToRight = true;
+    protected volatile boolean minimizeGraph = false;
+    protected volatile boolean scaleToFit = true;
 
     protected Lock graphLock = new ReentrantLock();
 
     private GraphUpdateJob graphUpdateJob;
-    protected final JScrollPane grappaPanelScrollPane;
     protected Button buttonScaleToFit;
     protected Button buttonZoomIn;
     protected Button buttonZoomOut;
@@ -56,7 +55,8 @@ public class GrappaFrame extends Composite implements Observer {
     protected Button buttonMinimize;
     protected Button buttonLayoutTopToBottom;
     protected Button buttonLayoutLeftToRight;
-    protected boolean scaleToFit = true;
+    protected Frame grappaFrame;
+    protected ScrolledComposite scrollComposite;
 
     public GrappaFrame(Composite parent, int style, CCSEditor editor) {
         super(parent, style);
@@ -65,6 +65,7 @@ public class GrappaFrame extends Composite implements Observer {
         setLayout(new org.eclipse.swt.layout.GridLayout());
 
         graphLock.lock();
+        Graph graph;
         try {
             graph = new Graph("CSS-Graph");
             final Node node = new Node(graph, "warn_node");
@@ -87,33 +88,35 @@ public class GrappaFrame extends Composite implements Observer {
         controlsComposite.setLayout(new FillLayout(SWT.HORIZONTAL));
         controlsComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-        final Composite graphComposite = new Composite(this, SWT.EMBEDDED);
-        graphComposite.setLayout(new org.eclipse.swt.layout.GridLayout());
-        graphComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
+        scrollComposite = new ScrolledComposite(this, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
+        scrollComposite.setExpandHorizontal(true);
+        scrollComposite.setExpandVertical(true);
+        scrollComposite.setMinWidth(100);
+        scrollComposite.setMinHeight(100);
+        scrollComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-        final Frame grappaFrame = SWT_AWT.new_Frame(graphComposite);
-        grappaPanel = new SynchronizedGrappaPanel(graph);
-        grappaPanel.addGrappaListener(new GrappaAdapter());
-        grappaPanel.setScaleToFit(true);
-        graph.addPanel(grappaPanel);
-        grappaPanelScrollPane = new JScrollPane(grappaPanel);
-        grappaFrame.setLayout(new GridLayout(1,1));
-        grappaFrame.add(grappaPanelScrollPane);
+        final Composite embeddedComposite = new Composite(scrollComposite, SWT.EMBEDDED);
+        scrollComposite.setContent(embeddedComposite);
+        embeddedComposite.setLayout(new GridLayout());
+
+        grappaFrame = SWT_AWT.new_Frame(embeddedComposite);
+        grappaPanel = createGrappaPanel(graph);
+        grappaFrame.add(grappaPanel);
 
         // Eclipse <3.3 workaround:
-        graphComposite.addControlListener(new ControlAdapter() {
-
+        /*
+        addControlListener(new ControlAdapter() {
             @Override
             public void controlResized(ControlEvent e) {
                 graphLock.lock();
                 try {
-                    grappaFrame.setSize(graphComposite.getSize().x, graphComposite.getSize().y);
+                    scrollComposite.setSize(embeddedComposite.getSize().x, embeddedComposite.getSize().y);
                 } finally {
                     graphLock.unlock();
                 }
             }
-
         });
+        */
 
         Grappa.antiAliasText = true;
         Grappa.useAntiAliasing = true;
@@ -160,6 +163,10 @@ public class GrappaFrame extends Composite implements Observer {
                     buttonZoomIn.setEnabled(!scaleToFit);
                     buttonZoomOut.setEnabled(!scaleToFit);
                     grappaPanel.setScaleToFit(scaleToFit);
+                    if (scaleToFit) {
+                        final Rectangle rect = scrollComposite.getClientArea();
+                        grappaPanel.setSize(rect.width, rect.height);
+                    }
                     grappaPanel.repaint();
                 } finally {
                     graphLock.unlock();
@@ -186,6 +193,8 @@ public class GrappaFrame extends Composite implements Observer {
                 graphLock.lock();
                 try {
                     grappaPanel.multiplyScaleFactor(0.8);
+                    // resized automatically to smalles needed size on next paint
+                    grappaPanel.setSize(1, 1);
                     grappaPanel.repaint();
                 } finally {
                     graphLock.unlock();
@@ -238,10 +247,10 @@ public class GrappaFrame extends Composite implements Observer {
         buttonLayoutTopToBottom.addListener(SWT.Selection, new Listener() {
 
             public void handleEvent(Event event) {
-                if (!buttonLayoutTopToBottom.getSelection())
-                    return;
                 graphLock.lock();
                 try {
+                    if (!buttonLayoutTopToBottom.getSelection() || !layoutLeftToRight)
+                        return;
                     layoutLeftToRight = false;
                     updateGraph();
                 } finally {
@@ -253,10 +262,10 @@ public class GrappaFrame extends Composite implements Observer {
         buttonLayoutLeftToRight.addListener(SWT.Selection, new Listener() {
 
             public void handleEvent(Event event) {
-                if (!buttonLayoutLeftToRight.getSelection())
-                    return;
                 graphLock.lock();
                 try {
+                    if (!buttonLayoutLeftToRight.getSelection() || layoutLeftToRight)
+                        return;
                     layoutLeftToRight = true;
                     updateGraph();
                 } finally {
@@ -265,6 +274,30 @@ public class GrappaFrame extends Composite implements Observer {
             }
 
         });
+    }
+
+    private GrappaPanel createGrappaPanel(Graph newGraph) {
+        final GrappaPanel newGrappaPanel = new SynchronizedGrappaPanel(newGraph);
+        newGrappaPanel.addGrappaListener(new GrappaAdapter());
+        newGrappaPanel.setScaleToFit(scaleToFit);
+        newGraph.addPanel(newGrappaPanel);
+        newGrappaPanel.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                getDisplay().asyncExec(new Runnable() {
+                    public void run() {
+                        graphLock.lock();
+                        try {
+                            scrollComposite.setMinWidth(grappaPanel.getSize().width);
+                            scrollComposite.setMinHeight(grappaPanel.getSize().height);
+                        } finally {
+                            graphLock.unlock();
+                        }
+                    }
+                });
+            }
+        });
+        return newGrappaPanel;
     }
 
     public synchronized void updateGraph() {
@@ -276,7 +309,7 @@ public class GrappaFrame extends Composite implements Observer {
         graphUpdateJob.schedule();
     }
 
-    public CCSEditor getCcsEditor() {
+    public CCSEditor getCCSEditor() {
         return ccsEditor;
     }
 
@@ -293,13 +326,12 @@ public class GrappaFrame extends Composite implements Observer {
         graphLock.lock();
         try {
             final Graph newGraph = status.getGraph();
-            grappaPanel = new SynchronizedGrappaPanel(newGraph);
-            grappaPanel.addGrappaListener(new GrappaAdapter());
-            grappaPanel.setScaleToFit(scaleToFit);
-            newGraph.addPanel(grappaPanel);
+            grappaPanel = createGrappaPanel(newGraph);
             EventQueue.invokeLater(new Runnable() {
                 public void run() {
-                    grappaPanelScrollPane.setViewportView(grappaPanel);
+                    grappaFrame.removeAll();
+                    grappaFrame.add(grappaPanel);
+                    grappaFrame.validate();
                 }
             });
 

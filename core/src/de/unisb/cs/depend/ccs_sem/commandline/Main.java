@@ -46,11 +46,11 @@ public class Main {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         new Main(args).run();
     }
 
-    private boolean run() {
+    private boolean run() throws InterruptedException {
         checkCommandLine();
 
         FileReader inputFileReader;

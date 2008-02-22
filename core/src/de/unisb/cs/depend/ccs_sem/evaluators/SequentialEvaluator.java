@@ -23,7 +23,8 @@ public class SequentialEvaluator implements Evaluator {
         return true;
     }
 
-    public boolean evaluateAll(Expression expr, EvaluationMonitor monitor) {
+    public boolean evaluateAll(Expression expr, EvaluationMonitor monitor)
+            throws InterruptedException {
         final Queue<Expression> toEvaluate = new LinkedList<Expression>();
         toEvaluate.add(expr);
 
@@ -32,6 +33,8 @@ public class SequentialEvaluator implements Evaluator {
 
         boolean ok = true;
         while (!toEvaluate.isEmpty()) {
+            if (Thread.interrupted())
+                throw new InterruptedException();
             final Expression e = toEvaluate.poll();
             if (monitor != null)
                 monitor.newState();

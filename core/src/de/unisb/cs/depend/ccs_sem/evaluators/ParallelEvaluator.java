@@ -13,10 +13,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import de.unisb.cs.depend.ccs_sem.exceptions.InternalSystemException;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
-import de.unisb.cs.depend.ccs_sem.utils.ConcurrentSet;
+import de.unisb.cs.depend.ccs_sem.utils.ConcurrentHashSet;
 
 
 public class ParallelEvaluator implements Evaluator {
@@ -43,20 +42,25 @@ public class ParallelEvaluator implements Evaluator {
         this.numThreads = null;
     }
 
-    public boolean evaluate(Expression expr) {
+    public boolean evaluate(Expression expr)
+            throws InterruptedException {
         return evaluate(expr, null);
     }
 
-    public boolean evaluate(Expression expr, EvaluationMonitor monitor) {
+    public boolean evaluate(Expression expr, EvaluationMonitor monitor)
+            throws InterruptedException {
         return evaluate0(expr, false, monitor);
     }
 
-    public boolean evaluateAll(Expression expr, EvaluationMonitor monitor) {
+    public boolean evaluateAll(Expression expr, EvaluationMonitor monitor)
+            throws InterruptedException {
         return evaluate0(expr, true, monitor);
     }
 
     // synchronized s.t. it can only be called once at a time
-    private synchronized boolean evaluate0(Expression expr, boolean evaluateSuccessors, EvaluationMonitor monitor) {
+    private synchronized boolean evaluate0(Expression expr,
+            boolean evaluateSuccessors, EvaluationMonitor monitor)
+            throws InterruptedException {
         try {
             synchronized (readyLock) {
                 initialize(evaluateSuccessors, monitor);
@@ -68,8 +72,8 @@ public class ParallelEvaluator implements Evaluator {
                 try {
                     readyLock.wait();
                 } catch (final InterruptedException e) {
-                    throw new InternalSystemException(
-                            "Interrupted while waiting for parallel evaluation to finish.");
+                    errorOccured = true;
+                    throw e;
                 }
             }
         } finally {
@@ -107,7 +111,7 @@ public class ParallelEvaluator implements Evaluator {
         currentlyEvaluating = new ConcurrentHashMap<Expression, EvaluatorJob>();
 
         if (evaluateSuccessors)
-            evaluatedSuccessors = new ConcurrentSet<Expression>(threadsToInstantiate*2);
+            evaluatedSuccessors = new ConcurrentHashSet<Expression>(threadsToInstantiate*2);
 
         monitor = monitor2;
 
@@ -188,10 +192,10 @@ public class ParallelEvaluator implements Evaluator {
                     // if there are at least 2 new children jobs, we evaluate
                     // them in new threads. otherwise, we use this thread to
                     // evaluate the child
-                    if (childrenJobsToStart.size() > 1) {
+                    if (childrenJobsToStart != null && childrenJobsToStart.size() > 1) {
                         for (final EvaluatorJob job: childrenJobsToStart)
                             executor.execute(job);
-                    } else if (childrenJobsToStart.size() == 1) {
+                    } else if (childrenJobsToStart != null && childrenJobsToStart.size() == 1) {
                         final EvaluatorJob job = childrenJobsToStart.get(0);
                         job.run();
                     }

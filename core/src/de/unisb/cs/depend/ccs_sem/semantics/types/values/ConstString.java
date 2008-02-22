@@ -21,8 +21,7 @@ public class ConstString extends AbstractValue implements ConstantValue {
 
     @Override
     public int hashCode() {
-        final int hashCode = value.hashCode();
-        return hashCode;
+        return value.hashCode();
     }
 
     @Override

@@ -44,7 +44,9 @@ public class MinimisingExpression extends Expression {
         this.transitions = new ArrayList<Transition>();
     }
 
-    public static MinimisingExpression create(Expression expr, boolean strong) {
+    // TODO check for Thread.interrupted()
+    public static MinimisingExpression create(Expression expr, boolean strong)
+            throws InterruptedException {
         final Map<Expression, Partition> partitions = Bisimulation.computePartitions(expr, strong);
 
         // create the new Expressions (in a BFS manner)

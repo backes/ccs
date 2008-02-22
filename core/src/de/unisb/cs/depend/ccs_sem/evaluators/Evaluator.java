@@ -10,7 +10,8 @@ public interface Evaluator {
      * @param expr the expression to evaluate.
      * @return <code>true</code> if there was an error
      */
-    boolean evaluate(Expression expr);
+    boolean evaluate(Expression expr)
+        throws InterruptedException;
 
     /**
      * Evaluates an expression and all successor expressions, i.e. expressions
@@ -19,6 +20,7 @@ public interface Evaluator {
      * @param monitor a monitor that is informed about new states and transitions
      * @return <code>true</code> if there was an error
      */
-    boolean evaluateAll(Expression expr, EvaluationMonitor monitor);
+    boolean evaluateAll(Expression expr, EvaluationMonitor monitor)
+        throws InterruptedException;
 
 }

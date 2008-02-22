@@ -12,7 +12,7 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.ParseCCSProgramJob;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.ParseCCSProgramJob.ParseStatus;
 import de.unisb.cs.depend.ccs_sem.plugin.views.CCSContentOutlinePage;
-import de.unisb.cs.depend.ccs_sem.utils.ConcurrentSet;
+import de.unisb.cs.depend.ccs_sem.utils.ConcurrentHashSet;
 
 public class CCSEditor extends TextEditor implements IDocumentListener {
 
@@ -23,7 +23,7 @@ public class CCSEditor extends TextEditor implements IDocumentListener {
     private final ParseCCSProgramJob parseJob;
 
     private final Set<Observer> reparsingListeners =
-        new ConcurrentSet<Observer>();
+        new ConcurrentHashSet<Observer>();
 
     public CCSEditor() {
         super();

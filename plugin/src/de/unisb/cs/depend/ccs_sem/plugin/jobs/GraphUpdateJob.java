@@ -25,6 +25,7 @@ import att.grappa.Graph;
 import att.grappa.GrappaConstants;
 import att.grappa.Node;
 import de.unisb.cs.depend.ccs_sem.evaluators.EvaluationMonitor;
+import de.unisb.cs.depend.ccs_sem.evaluators.Evaluator;
 import de.unisb.cs.depend.ccs_sem.evaluators.SequentialEvaluator;
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
@@ -223,8 +224,8 @@ public class GraphUpdateJob extends Job {
                     return new GraphUpdateStatus(IStatus.CANCEL, "cancelled");
 
                 monitor.subTask("Evaluating...");
-                final SequentialEvaluator evaluator = new SequentialEvaluator();
-                final EvalMonitor evalMonitor = new EvalMonitor(monitor, "Evaluating... ", 1000);
+                final Evaluator evaluator = new SequentialEvaluator();
+                final EvalMonitor evalMonitor = new EvalMonitor(monitor, "Evaluating... ", 100);
                 if (!ccsProgram.evaluate(evaluator, evalMonitor)) {
                     final String error = evalMonitor.getErrorString();
                     return new GraphUpdateStatus(IStatus.ERROR,
@@ -237,7 +238,7 @@ public class GraphUpdateJob extends Job {
 
                 if (minimize) {
                     monitor.subTask("Minimizing...");
-                    final EvalMonitor minimizationMonitor = new EvalMonitor(monitor, "Minimizing... ", 1000);
+                    final EvalMonitor minimizationMonitor = new EvalMonitor(monitor, "Minimizing... ", 100);
                     if (!ccsProgram.minimizeTransitions(evaluator, minimizationMonitor, false)) {
                         final String error = evalMonitor.getErrorString();
                         return new GraphUpdateStatus(IStatus.ERROR,

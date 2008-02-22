@@ -3,20 +3,19 @@ package de.unisb.cs.depend.ccs_sem.utils;
 import java.util.AbstractSet;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
-public class ConcurrentSet<E> extends AbstractSet<E> {
+public class ConcurrentHashSet<E> extends AbstractSet<E> {
 
-    private transient final ConcurrentMap<E, Object> map;
+    private transient final ConcurrentHashMap<E, Object> map;
 
     // Dummy value to associate with an Object in the backing Map
     private static final Object PRESENT = new Object();
 
-    public ConcurrentSet() {
+    public ConcurrentHashSet() {
         map = new ConcurrentHashMap<E, Object>();
     }
 
-    public ConcurrentSet(int concurrencyLevel) {
+    public ConcurrentHashSet(int concurrencyLevel) {
         map = new ConcurrentHashMap<E, Object>(16, .75f, concurrencyLevel);
     }
 

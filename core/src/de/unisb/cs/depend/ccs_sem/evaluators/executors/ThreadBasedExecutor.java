@@ -86,7 +86,7 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
         }
 
         for (final Thread thread: threadJobs.keySet()) {
-            while (true) {
+            while (thread.isAlive()) {
                 try {
                     thread.join();
                 } catch (final InterruptedException e) {
@@ -104,12 +104,13 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
     }
 
     public void execute(Runnable command) {
-        if (isShutdown)
-            throw new RejectedExecutionException("Already shutdown.");
-
         final Thread thread = Thread.currentThread();
         Stack<Runnable> jobs = threadJobs.get(thread);
         if (jobs == null) {
+            // only check for shutdown if the execute-request comes from
+            // outside. our own thread may still submit tasks
+            if (isShutdown())
+                throw new RejectedExecutionException("Already shutdown.");
             while (threadJobs.isEmpty())
                 Thread.yield();
             // get the first queue
@@ -146,10 +147,10 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
                         nextJob = getNextJob();
                         if (nextJob == null)
                             break;
-                    }
+                    } else
+                        continue;
                 }
-                if (nextJob != null)
-                    nextJob.run();
+                nextJob.run();
             }
         }
 

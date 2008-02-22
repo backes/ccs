@@ -14,11 +14,17 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.PlatformUI;
 
 import att.grappa.Graph;
+import att.grappa.Grappa;
 import att.grappa.GrappaSupport;
 import de.unisb.cs.depend.ccs_sem.plugin.Global;
 
 
 public class GraphHelper {
+
+    static {
+        // don't show this ugly Exception windows
+        Grappa.doDisplayException = false;
+    }
 
     public static final Color START_NODE_COLOR = Color.LIGHT_GRAY;
     public static final Color WARN_NODE_COLOR = Color.RED;

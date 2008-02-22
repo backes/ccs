@@ -72,7 +72,7 @@ public abstract class IntegrationTest {
     }
 
     @Before
-    public void initialize() throws ParseException, LexException {
+    public void initialize() throws ParseException, LexException, InterruptedException {
         ExpressionRepository.reset();
         states = new ArrayList<String>();
         transitions = new ArrayList<List<SimpleTrans>>();

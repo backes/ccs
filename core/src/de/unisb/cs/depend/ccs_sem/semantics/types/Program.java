@@ -88,11 +88,12 @@ public class Program {
         return true;
     }
 
-    public void evaluate(Evaluator eval) {
+    public void evaluate(Evaluator eval) throws InterruptedException {
         evaluate(eval, null);
     }
 
-    public boolean evaluate(Evaluator eval, EvaluationMonitor monitor) {
+    public boolean evaluate(Evaluator eval, EvaluationMonitor monitor)
+            throws InterruptedException {
         return eval.evaluateAll(mainExpression, monitor);
     }
 
@@ -115,8 +116,9 @@ public class Program {
      * @param strong if <code>true</code>, the lts is minimized w.r.t. strong
      *               bisimulation instead of weak bisimulation
      * @return <code>true</code> if minimization was successfull
+     * @throws InterruptedException
      */
-    public boolean minimizeTransitions(Evaluator evaluator, EvaluationMonitor minimizationMonitor, boolean strong) {
+    public boolean minimizeTransitions(Evaluator evaluator, EvaluationMonitor minimizationMonitor, boolean strong) throws InterruptedException {
         assert isEvaluated();
 
         minimizedExpression = MinimisingExpression.create(mainExpression, strong);
@@ -132,7 +134,7 @@ public class Program {
         return true;
     }
 
-    public void minimizeTransitions() {
+    public void minimizeTransitions() throws InterruptedException {
         minimizeTransitions(new SequentialEvaluator(), null, false);
     }
 
