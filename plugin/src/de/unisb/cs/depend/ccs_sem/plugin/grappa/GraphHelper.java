@@ -72,7 +72,7 @@ public class GraphHelper {
                 } catch (final TimeoutException e) {
                     if (Thread.currentThread().isInterrupted()) {
                         filterGraphTask.cancel(true);
-                        return false;
+                        throw new InterruptedException();
                     }
                 }
             }

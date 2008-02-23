@@ -2,7 +2,6 @@ package de.unisb.cs.depend.ccs_sem.plugin.jobs;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Observer;
@@ -36,6 +35,7 @@ import de.unisb.cs.depend.ccs_sem.plugin.grappa.GraphHelper;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.utils.UniqueQueue;
 
 
 public class GraphUpdateJob extends Job {
@@ -165,6 +165,10 @@ public class GraphUpdateJob extends Job {
     private class ConcurrentJob implements Callable<GraphUpdateStatus> {
 
         private final IProgressMonitor monitor;
+        private Map<Expression, Node> nodes;
+        private int nodeCnt;
+        private int edgeCnt;
+        private Graph graph;
 
         public ConcurrentJob(IProgressMonitor monitor) {
             this.monitor = monitor;
@@ -246,15 +250,13 @@ public class GraphUpdateJob extends Job {
 
             monitor.subTask("Creating graph...");
 
-            final Graph graph = new Graph("CCS Graph");
+            final Graph graph;
+            if (warning == null) {
+                graph = createGraph(ccsProgram.getExpression());
+            } else {
+                graph = new Graph("WARNING");
+                graph.setToolTipText("");
 
-            graph.setAttribute("root", "node_0");
-            // set layout direction to "left to right"
-            if (layoutLeftToRight)
-                graph.setAttribute(GrappaConstants.RANKDIR_ATTR, "LR");
-            graph.setToolTipText("");
-
-            if (warning != null) {
                 final Node node = new Node(graph, "warn_node");
                 node.setAttribute(GrappaConstants.LABEL_ATTR, warning);
                 node.setAttribute(GrappaConstants.STYLE_ATTR, "filled");
@@ -264,68 +266,6 @@ public class GraphUpdateJob extends Job {
                 graph.addNode(node);
                 GraphHelper.filterGraph(graph);
                 return new GraphUpdateStatus(IStatus.ERROR, warning);
-            }
-
-
-            final Queue<Expression> queue = new LinkedList<Expression>();
-            queue.add(ccsProgram.getExpression());
-
-            final Set<Expression> written = new HashSet<Expression>();
-            written.add(ccsProgram.getExpression());
-
-            final Map<Expression, Node> nodes = new HashMap<Expression, Node>();
-
-            // first, create all nodes
-            int cnt = 0;
-            while (!queue.isEmpty()) {
-                final Expression e = queue.poll();
-                final Node node = new Node(graph, "node_" + cnt++);
-                node.setAttribute(GrappaConstants.LABEL_ATTR,
-                    showNodeLabels ? e.toString() : "");
-                node.setAttribute(GrappaConstants.TIP_ATTR, "Node: " + e.toString());
-                if (cnt == 1) {
-                    node.setAttribute(GrappaConstants.STYLE_ATTR, "filled");
-                    node.setAttribute(GrappaConstants.FILLCOLOR_ATTR, GraphHelper.START_NODE_COLOR);
-                }
-                if (e.isError()) {
-                    node.setAttribute(GrappaConstants.STYLE_ATTR, "filled");
-                    node.setAttribute(GrappaConstants.FILLCOLOR_ATTR, GraphHelper.ERROR_NODE_COLOR);
-                    node.setAttribute(GrappaConstants.SHAPE_ATTR, "octagon");
-                    node.setAttribute(GrappaConstants.TIP_ATTR, "Error node: " + e.toString());
-                }
-                nodes.put(e, node);
-                graph.addNode(node);
-                for (final Transition trans: e.getTransitions())
-                    if (written.add(trans.getTarget()))
-                        queue.add(trans.getTarget());
-            }
-
-            // then, create the edges
-            queue.add(ccsProgram.getExpression());
-            written.clear();
-            written.add(ccsProgram.getExpression());
-            cnt = 0;
-
-            while (!queue.isEmpty()) {
-                final Expression e = queue.poll();
-                final Node tailNode = nodes.get(e);
-
-                for (final Transition trans: e.getTransitions()) {
-                    final Node headNode = nodes.get(trans.getTarget());
-                    final Edge edge = new Edge(graph, tailNode, headNode, "edge_" + cnt++);
-                    final String label = showEdgeLabels ? trans.getAction().getLabel() : "";
-                    edge.setAttribute(GrappaConstants.LABEL_ATTR, label);
-                    final StringBuilder tipBuilder = new StringBuilder(230);
-                    tipBuilder.append("<html><table border=0>");
-                    tipBuilder.append("<tr><td align=right><i>Transition:</i></td><td>").append(label).append("</td></tr>");
-                    tipBuilder.append("<tr><td align=right><i>from:</i></td><td>").append(e.toString()).append("</td></tr>");
-                    tipBuilder.append("<tr><td align=right><i>to:</i></td><td>").append(trans.getTarget().toString()).append("</td></tr>");
-                    tipBuilder.append("</table></html>.");
-                    edge.setAttribute(GrappaConstants.TIP_ATTR, tipBuilder.toString());
-                    graph.addEdge(edge);
-                    if (written.add(trans.getTarget()))
-                        queue.add(trans.getTarget());
-                }
             }
 
             monitor.worked(WORK_CREATE_GRAPH);
@@ -354,6 +294,74 @@ public class GraphUpdateJob extends Job {
             monitor.done();
 
             return status;
+        }
+
+        private Graph createGraph(Expression mainExpression) throws InterruptedException {
+            graph = new Graph("CCS Graph");
+            graph.setAttribute("root", "node_0");
+            // set layout direction to "left to right"
+            if (layoutLeftToRight)
+                graph.setAttribute(GrappaConstants.RANKDIR_ATTR, "LR");
+            graph.setToolTipText("");
+
+            final Queue<Expression> queue = new UniqueQueue<Expression>();
+            queue.add(mainExpression);
+
+            nodes = new HashMap<Expression, Node>();
+            nodeCnt = 0;
+            edgeCnt = 0;
+
+            while (!queue.isEmpty()) {
+                if (Thread.interrupted())
+                    throw new InterruptedException();
+                final Expression e = queue.poll();
+                final Node tailNode = getNode(nodes, e);
+
+                for (final Transition trans: e.getTransitions()) {
+                    final Node headNode = getNode(nodes, trans.getTarget());
+                    final Edge edge = new Edge(graph, tailNode, headNode, "edge_" + edgeCnt++);
+                    final String label = showEdgeLabels ? trans.getAction().getLabel() : "";
+                    edge.setAttribute(GrappaConstants.LABEL_ATTR, label);
+                    final StringBuilder tipBuilder = new StringBuilder(230);
+                    tipBuilder.append("<html><table border=0>");
+                    tipBuilder.append("<tr><td align=right><i>Transition:</i></td><td>").append(label).append("</td></tr>");
+                    tipBuilder.append("<tr><td align=right><i>from:</i></td><td>").append(e.toString()).append("</td></tr>");
+                    tipBuilder.append("<tr><td align=right><i>to:</i></td><td>").append(trans.getTarget().toString()).append("</td></tr>");
+                    tipBuilder.append("</table></html>.");
+                    edge.setAttribute(GrappaConstants.TIP_ATTR, tipBuilder.toString());
+                    graph.addEdge(edge);
+                    queue.add(trans.getTarget());
+                }
+            }
+            nodes = null;
+
+            return graph;
+        }
+
+        private Node getNode(final Map<Expression, Node> nodes,
+                final Expression e) {
+            Node node = nodes.get(e);
+            if (node != null)
+                return node;
+
+            node = new Node(graph, "node_" + nodeCnt++);
+            node.setAttribute(GrappaConstants.LABEL_ATTR,
+                showNodeLabels ? e.toString() : "");
+            node.setAttribute(GrappaConstants.TIP_ATTR, "Node: " + e.toString());
+            if (nodeCnt == 1) {
+                node.setAttribute(GrappaConstants.STYLE_ATTR, "filled");
+                node.setAttribute(GrappaConstants.FILLCOLOR_ATTR, GraphHelper.START_NODE_COLOR);
+            }
+            if (e.isError()) {
+                node.setAttribute(GrappaConstants.STYLE_ATTR, "filled");
+                node.setAttribute(GrappaConstants.FILLCOLOR_ATTR, GraphHelper.ERROR_NODE_COLOR);
+                node.setAttribute(GrappaConstants.SHAPE_ATTR, "octagon");
+                node.setAttribute(GrappaConstants.TIP_ATTR, "Error node: " + e.toString());
+            }
+            nodes.put(e, node);
+            graph.addNode(node);
+
+            return node;
         }
     }
 

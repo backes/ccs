@@ -31,7 +31,6 @@ import att.grappa.GrappaAdapter;
 import att.grappa.GrappaConstants;
 import att.grappa.GrappaPanel;
 import att.grappa.Node;
-import att.grappa.Subgraph;
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.GraphUpdateJob;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.GraphUpdateJob.GraphUpdateStatus;
@@ -58,7 +57,7 @@ public class GrappaFrame extends Composite implements Observer {
     protected Button buttonMinimize;
     protected Button buttonLayoutTopToBottom;
     protected Button buttonLayoutLeftToRight;
-    protected Frame grappaFrame;
+    protected Frame bridgeFrame;
     protected ScrolledComposite scrollComposite;
     protected Graph graph;
 
@@ -102,18 +101,22 @@ public class GrappaFrame extends Composite implements Observer {
         scrollComposite.setContent(embeddedComposite);
         embeddedComposite.setLayout(new GridLayout());
 
-        grappaFrame = SWT_AWT.new_Frame(embeddedComposite);
+        bridgeFrame = SWT_AWT.new_Frame(embeddedComposite);
         grappaPanel = createGrappaPanel(graph);
-        grappaFrame.add(grappaPanel);
+        bridgeFrame.add(grappaPanel);
 
-        // Eclipse <3.3 workaround:
-        addControlListener(new ControlAdapter() {
+        scrollComposite.addControlListener(new ControlAdapter() {
             @Override
             public void controlResized(ControlEvent e) {
                 graphLock.lock();
                 try {
-                    // resized automatically to smalles needed size on next paint
-                    grappaPanel.setSize(1, 1);
+                    final Rectangle rect = scrollComposite.getClientArea();
+                    Dimension dim = new Dimension(rect.width, rect.height);
+
+                    grappaPanel.overrideParentSize(dim);
+                    dim = grappaPanel.getDesiredSize();
+                    grappaPanel.setSize(dim);
+                    grappaPanel.setPreferredSize(dim);
                 } finally {
                     graphLock.unlock();
                 }
@@ -165,10 +168,12 @@ public class GrappaFrame extends Composite implements Observer {
                     buttonZoomIn.setEnabled(!scaleToFit);
                     buttonZoomOut.setEnabled(!scaleToFit);
                     grappaPanel.setScaleToFit(scaleToFit);
+                    /*
                     if (scaleToFit) {
                         final Rectangle rect = scrollComposite.getClientArea();
                         grappaPanel.setSize(rect.width, rect.height);
                     }
+                    */
                     grappaPanel.repaint();
                 } finally {
                     graphLock.unlock();
@@ -195,8 +200,6 @@ public class GrappaFrame extends Composite implements Observer {
                 graphLock.lock();
                 try {
                     grappaPanel.multiplyScaleFactor(0.8);
-                    // resized automatically to smalles needed size on next paint
-                    grappaPanel.setSize(1, 1);
                     grappaPanel.repaint();
                 } finally {
                     graphLock.unlock();
@@ -285,7 +288,21 @@ public class GrappaFrame extends Composite implements Observer {
     }
 
     private GrappaPanel createGrappaPanel(Graph newGraph) {
-        final GrappaPanel newGrappaPanel = new SynchronizedGrappaPanel(newGraph);
+        final GrappaPanel newGrappaPanel = new GrappaPanel(newGraph) {
+
+            private static final long serialVersionUID = 1142753635531033476L;
+
+            @Override
+            public void paintComponent(Graphics g) {
+                graphLock.lock();
+                try {
+                    super.paintComponent(g);
+                } finally {
+                    graphLock.unlock();
+                }
+            }
+
+        };
         newGrappaPanel.addGrappaListener(new GrappaAdapter());
         newGrappaPanel.setScaleToFit(scaleToFit);
         newGraph.addPanel(newGrappaPanel);
@@ -296,9 +313,9 @@ public class GrappaFrame extends Composite implements Observer {
                     public void run() {
                         graphLock.lock();
                         try {
-                            final Dimension size = grappaPanel.getSize();
-                            scrollComposite.setMinWidth(size.width);
-                            scrollComposite.setMinHeight(size.height);
+                            final Dimension dim = scaleToFit ? new Dimension(1, 1)
+                                : grappaPanel.getDesiredSize();
+                            scrollComposite.setMinSize(dim.width, dim.height);
                         } finally {
                             graphLock.unlock();
                         }
@@ -338,9 +355,9 @@ public class GrappaFrame extends Composite implements Observer {
             grappaPanel = createGrappaPanel(graph);
             EventQueue.invokeLater(new Runnable() {
                 public void run() {
-                    grappaFrame.removeAll();
-                    grappaFrame.add(grappaPanel);
-                    grappaFrame.validate();
+                    bridgeFrame.removeAll();
+                    bridgeFrame.add(grappaPanel);
+                    bridgeFrame.validate();
                 }
             });
 
@@ -357,26 +374,6 @@ public class GrappaFrame extends Composite implements Observer {
             });
         } finally {
             graphLock.unlock();
-        }
-    }
-
-    private final class SynchronizedGrappaPanel extends GrappaPanel {
-
-        private static final long serialVersionUID =
-                368128314339198689L;
-
-        protected SynchronizedGrappaPanel(Subgraph subgraph) {
-            super(subgraph);
-        }
-
-        @Override
-        public void paintComponent(Graphics g) {
-            graphLock.lock();
-            try {
-                super.paintComponent(g);
-            } finally {
-                graphLock.unlock();
-            }
         }
     }
 
