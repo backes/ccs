@@ -55,7 +55,11 @@ public class GraphHelper {
             // terminate it
             final Callable<Boolean> filterGraphCall = new Callable<Boolean>() {
                 public Boolean call() {
-                    return GrappaSupport.filterGraph(graph, finalDotFilter);
+                    try {
+                        return GrappaSupport.filterGraph(graph, finalDotFilter);
+                    } catch (IOException e) {
+                        return false;
+                    }
                 }
             };
             final FutureTask<Boolean> filterGraphTask = new FutureTask<Boolean>(filterGraphCall);
@@ -70,7 +74,7 @@ public class GraphHelper {
                     // throw any Exception)
                     throw new RuntimeException(e);
                 } catch (final TimeoutException e) {
-                    if (Thread.currentThread().isInterrupted()) {
+                    if (Thread.interrupted()) {
                         filterGraphTask.cancel(true);
                         throw new InterruptedException();
                     }

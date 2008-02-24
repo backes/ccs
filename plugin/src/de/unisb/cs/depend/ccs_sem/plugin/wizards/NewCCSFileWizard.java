@@ -117,6 +117,8 @@ public class NewCCSFileWizard extends Wizard implements INewWizard {
 		try {
 			getContainer().run(true, false, op);
 		} catch (final InterruptedException e) {
+		    // reset interruption flag
+		    Thread.currentThread().interrupt();
 			return false;
 		} catch (final InvocationTargetException e) {
 			final Throwable realException = e.getTargetException();

@@ -75,8 +75,8 @@ public class Lexer
     /**
      *  hash tables to hold symbols
      */
-    private Hashtable keywords = new Hashtable(32);
-    private Hashtable char_symbols = new Hashtable(32);
+    private Hashtable<String, Integer> keywords = new Hashtable<String, Integer>(32);
+    private Hashtable<Integer, Integer> char_symbols = new Hashtable<Integer, Integer>(32);
 
     private Reader inReader;
     private PrintWriter errWriter = null;
@@ -276,7 +276,7 @@ public class Lexer
     private int find_single_char(int ch) {
 	Integer result;
 
-	result = (Integer) char_symbols.get(new Integer((char) ch));
+	result = char_symbols.get(new Integer((char) ch));
 	if (result == null) {
 	    return -1;
 	} else {
@@ -438,7 +438,7 @@ public class Lexer
 	    result_str = cmnstrbuf.toString();
 	}
 
-	keyword_num = (Integer) keywords.get(result_str);
+	keyword_num = keywords.get(result_str);
 
 	// if we found something, return that keyword
 	if (keyword_num != null) {

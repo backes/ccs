@@ -2,11 +2,10 @@ package de.unisb.cs.depend.ccs_sem.evaluators;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -24,7 +23,7 @@ public class ParallelEvaluator implements Evaluator {
 
     protected ExecutorService executor = null;
 
-    protected Map<Expression, EvaluatorJob> currentlyEvaluating = null;
+    protected ConcurrentMap<Expression, EvaluatorJob> currentlyEvaluating = null;
 
     protected Set<Expression> evaluatedSuccessors = null;
 
@@ -67,7 +66,8 @@ public class ParallelEvaluator implements Evaluator {
 
                 if (evaluateSuccessors)
                     evaluatedSuccessors.add(expr);
-                executor.execute(new EvaluatorJob(expr, evaluateSuccessors));
+                // the EvaluatorJob automatically executes itself
+                new EvaluatorJob(expr, evaluateSuccessors);
 
                 try {
                     readyLock.wait();
@@ -135,6 +135,7 @@ public class ParallelEvaluator implements Evaluator {
         currentlyEvaluating = null;
 
         evaluatedSuccessors = null;
+        monitor = null;
     }
 
     private class EvaluatorJob implements Runnable {
@@ -147,10 +148,13 @@ public class ParallelEvaluator implements Evaluator {
         public EvaluatorJob(Expression expr, boolean evaluateSuccessors) {
             this.expr = expr;
             this.evaluateSuccessors = evaluateSuccessors;
-            currentlyEvaluating.put(expr, this);
+            currentlyEvaluating.putIfAbsent(expr, this);
+            executor.execute(this);
         }
 
-        private synchronized void addWaiter(Barrier waiter) {
+        // is externally synchronized (over the expression)
+        private void addWaiter(Barrier waiter) {
+            assert Thread.holdsLock(expr);
             if (waiters == null)
                 waiters = new ArrayList<Barrier>(2);
             waiters.add(waiter);
@@ -158,26 +162,20 @@ public class ParallelEvaluator implements Evaluator {
 
         public void run() {
             if (!childrenEvaluated && !expr.isEvaluated()) {
-                List<EvaluatorJob> childrenJobsToStart = null;
-
-                final Collection<Expression> children = expr.getChildren();
 
                 Barrier barrier = null;
-                for (final Expression child: children) {
+                for (final Expression child: expr.getChildren()) {
                     synchronized (child) {
                         if (!child.isEvaluated()) {
                             if (barrier == null)
-                                barrier = new Barrier(this, 2);
+                                barrier = new Barrier(this, executor, 2);
                             else
                                 barrier.inc();
 
                             EvaluatorJob childEvaluator =
                                     currentlyEvaluating.get(child);
-                            if (childEvaluator == null) {
-                                if (childrenJobsToStart == null)
-                                    childrenJobsToStart = new ArrayList<EvaluatorJob>(children.size());
-                                childrenJobsToStart.add(childEvaluator = new EvaluatorJob(child, false));
-                            }
+                            if (childEvaluator == null)
+                                childEvaluator = new EvaluatorJob(child, false);
                             childEvaluator.addWaiter(barrier);
                         }
                     }
@@ -189,19 +187,8 @@ public class ParallelEvaluator implements Evaluator {
                 // and we use this thread to continue evaluation
                 if (barrier != null) {
 
-                    // if there are at least 2 new children jobs, we evaluate
-                    // them in new threads. otherwise, we use this thread to
-                    // evaluate the child
-                    if (childrenJobsToStart != null && childrenJobsToStart.size() > 1) {
-                        for (final EvaluatorJob job: childrenJobsToStart)
-                            executor.execute(job);
-                    } else if (childrenJobsToStart != null && childrenJobsToStart.size() == 1) {
-                        final EvaluatorJob job = childrenJobsToStart.get(0);
-                        job.run();
-                    }
-
                     // inform barrier that there are no more new children coming...
-                    barrier.inform(null);
+                    barrier.inform();
 
                     // the barrier will call us again when all children are evaluated
                     return;
@@ -212,11 +199,8 @@ public class ParallelEvaluator implements Evaluator {
 
             synchronized (expr) {
                 if (waiters != null) {
-                    if (waiters.size() == 1)
-                        waiters.get(0).inform(null);
-                    else
-                        for (final Barrier waiter: waiters)
-                            waiter.inform(executor);
+                    for (final Barrier waiter: waiters)
+                        waiter.inform();
                 }
             }
 
@@ -229,7 +213,7 @@ public class ParallelEvaluator implements Evaluator {
                 for (final Transition trans: expr.getTransitions()) {
                     final Expression succ = trans.getTarget();
                     if (evaluatedSuccessors.add(succ))
-                        executor.execute(new EvaluatorJob(succ, true));
+                        new EvaluatorJob(succ, true);
                 }
             }
 
@@ -239,6 +223,7 @@ public class ParallelEvaluator implements Evaluator {
 
             // if everything is evaluated, inform the waiting thread(s)
             if (currentlyEvaluating.isEmpty()) {
+                assert currentlyEvaluating.isEmpty();
                 synchronized (readyLock) {
                     if (monitor != null)
                         monitor.ready();
@@ -250,13 +235,15 @@ public class ParallelEvaluator implements Evaluator {
 
     // static to improve performance, even if we have to copy the
     // ExecutorService reference
-    private static class Barrier {
+    private class Barrier {
 
         private final Runnable job;
+        private final Executor jobExecutor;
         private final AtomicInteger waitNr;
 
-        public Barrier(Runnable jobToRun, int startNr) {
+        public Barrier(Runnable jobToRun, Executor executor, int startNr) {
             this.job = jobToRun;
+            this.jobExecutor = executor;
             this.waitNr = new AtomicInteger(startNr);
         }
 
@@ -264,16 +251,12 @@ public class ParallelEvaluator implements Evaluator {
             waitNr.incrementAndGet();
         }
 
-        public void inform(Executor executor) {
+        public void inform() {
             assert waitNr.get() > 0;
 
             final int remaining = waitNr.decrementAndGet();
-            if (remaining == 0) {
-                if (executor == null)
-                    job.run();
-                else
-                    executor.execute(job);
-            }
+            if (remaining == 0)
+                jobExecutor.execute(job);
         }
 
     }

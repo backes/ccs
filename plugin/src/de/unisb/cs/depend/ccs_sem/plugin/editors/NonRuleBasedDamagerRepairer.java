@@ -1,5 +1,6 @@
 package de.unisb.cs.depend.ccs_sem.plugin.editors;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
@@ -10,7 +11,6 @@ import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.jface.text.presentation.IPresentationDamager;
 import org.eclipse.jface.text.presentation.IPresentationRepairer;
-import org.eclipse.core.runtime.Assert;
 import org.eclipse.swt.custom.StyleRange;
 
 public class NonRuleBasedDamagerRepairer
@@ -20,7 +20,7 @@ public class NonRuleBasedDamagerRepairer
 	protected IDocument fDocument;
 	/** The default text attribute if non is returned as data by the current token */
 	protected TextAttribute fDefaultTextAttribute;
-	
+
 	/**
 	 * Constructor for NonRuleBasedDamagerRepairer.
 	 */
@@ -51,11 +51,11 @@ public class NonRuleBasedDamagerRepairer
 		if (offset <= info.getOffset() + info.getLength())
 			return info.getOffset() + info.getLength();
 
-		int line = fDocument.getLineOfOffset(offset);
+		final int line = fDocument.getLineOfOffset(offset);
 		try {
 			info = fDocument.getLineInformation(line + 1);
 			return info.getOffset() + info.getLength();
-		} catch (BadLocationException x) {
+		} catch (final BadLocationException x) {
 			return fDocument.getLength();
 		}
 	}
@@ -70,9 +70,9 @@ public class NonRuleBasedDamagerRepairer
 		if (!documentPartitioningChanged) {
 			try {
 
-				IRegion info =
+				final IRegion info =
 					fDocument.getLineInformationOfOffset(event.getOffset());
-				int start = Math.max(partition.getOffset(), info.getOffset());
+				final int start = Math.max(partition.getOffset(), info.getOffset());
 
 				int end =
 					event.getOffset()
@@ -93,7 +93,8 @@ public class NonRuleBasedDamagerRepairer
 						end);
 				return new Region(start, end - start);
 
-			} catch (BadLocationException x) {
+			} catch (final BadLocationException x) {
+			    // ignore
 			}
 		}
 

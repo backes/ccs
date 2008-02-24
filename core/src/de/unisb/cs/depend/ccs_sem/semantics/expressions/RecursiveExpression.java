@@ -75,6 +75,11 @@ public class RecursiveExpression extends Expression {
     }
 
     @Override
+    public Collection<Expression> getSubTerms() {
+        return Collections.singleton(referencedDeclaration.getValue());
+    }
+
+    @Override
     protected List<Transition> evaluate0() {
         return getInstantiatedExpression().getTransitions();
     }

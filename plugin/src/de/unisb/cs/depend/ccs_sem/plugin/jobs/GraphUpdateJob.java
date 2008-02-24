@@ -24,7 +24,6 @@ import att.grappa.GrappaConstants;
 import att.grappa.Node;
 import de.unisb.cs.depend.ccs_sem.evaluators.EvaluationMonitor;
 import de.unisb.cs.depend.ccs_sem.evaluators.Evaluator;
-import de.unisb.cs.depend.ccs_sem.evaluators.SequentialEvaluator;
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.lexer.CCSLexer;
@@ -35,6 +34,7 @@ import de.unisb.cs.depend.ccs_sem.plugin.grappa.GraphHelper;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.utils.Globals;
 import de.unisb.cs.depend.ccs_sem.utils.UniqueQueue;
 
 
@@ -215,7 +215,7 @@ public class GraphUpdateJob extends Job {
                     return new GraphUpdateStatus(IStatus.CANCEL, "cancelled");
 
                 monitor.subTask("Evaluating...");
-                final Evaluator evaluator = new SequentialEvaluator();
+                final Evaluator evaluator = Globals.getDefaultEvaluator();
                 final EvalMonitor evalMonitor = new EvalMonitor(monitor, "Evaluating... ", 100);
                 if (!ccsProgram.evaluate(evaluator, evalMonitor)) {
                     final String error = evalMonitor.getErrorString();

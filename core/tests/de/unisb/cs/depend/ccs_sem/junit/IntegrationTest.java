@@ -17,7 +17,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import de.unisb.cs.depend.ccs_sem.evaluators.Evaluator;
-import de.unisb.cs.depend.ccs_sem.evaluators.SequentialEvaluator;
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.parser.CCSParser;
@@ -68,7 +67,7 @@ public abstract class IntegrationTest {
 
     // may be overridden to use another evaluator
     protected Evaluator getEvaluator() {
-        return new SequentialEvaluator();
+        return Globals.getDefaultEvaluator();
     }
 
     @Before
@@ -124,16 +123,16 @@ public abstract class IntegrationTest {
     }
 
     @Test
-    public void checkWeakBisimilarity() {
+    public void checkWeakBisimilarity() throws InterruptedException {
         checkBisimilarity(false);
     }
 
     @Test
-    public void checkStrongBisimilarity() {
+    public void checkStrongBisimilarity() throws InterruptedException {
         checkBisimilarity(true);
     }
 
-    private void checkBisimilarity(boolean strong) {
+    private void checkBisimilarity(boolean strong) throws InterruptedException {
         final Expression expression = program.getExpression();
         final RebuiltExpression rebuiltExpr = RebuiltExpression.create(states, transitions);
         final List<Expression> exprList = new ArrayList<Expression>(2);

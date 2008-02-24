@@ -2,9 +2,9 @@ package de.unisb.cs.depend.ccs_sem.plugin.jobs;
 
 import java.util.List;
 
-import org.eclipse.core.internal.jobs.JobStatus;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
@@ -12,6 +12,7 @@ import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.lexer.CCSLexer;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Token;
 import de.unisb.cs.depend.ccs_sem.parser.CCSParser;
+import de.unisb.cs.depend.ccs_sem.plugin.Global;
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 
@@ -61,7 +62,7 @@ public class ParseCCSProgramJob extends Job {
                 + "(around this context: " + e.getEnvironment() + ")";
         }
 
-        final ParseStatus status = new ParseStatus(IStatus.OK, this, "");
+        final ParseStatus status = new ParseStatus(IStatus.OK, "");
         status.setParsedProgram(ccsProgram);
 
         editor.reparsed(status);
@@ -74,12 +75,12 @@ public class ParseCCSProgramJob extends Job {
     }
 
     @SuppressWarnings("restriction")
-    public class ParseStatus extends JobStatus {
+    public class ParseStatus extends Status {
 
         private Program parsedProgram;
 
-        public ParseStatus(int severity, Job job, String message) {
-            super(severity, job, message);
+        public ParseStatus(int severity, String message) {
+            super(severity, Global.getPluginID(), message);
         }
 
         public Program getParsedProgram() {

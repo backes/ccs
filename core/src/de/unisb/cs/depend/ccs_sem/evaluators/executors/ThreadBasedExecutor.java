@@ -85,15 +85,22 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
             thread.interrupt();
         }
 
+        // we don't wanna lose an interruption...
+        boolean interrupted = false;
         for (final Thread thread: threadJobs.keySet()) {
             while (thread.isAlive()) {
                 try {
                     thread.join();
                 } catch (final InterruptedException e) {
-                    // ignore and try again
+                    interrupted = true;
                 }
             }
         }
+        if (interrupted)
+            // funny: we interrupt ourself again :)
+            // (means, we set our interrupted flag)
+            Thread.currentThread().interrupt();
+
         final List<Runnable> list = new ArrayList<Runnable>();
         for (final Stack<Runnable> q: threadJobs.values()) {
             list.addAll(q);
@@ -183,7 +190,7 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
                     try {
                         waitForNewJobs.wait();
                     } catch (final InterruptedException e) {
-                        // hm, then go on...
+                        // hm, then go on... (seems like we are forced to shut down)
                     }
                 }
             }

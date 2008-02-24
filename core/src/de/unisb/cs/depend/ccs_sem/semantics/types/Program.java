@@ -4,7 +4,6 @@ import java.util.List;
 
 import de.unisb.cs.depend.ccs_sem.evaluators.EvaluationMonitor;
 import de.unisb.cs.depend.ccs_sem.evaluators.Evaluator;
-import de.unisb.cs.depend.ccs_sem.evaluators.SequentialEvaluator;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.adapters.MinimisingExpression;
@@ -135,7 +134,7 @@ public class Program {
     }
 
     public void minimizeTransitions() throws InterruptedException {
-        minimizeTransitions(new SequentialEvaluator(), null, false);
+        minimizeTransitions(Globals.getDefaultEvaluator(), null, false);
     }
 
 }

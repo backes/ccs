@@ -7,6 +7,7 @@ import java.util.List;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.And;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Assign;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Colon;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Comma;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.ConstToken;
@@ -201,12 +202,12 @@ public class CCSLexer extends AbstractLexer {
 
             case '=':
                 nextChar = input.read();
-                boolean comp = false;
                 if (nextChar == '=')
-                    comp = true;
-                else if (nextChar != -1)
+                    tokens.add(new Equals(position, ++position));
+                else if (nextChar != -1) {
                     input.unread(nextChar);
-                tokens.add(new Equals(position, comp ? ++position : position, comp));
+                    tokens.add(new Assign(position, position));
+                }
                 break;
 
             case ';':

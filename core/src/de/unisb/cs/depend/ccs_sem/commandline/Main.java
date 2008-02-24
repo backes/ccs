@@ -37,6 +37,8 @@ public class Main {
     private final List<Exporter> exporters = new ArrayList<Exporter>(2);
     private boolean minimizeWeak = false;
     private boolean minimizeStrong = false;
+    private final boolean allowUnguarded = true; //false;
+    private final boolean allowUnregular = true; //false;
 
 
     public Main(String[] args) {
@@ -88,12 +90,20 @@ public class Main {
 
         log("Checking regularity/guardedness...");
         if (!program.isGuarded()) {
-            System.err.println("Your recursive definitions are not guarded.");
-            return false;
+            if (allowUnguarded) {
+                log("Warning: Your recursive definitions are not guarded.");
+            } else {
+                log("ERROR: Your recursive definitions are not guarded.");
+                return false;
+            }
         }
         if (!program.isRegular()) {
-            System.err.println("Your recursive definitions are not regular.");
-            return false;
+            if (allowUnregular) {
+                log("Warning: Your recursive definitions are not regular.");
+            } else {
+                log("ERROR: Your recursive definitions are not regular.");
+                return false;
+            }
         }
 
 

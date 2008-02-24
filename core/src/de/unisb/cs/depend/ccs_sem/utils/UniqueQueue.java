@@ -45,28 +45,32 @@ public class UniqueQueue<E> extends ArrayQueue<E> {
     public boolean add(E e) {
         if (!seen.add(e))
             return false;
-        return super.add(e);
+        super.addLast(e);
+        return true;
     }
 
     @Override
     public boolean offer(E e) {
         if (!seen.add(e))
             return false;
-        return super.offer(e);
+        super.addLast(e);
+        return true;
     }
 
     @Override
     public boolean offerFirst(E e) {
         if (!seen.add(e))
             return false;
-        return super.offerFirst(e);
+        super.addFirst(e);
+        return true;
     }
 
     @Override
     public boolean offerLast(E e) {
         if (!seen.add(e))
             return false;
-        return super.offerLast(e);
+        super.offerLast(e);
+        return true;
     }
 
     /**

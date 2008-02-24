@@ -10,7 +10,6 @@
 
 package att.grappa;
 
-import java.util.Hashtable;
 
 /**
  * An interface for methods that perform attribute value conversions.

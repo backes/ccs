@@ -79,7 +79,8 @@ public class GrappaFrame extends Composite implements Observer {
             try {
                 GraphHelper.filterGraph(graph);
             } catch (final InterruptedException ignore) {
-                // ignore
+                // reset interrupted flag
+                Thread.currentThread().interrupt();
             }
             graph.repaint();
         } finally {

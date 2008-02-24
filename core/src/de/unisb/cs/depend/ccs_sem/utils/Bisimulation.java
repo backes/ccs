@@ -35,11 +35,14 @@ public abstract class Bisimulation {
         // forbid instantiation
     }
 
-    public static Map<Expression, Partition> computePartitions(Expression expression, boolean strong) {
+    public static Map<Expression, Partition> computePartitions(
+            Expression expression, boolean strong) throws InterruptedException {
         return computePartitions(Collections.singleton(expression), strong);
     }
 
-    public static Map<Expression, Partition> computePartitions(Collection<Expression> expressions, boolean strong) {
+    public static Map<Expression, Partition> computePartitions(
+            Collection<Expression> expressions, boolean strong)
+            throws InterruptedException {
         final Queue<Partition> partitions = new PriorityQueue<Partition>(128,
             new Comparator<Partition>() {
                 public int compare(Partition o1, Partition o2) {
@@ -65,6 +68,8 @@ public abstract class Bisimulation {
 
             Expression expr2;
             while ((expr2 = queue.poll()) != null) {
+                if (Thread.interrupted())
+                    throw new InterruptedException();
                 final ExprWrapper wrapper = new ExprWrapper(expr2, null);
                 exprMap.put(expr2, wrapper);
 
@@ -83,6 +88,8 @@ public abstract class Bisimulation {
             // now, add all transitions to the expression wrappers
             final Map<Transition, TransWrapper> transMap = new HashMap<Transition, TransWrapper>();
             for (final Entry<Expression, ExprWrapper> entry: exprMap.entrySet()) {
+                if (Thread.interrupted())
+                    throw new InterruptedException();
                 final List<TransWrapper> newTransitions = new ArrayList<TransWrapper>();
                 for (final Transition trans: entry.getKey().getTransitions()) {
                     TransWrapper tw = transMap.get(trans);
@@ -107,6 +114,8 @@ public abstract class Bisimulation {
         int changed = 0;
         while (true) {
             while ((partition = partitions.poll()) != null) {
+                if (Thread.interrupted())
+                    throw new InterruptedException();
                 if (partition.getExprWrappers().size() < 2)
                     continue;
                 if (partition.divide(partitions, strong)) {
@@ -203,7 +212,8 @@ public abstract class Bisimulation {
             return isNew;
         }
 
-        public boolean divide(Queue<Partition> partitions, boolean strong) {
+        public boolean divide(Queue<Partition> partitions, boolean strong)
+                throws InterruptedException {
             isNew = false;
 
             final Iterator<TransitionToPartition> transitions = getTransitionsIterator();
@@ -212,6 +222,8 @@ public abstract class Bisimulation {
                 List<ExprWrapper> fulfills = null;
                 List<ExprWrapper> fulfillsNot = null;
                 for (final ExprWrapper otherExpr: expressionWrappers) {
+                    if (Thread.interrupted())
+                        throw new InterruptedException();
                     if (strong ? fulfillsStrong(otherExpr, trans) : fulfillsWeak(otherExpr, trans)) {
                         if (fulfills != null)
                             fulfills.add(otherExpr);

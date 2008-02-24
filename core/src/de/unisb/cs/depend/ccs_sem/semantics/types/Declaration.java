@@ -2,12 +2,9 @@ package de.unisb.cs.depend.ccs_sem.semantics.types;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
@@ -18,6 +15,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.expressions.RestrictExpression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.Range;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
+import de.unisb.cs.depend.ccs_sem.utils.UniqueQueue;
 
 
 public class Declaration {
@@ -39,33 +37,21 @@ public class Declaration {
      * occurences of the Declaration itself in the related expression.
      */
     public boolean isGuarded() {
-        // every expression has to be checked only once
-        final Set<Expression> checked = new HashSet<Expression>();
-        // every declaration has to be checked only once, even if it occures
-        // with different parameters
-        final Set<Declaration> checkedDeclarations = new HashSet<Declaration>();
-        checkedDeclarations.add(this);
         // a queue of expressions to check
-        final Queue<Expression> queue = new LinkedList<Expression>();
+        final Queue<Expression> queue = new UniqueQueue<Expression>();
         queue.add(value);
 
-        while (!queue.isEmpty()) {
-            final Expression expr = queue.poll();
-            if (checked.add(expr)) {
-                // not checked before...
-                if (expr instanceof PrefixExpression)
-                    // then, it is guarded
-                    continue;
-                // every RecursiveExpr has to be checked only once
-                if (expr instanceof RecursiveExpression) {
-                    final Declaration referencedDeclaration = ((RecursiveExpression)expr).getReferencedDeclaration();
-                    if (referencedDeclaration.equals(this))
-                        return false;
-                    if (!checkedDeclarations.add(referencedDeclaration))
-                        continue;
-                }
-                queue.addAll(expr.getSubTerms());
-            }
+        Expression expr;
+        while ((expr = queue.poll()) != null) {
+            if (expr instanceof PrefixExpression)
+                // then, it is guarded
+                continue;
+            // every RecursiveExpr has to be checked only once
+            if (expr instanceof RecursiveExpression &&
+                    ((RecursiveExpression)expr).getReferencedDeclaration().equals(this))
+                return false;
+
+            queue.addAll(expr.getSubTerms());
         }
 
         // nothing bad found...
@@ -78,51 +64,27 @@ public class Declaration {
      * "static" operators).
      */
     public boolean isRegular() {
-        // every expression has to be checked only once
-        final Set<Expression> checked = new HashSet<Expression>();
-        // every declaration has to be checked only once, even if it occures
-        // with different parameters
-        final Set<Declaration> checkedDeclarations = new HashSet<Declaration>();
-        checkedDeclarations.add(this);
         // a queue of expressions to check
-        final Queue<Expression> queue = new LinkedList<Expression>();
+        final Queue<Expression> queue = new UniqueQueue<Expression>();
         queue.add(value);
         // queue of expressions that occured after static operators
-        final Queue<Expression> afterStaticQueue = new LinkedList<Expression>();
+        final Queue<Expression> afterStaticQueue = new UniqueQueue<Expression>();
 
         // first, search for all expressions that occure after static operators
-        while (!queue.isEmpty()) {
-            final Expression expr = queue.poll();
-            if (checked.add(expr)) {
-                // not checked before...
-                if (expr instanceof ParallelExpression || expr instanceof RestrictExpression) {
-                    afterStaticQueue.addAll(expr.getSubTerms());
-                } else {
-                    // every RecursiveExpr has to be checked only once
-                    if (expr instanceof RecursiveExpression)
-                        if (!checkedDeclarations.add(((RecursiveExpression)expr).getReferencedDeclaration()))
-                            continue;
-                    queue.addAll(expr.getSubTerms());
-                }
-            }
+        Expression expr;
+        while ((expr = queue.poll()) != null) {
+            if (expr instanceof ParallelExpression || expr instanceof RestrictExpression)
+                afterStaticQueue.addAll(expr.getSubTerms());
+            else
+                queue.addAll(expr.getSubTerms());
         }
-        checked.clear();
-        checkedDeclarations.clear();
 
         // then, check these expressions for occurences of the current declaration (recursive loop)
-        while (!afterStaticQueue.isEmpty()) {
-            final Expression expr = afterStaticQueue.poll();
-            if (checked.add(expr)) {
-                // not checked before...
-                if (expr instanceof RecursiveExpression) {
-                    final Declaration refDecl = ((RecursiveExpression) expr).getReferencedDeclaration();
-                    if (refDecl.equals(this))
-                        return false;
-                    if (!checkedDeclarations.add(refDecl))
-                        continue;
-                }
-                afterStaticQueue.addAll(expr.getSubTerms());
-            }
+        while ((expr = afterStaticQueue.poll()) != null) {
+            if (expr instanceof RecursiveExpression &&
+                    ((RecursiveExpression) expr).getReferencedDeclaration().equals(this))
+                return false;
+            afterStaticQueue.addAll(expr.getSubTerms());
         }
 
         // nothing bad found...

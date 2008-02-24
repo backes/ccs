@@ -44,7 +44,6 @@ public class MinimisingExpression extends Expression {
         this.transitions = new ArrayList<Transition>();
     }
 
-    // TODO check for Thread.interrupted()
     public static MinimisingExpression create(Expression expr, boolean strong)
             throws InterruptedException {
         final Map<Expression, Partition> partitions = Bisimulation.computePartitions(expr, strong);
@@ -61,6 +60,8 @@ public class MinimisingExpression extends Expression {
         seen.add(partitions.get(expr));
         Partition part;
         while ((part = queue.poll()) != null) {
+            if (Thread.interrupted())
+                throw new InterruptedException();
             if (part.isError()) {
                 assert part.getAllTransitions().isEmpty();
                 newExpressions.put(part, new MinimisingExpression(-1));
@@ -74,6 +75,8 @@ public class MinimisingExpression extends Expression {
         }
         // now add the transitions
         for (final Entry<Partition, MinimisingExpression> entry: newExpressions.entrySet()) {
+            if (Thread.interrupted())
+                throw new InterruptedException();
             final Set<TransitionToPartition> transitions = partitionTransitions.get(entry.getKey());
             final ArrayList<Transition> newTransitions = new ArrayList<Transition>(transitions.size());
             for (final TransitionToPartition trans: transitions) {

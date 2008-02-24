@@ -15,6 +15,7 @@ import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.lexer.CCSLexer;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.And;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Assign;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Colon;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Comma;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.ConstToken;
@@ -227,8 +228,7 @@ public class CCSParser implements Parser {
                 if (constants.get(constName) != null)
                     throw new ParseException("Constant name \"" + constName + "\" already used.");
 
-                if (!it.hasNext() || !(it.next() instanceof Equals)
-                        || ((Equals)it.peekPrevious()).isComp())
+                if (!it.hasNext() || !(it.next() instanceof Assign))
                     throw new ParseException("Expected '=' after const identifier.");
 
                 final Value constValue = readArithmeticExpression(it);
@@ -252,8 +252,7 @@ public class CCSParser implements Parser {
                 if (ranges.get(rangeName) != null)
                     throw new ParseException("Range name \"" + rangeName + "\" already used.");
 
-                if (!it.hasNext() || !(it.next() instanceof Equals)
-                        || ((Equals)it.peekPrevious()).isComp())
+                if (!it.hasNext() || !(it.next() instanceof Assign))
                     throw new ParseException("Expected '=' after range identifier.");
 
                 final Range range = readRange(it);
@@ -320,13 +319,13 @@ public class CCSParser implements Parser {
         List<Parameter> myParameters;
         Expression expr;
 
-        if (token2 instanceof Equals && !((Equals)token2).isComp()) {
+        if (token2 instanceof Assign) {
             expr = readExpression(tokens);
             myParameters = Collections.emptyList();
         } else if (token2 instanceof LBracket) {
             myParameters = readParameters(tokens);
             if (myParameters == null || !tokens.hasNext()
-                    || !(tokens.peek() instanceof Equals) || ((Equals)tokens.next()).isComp())
+                    || !(tokens.next() instanceof Assign))
                 return null;
             final Stack<Parameter> oldParameters = parameters;
             parameters = new Stack<Parameter>();
@@ -713,51 +712,51 @@ public class CCSParser implements Parser {
             // (possibly) reset it
             final int oldPosition = tokens.nextIndex();
             boolean foundDot = false;
+            final Action action;
             try {
-                final Action action = readAction(tokens, true);
-                if (tokens.hasNext() && tokens.peek() instanceof Dot) {
-                    foundDot = true;
-                    tokens.next();
-                    // if the read action is an InputAction with a parameter, we
-                    // have to add this parameter to the list of parameters
-                    Parameter newParam = null;
-                    if (action instanceof InputAction) {
-                        newParam = ((InputAction)action).getParameter();
-                        if (newParam != null) {
-                            // add the new parameter to the front of the deque
-                            parameters.push(newParam);
-                        }
-                    }
-                    final Expression target = readPrefixExpression(tokens);
-                    if (newParam != null) {
-                        final Parameter removedParam = parameters.pop();
-                        assert removedParam == newParam;
-                    }
-                    return ExpressionRepository.getExpression(new PrefixExpression(action, target));
-                }
-                // if it was not a SimpleAction, it must be a
-                // PrefixExpression (followed by Stop)
-                // otherwise try to read the parameters
-                if (action instanceof SimpleAction) {
-                    List<Value> myParameters = Collections.emptyList();
-                    if (tokens.hasNext() && tokens.peek() instanceof LBracket) {
-                        tokens.next();
-                        myParameters = readParameterValues(tokens);
-                    }
-                    return ExpressionRepository.getExpression(new UnknownString(action.getLabel(), myParameters));
-                } else {
-                    return ExpressionRepository.getExpression(new PrefixExpression(action, StopExpression.get()));
-                }
+                action = readAction(tokens, true);
             } catch (final ParseException e) {
                 if (foundDot)
                     throw e;
-                // otherwise ignore this
+                // otherwise ignore this and reset to old position
+                tokens.setPosition(oldPosition);
+                return readWhenExpression(tokens);
             }
 
-            // reset to old position
-            tokens.setPosition(oldPosition);
+            if (tokens.hasNext() && tokens.peek() instanceof Dot) {
+                foundDot = true;
+                tokens.next();
+                // if the read action is an InputAction with a parameter, we
+                // have to add this parameter to the list of parameters
+                Parameter newParam = null;
+                if (action instanceof InputAction) {
+                    newParam = ((InputAction)action).getParameter();
+                    if (newParam != null) {
+                        // push the new parameter on the stack
+                        parameters.push(newParam);
+                    }
+                }
+                final Expression target = readPrefixExpression(tokens);
+                if (newParam != null) {
+                    final Parameter removedParam = parameters.pop();
+                    assert removedParam == newParam;
+                }
+                return ExpressionRepository.getExpression(new PrefixExpression(action, target));
+            }
+            // if it was not a SimpleAction, it must be a
+            // PrefixExpression (followed by Stop)
+            // otherwise try to read the parameters
+            if (action instanceof SimpleAction) {
+                List<Value> myParameters = Collections.emptyList();
+                if (tokens.hasNext() && tokens.peek() instanceof LBracket) {
+                    tokens.next();
+                    myParameters = readParameterValues(tokens);
+                }
+                return ExpressionRepository.getExpression(new UnknownString(action.getLabel(), myParameters));
+            } else {
+                return ExpressionRepository.getExpression(new PrefixExpression(action, StopExpression.get()));
+            }
         }
-
         return readWhenExpression(tokens);
     }
 
@@ -878,7 +877,7 @@ public class CCSParser implements Parser {
     private Value readArithmeticCompExpression(ExtendedIterator<Token> tokens) throws ParseException {
         final Value value = readArithmeticShiftExpression(tokens);
         if (tokens.hasNext()) {
-            final Token nextToken = tokens.next();
+            final Token nextToken = tokens.peek();
             CompValue.Type type = null;
             if (nextToken instanceof Less)
                 type = CompValue.Type.LESS;
@@ -890,12 +889,12 @@ public class CCSParser implements Parser {
                 type = CompValue.Type.GREATER;
 
             if (type != null) {
+                tokens.next();
                 ensureInteger(value, "Only integer values can be compared.");
                 final Value secondValue = readArithmeticShiftExpression(tokens);
                 ensureInteger(secondValue, "Only integer values can be compared.");
                 return CompValue.create(value, secondValue, type);
             }
-            tokens.previous();
         }
 
         return value;
@@ -932,7 +931,7 @@ public class CCSParser implements Parser {
     private Value readArithmeticMultExpression(ExtendedIterator<Token> tokens) throws ParseException {
         Value value = readArithmeticUnaryExpression(tokens);
         while (tokens.hasNext()) {
-            final Token nextToken = tokens.next();
+            final Token nextToken = tokens.peek();
             MultValue.Type type = null;
             if (nextToken instanceof Multiplication)
                 type = MultValue.Type.MULT;
@@ -941,10 +940,11 @@ public class CCSParser implements Parser {
             else if (nextToken instanceof Modulo)
                 type = MultValue.Type.MOD;
 
-            if (type == null) {
-                tokens.previous();
+            if (type == null)
                 break;
-            }
+
+            tokens.next();
+
             ensureInteger(value, "Both sides of a multiplication/division must be integer expressions.");
             final Value secondValue = readArithmeticUnaryExpression(tokens);
             ensureInteger(secondValue, "Both sides of a multiplication/division must be integer expressions.");

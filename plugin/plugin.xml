@@ -110,12 +110,6 @@
             name="CCS">
       </page>
    </extension>
-   <extension
-         point="org.eclipse.core.runtime.preferences">
-      <initializer
-            class="de.unisb.cs.depend.ccs_sem.plugin.preferencePage.PreferenceInitializer">
-      </initializer>
-   </extension>
 
 
 </plugin>

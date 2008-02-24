@@ -170,6 +170,7 @@ public class Parameter {
             connectedParameters = null;
             for (final Parameter otherParam: parametersToSetType)
                 otherParam.setType(newType);
+            connectedParameters = parametersToSetType;
         }
     }
 
