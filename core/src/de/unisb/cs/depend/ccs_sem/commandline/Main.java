@@ -91,17 +91,21 @@ public class Main {
         log("Checking regularity/guardedness...");
         if (!program.isGuarded()) {
             if (allowUnguarded) {
-                log("Warning: Your recursive definitions are not guarded.");
+                log("Warning: Your recursive definitions are not guarded. "
+                    + "This can lead to uncomputable transitions.");
             } else {
-                log("ERROR: Your recursive definitions are not guarded.");
+                log("ERROR: Your recursive definitions are not guarded. "
+                    + "This can lead to uncomputable transitions.");
                 return false;
             }
         }
         if (!program.isRegular()) {
             if (allowUnregular) {
-                log("Warning: Your recursive definitions are not regular.");
+                log("Warning: Your recursive definitions are not regular. "
+                    + "This can lead to an infinite transition system.");
             } else {
-                log("ERROR: Your recursive definitions are not regular.");
+                log("ERROR: Your recursive definitions are not regular. "
+                    + "This can lead to an infinite transition system.");
                 return false;
             }
         }
@@ -121,14 +125,14 @@ public class Main {
         log(stateCount + " states, " + transitionCount + " Transitions.");
         */
 
-        if (minimizeStrong && !minimizeWeak) {
-            log("Minimizing (w.r.t. strong bisimulation)...");
-            final EvaluationMonitor minimizationMonitor = new EvalMonitor(true);
-            program.minimizeTransitions(evaluator, minimizationMonitor, true);
-        } else if (minimizeWeak) {
+        if (minimizeWeak) {
             log("Minimizing...");
             final EvaluationMonitor minimizationMonitor = new EvalMonitor(true);
             program.minimizeTransitions(evaluator, minimizationMonitor, false);
+        } else if (minimizeStrong) {
+            log("Minimizing (w.r.t. strong bisimulation)...");
+            final EvaluationMonitor minimizationMonitor = new EvalMonitor(true);
+            program.minimizeTransitions(evaluator, minimizationMonitor, true);
         }
 
 
@@ -146,6 +150,13 @@ public class Main {
         }
 
         log("Ready." + (errors ? " There were errors." : ""));
+
+        // get used memory information
+        /*
+        final Runtime runtime = Runtime.getRuntime();
+        final long memoryBytesUsed = runtime.totalMemory() - runtime.freeMemory();
+        log("Memory used: " + (memoryBytesUsed>>>20) + " MB");
+        */
 
         return errors;
     }
@@ -367,6 +378,11 @@ public class Main {
 
         public void error(String errorString) {
             log("An error occured during " + (isMinimization ? "minimization: " : "evaluation: ") + errorString);
+        }
+
+        public synchronized void newState(int numTransitions) {
+            newTransitions(numTransitions);
+            newState();
         }
 
     }

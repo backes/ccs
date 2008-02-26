@@ -105,7 +105,7 @@ public class ParallelEvaluator implements Evaluator {
                 }
             }
         };
-        final ThreadFactory myThreadFactory = new MyThreadFactory(eh);
+        final ThreadFactory myThreadFactory = new MyThreadFactory(eh, getWorkerThreadPriority());
         executor = getExecutor(threadsToInstantiate, myThreadFactory);
 
         currentlyEvaluating = new ConcurrentHashMap<Expression, EvaluatorJob>();
@@ -138,9 +138,13 @@ public class ParallelEvaluator implements Evaluator {
         monitor = null;
     }
 
+    protected int getWorkerThreadPriority() {
+        return Thread.NORM_PRIORITY;
+    }
+
     private class EvaluatorJob implements Runnable {
 
-        private volatile List<Barrier> waiters = null;
+        private List<Barrier> waiters = null;
         private final Expression expr;
         private final boolean evaluateSuccessors;
         private volatile boolean childrenEvaluated = false;
@@ -206,8 +210,7 @@ public class ParallelEvaluator implements Evaluator {
 
             if (evaluateSuccessors) {
                 if (monitor != null) {
-                    monitor.newState();
-                    monitor.newTransitions(expr.getTransitions().size());
+                    monitor.newState(expr.getTransitions().size());
                 }
 
                 for (final Transition trans: expr.getTransitions()) {
@@ -267,9 +270,11 @@ public class ParallelEvaluator implements Evaluator {
         final AtomicInteger threadNumber = new AtomicInteger(1);
         final String namePrefix;
         private final UncaughtExceptionHandler eh;
+        private final int workerThreadPriority;
 
-        public MyThreadFactory(UncaughtExceptionHandler eh) {
+        public MyThreadFactory(UncaughtExceptionHandler eh, int workerThreadPriority) {
             this.eh = eh;
+            this.workerThreadPriority = workerThreadPriority;
             group = Thread.currentThread().getThreadGroup();
             namePrefix = "parallelEvaluator-";
         }
@@ -280,11 +285,12 @@ public class ParallelEvaluator implements Evaluator {
                                   0);
             if (t.isDaemon())
                 t.setDaemon(false);
-            if (t.getPriority() != Thread.NORM_PRIORITY)
-                t.setPriority(Thread.NORM_PRIORITY);
+            if (t.getPriority() != workerThreadPriority)
+                t.setPriority(workerThreadPriority);
             t.setUncaughtExceptionHandler(eh);
             return t;
         }
+
     }
 
 }

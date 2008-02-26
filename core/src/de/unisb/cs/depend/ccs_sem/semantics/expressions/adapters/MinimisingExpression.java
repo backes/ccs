@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -19,6 +17,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.TauAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 import de.unisb.cs.depend.ccs_sem.utils.Bisimulation;
+import de.unisb.cs.depend.ccs_sem.utils.UniqueQueue;
 import de.unisb.cs.depend.ccs_sem.utils.Bisimulation.Partition;
 import de.unisb.cs.depend.ccs_sem.utils.Bisimulation.TransitionToPartition;
 
@@ -49,19 +48,15 @@ public class MinimisingExpression extends Expression {
         final Map<Expression, Partition> partitions = Bisimulation.computePartitions(expr, strong);
 
         // create the new Expressions (in a BFS manner)
-        final Queue<Partition> queue = new LinkedList<Partition>();
+        final Queue<Partition> queue = new UniqueQueue<Partition>();
         queue.add(partitions.get(expr));
         int nextStateNr = 0;
         final Map<Partition, MinimisingExpression> newExpressions =
             new HashMap<Partition, MinimisingExpression>();
         final Map<Partition, Set<TransitionToPartition>> partitionTransitions =
             new HashMap<Partition, Set<TransitionToPartition>>();
-        final Set<Partition> seen = new HashSet<Partition>();
-        seen.add(partitions.get(expr));
         Partition part;
         while ((part = queue.poll()) != null) {
-            if (Thread.interrupted())
-                throw new InterruptedException();
             if (part.isError()) {
                 assert part.getAllTransitions().isEmpty();
                 newExpressions.put(part, new MinimisingExpression(-1));
@@ -70,13 +65,10 @@ public class MinimisingExpression extends Expression {
             final Set<TransitionToPartition> partTransitions = part.getAllTransitions();
             partitionTransitions.put(part, partTransitions);
             for (final TransitionToPartition trans: partTransitions)
-                if (seen.add(trans.targetPart))
-                    queue.add(trans.targetPart);
+                queue.add(trans.targetPart);
         }
         // now add the transitions
         for (final Entry<Partition, MinimisingExpression> entry: newExpressions.entrySet()) {
-            if (Thread.interrupted())
-                throw new InterruptedException();
             final Set<TransitionToPartition> transitions = partitionTransitions.get(entry.getKey());
             final ArrayList<Transition> newTransitions = new ArrayList<Transition>(transitions.size());
             for (final TransitionToPartition trans: transitions) {

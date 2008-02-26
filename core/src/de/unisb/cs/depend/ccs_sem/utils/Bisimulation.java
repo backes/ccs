@@ -7,7 +7,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -57,10 +56,7 @@ public abstract class Bisimulation {
         // first, fill the partitions list
         final Map<Expression, ExprWrapper> exprMap = new HashMap<Expression, ExprWrapper>();
         {
-            final Set<Expression> seen = new HashSet<Expression>();
-            seen.addAll(expressions);
-
-            final Queue<Expression> queue = new LinkedList<Expression>();
+            final Queue<Expression> queue = new UniqueQueue<Expression>();
             queue.addAll(expressions);
 
             final List<ExprWrapper> nonErrorExpressions = new ArrayList<ExprWrapper>();
@@ -68,8 +64,6 @@ public abstract class Bisimulation {
 
             Expression expr2;
             while ((expr2 = queue.poll()) != null) {
-                if (Thread.interrupted())
-                    throw new InterruptedException();
                 final ExprWrapper wrapper = new ExprWrapper(expr2, null);
                 exprMap.put(expr2, wrapper);
 
@@ -78,18 +72,13 @@ public abstract class Bisimulation {
                 if (!expr2.isEvaluated())
                     throw new IllegalArgumentException("Expression or one of it's successors is not evaluated.");
 
-                for (final Transition trans: expr2.getTransitions()) {
-                    final Expression succ = trans.getTarget();
-                    if (seen.add(succ))
-                        queue.add(succ);
-                }
+                for (final Transition trans: expr2.getTransitions())
+                    queue.add(trans.getTarget());
             }
 
             // now, add all transitions to the expression wrappers
             final Map<Transition, TransWrapper> transMap = new HashMap<Transition, TransWrapper>();
             for (final Entry<Expression, ExprWrapper> entry: exprMap.entrySet()) {
-                if (Thread.interrupted())
-                    throw new InterruptedException();
                 final List<TransWrapper> newTransitions = new ArrayList<TransWrapper>();
                 for (final Transition trans: entry.getKey().getTransitions()) {
                     TransWrapper tw = transMap.get(trans);
@@ -212,17 +201,17 @@ public abstract class Bisimulation {
             return isNew;
         }
 
-        public boolean divide(Queue<Partition> partitions, boolean strong)
-                throws InterruptedException {
+        public boolean divide(Queue<Partition> partitions, boolean strong) throws InterruptedException {
             isNew = false;
 
+            final boolean checkInterrupted = expressionWrappers.size() > 1000;
             final Iterator<TransitionToPartition> transitions = getTransitionsIterator();
             while (transitions.hasNext()) {
                 final TransitionToPartition trans = transitions.next();
-                List<ExprWrapper> fulfills = null;
-                List<ExprWrapper> fulfillsNot = null;
+                ArrayList<ExprWrapper> fulfills = null;
+                ArrayList<ExprWrapper> fulfillsNot = null;
                 for (final ExprWrapper otherExpr: expressionWrappers) {
-                    if (Thread.interrupted())
+                    if (checkInterrupted && Thread.interrupted())
                         throw new InterruptedException();
                     if (strong ? fulfillsStrong(otherExpr, trans) : fulfillsWeak(otherExpr, trans)) {
                         if (fulfills != null)
@@ -241,6 +230,8 @@ public abstract class Bisimulation {
                     }
                 }
                 if (fulfills != null) {
+                    fulfills.trimToSize();
+                    fulfillsNot.trimToSize();
                     final Partition part1 = new Partition(fulfills);
                     final Partition part2 = new Partition(fulfillsNot);
                     partitions.add(part1);
@@ -253,46 +244,39 @@ public abstract class Bisimulation {
 
         private static boolean fulfillsWeak(ExprWrapper otherExpr, TransitionToPartition trans) {
             if (trans.act instanceof TauAction) {
-                final Queue<ExprWrapper> tauReachable = new LinkedList<ExprWrapper>();
+                final Queue<ExprWrapper> tauReachable = new UniqueQueue<ExprWrapper>();
                 tauReachable.add(otherExpr);
-                final Set<ExprWrapper> seen = new HashSet<ExprWrapper>();
-                seen.add(otherExpr);
                 ExprWrapper e;
                 while ((e = tauReachable.poll()) != null) {
                     if (e.part.equals(trans.targetPart))
                         return true;
 
                     for (final TransWrapper t: e.transitions)
-                        if (t.act instanceof TauAction && seen.add(t.target))
+                        if (t.act instanceof TauAction)
                             tauReachable.add(t.target);
                 }
                 return false;
             } else {
-                final Queue<ExprWrapper> tauReachable = new LinkedList<ExprWrapper>();
+                final Queue<ExprWrapper> tauReachable = new UniqueQueue<ExprWrapper>();
                 tauReachable.add(otherExpr);
-                final Set<ExprWrapper> seen = new HashSet<ExprWrapper>();
-                seen.add(otherExpr);
                 ExprWrapper e;
                 while ((e = tauReachable.poll()) != null) {
                     for (final TransWrapper t: e.transitions) {
                         if (t.act instanceof TauAction) {
-                            if (seen.add(t.target))
-                                tauReachable.add(t.target);
+                            tauReachable.add(t.target);
                         } else {
                             if (t.act.equals(trans.act)) {
                                 // now check all tau-reachable successor states for a match
-                                final Queue<ExprWrapper> reachableAfter = new LinkedList<ExprWrapper>();
+                                final Queue<ExprWrapper> reachableAfter = new UniqueQueue<ExprWrapper>();
                                 reachableAfter.add(t.target);
-                                final Set<ExprWrapper> seenAfter = new HashSet<ExprWrapper>();
-                                seenAfter.add(t.target);
                                 ExprWrapper e2;
                                 while ((e2 = reachableAfter.poll()) != null) {
                                     if (e2.part.equals(trans.targetPart))
                                         return true;
 
                                     for (final TransWrapper t2: e2.transitions)
-                                        if (t2.act instanceof TauAction && seenAfter.add(t2.target))
-                                                reachableAfter.add(t2.target);
+                                        if (t2.act instanceof TauAction)
+                                            reachableAfter.add(t2.target);
                                 }
                             }
                         }

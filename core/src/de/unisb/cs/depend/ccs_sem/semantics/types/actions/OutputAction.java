@@ -99,10 +99,7 @@ public class OutputAction extends Action {
         if (getClass() != obj.getClass())
             return false;
         final OutputAction other = (OutputAction) obj;
-        if (channel == null) {
-            if (other.channel != null)
-                return false;
-        } else if (!channel.equals(other.channel))
+        if (!channel.equals(other.channel))
             return false;
         if (value == null) {
             if (other.value != null)

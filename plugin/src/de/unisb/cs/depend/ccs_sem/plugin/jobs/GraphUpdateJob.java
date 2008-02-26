@@ -160,6 +160,11 @@ public class GraphUpdateJob extends Job {
             monitor.subTask(prefix + states + " ready");
         }
 
+        public synchronized void newState(int numTransitions) {
+            newTransitions(numTransitions);
+            newState();
+        }
+
     }
 
     private class ConcurrentJob implements Callable<GraphUpdateStatus> {
