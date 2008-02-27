@@ -1,9 +1,9 @@
 package de.unisb.cs.depend.ccs_sem.lexer.tokens;
 
 
-public class Error extends AbstractToken {
+public class ErrorToken extends AbstractToken {
 
-    public Error(int startPosition, int endPosition) {
+    public ErrorToken(int startPosition, int endPosition) {
         super(startPosition, endPosition);
     }
 

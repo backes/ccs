@@ -14,59 +14,8 @@ import java.util.TreeSet;
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.lexer.CCSLexer;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.And;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Assign;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Colon;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Comma;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.ConstToken;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Division;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Dot;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Else;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Equals;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Error;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Exclamation;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.False;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Geq;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Greater;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Identifier;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.IntegerToken;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.IntervalDots;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.LBrace;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.LBracket;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.LParenthesis;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.LeftShift;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Leq;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Less;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Minus;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Modulo;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Multiplication;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Neq;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Or;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Parallel;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Plus;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.QuestionMark;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.RBrace;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.RBracket;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.RParenthesis;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.RangeToken;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Restrict;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.RightShift;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Semicolon;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Stop;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Then;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Token;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.True;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.When;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.ChoiceExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.ConditionalExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.ErrorExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.ExpressionRepository;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.ParallelExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.PrefixExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.RestrictExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.StopExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.UnknownString;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.*;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.*;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.adapters.TopMostExpression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
@@ -79,28 +28,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.actions.TauAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.IntervalRange;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.Range;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.SetRange;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.AddValue;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.AndValue;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.BooleanValue;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.CompValue;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConditionalValue;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstBooleanValue;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstIntegerValue;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstString;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstStringChannel;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.EqValue;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.IntegerValue;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.MultValue;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.NegativeValue;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.NotValue;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.OrValue;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterRefChannel;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterReference;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.ShiftValue;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.TauChannel;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.*;
 
 /**
  * This Parser parses the following grammar:
@@ -800,7 +728,7 @@ public class CCSParser implements Parser {
             if (nextToken instanceof Stop)
                 return ExpressionRepository.getExpression(StopExpression.get());
 
-            if (nextToken instanceof Error)
+            if (nextToken instanceof ErrorToken)
                 return ExpressionRepository.getExpression(ErrorExpression.get());
 
             if (nextToken instanceof LParenthesis) {

@@ -269,8 +269,6 @@ public class GraphUpdateJob extends Job {
                 node.setAttribute(GrappaConstants.TIP_ATTR,
                     "The graph could not be built. This is the reason why.");
                 graph.addNode(node);
-                GraphHelper.filterGraph(graph);
-                return new GraphUpdateStatus(IStatus.ERROR, warning);
             }
 
             monitor.worked(WORK_CREATE_GRAPH);
@@ -287,7 +285,11 @@ public class GraphUpdateJob extends Job {
                 return new GraphUpdateStatus(IStatus.CANCEL, "cancelled");
 
             monitor.subTask("Supplying changes...");
-            final GraphUpdateStatus status = new GraphUpdateStatus(IStatus.OK, "", graph);
+            final GraphUpdateStatus status;
+            //if (warning == null)
+                status = new GraphUpdateStatus(IStatus.OK, "", graph);
+            //else
+                //status = new GraphUpdateStatus(IStatus.ERROR, warning, graph);
 
             synchronized (observers) {
                 for (final Observer obs: observers)

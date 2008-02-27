@@ -343,8 +343,10 @@ public class GrappaFrame extends Composite implements Observer {
     public void update(Observable o, Object arg) {
         if (arg instanceof GraphUpdateStatus) {
             final GraphUpdateStatus status = (GraphUpdateStatus) arg;
+            /*
             if (!status.isOK())
                 return;
+            */
             setGraph(status);
         }
     }
