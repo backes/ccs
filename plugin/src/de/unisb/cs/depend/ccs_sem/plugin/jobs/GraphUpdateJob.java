@@ -16,6 +16,7 @@ import java.util.concurrent.TimeoutException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.Job;
 
 import att.grappa.Edge;
@@ -52,6 +53,18 @@ public class GraphUpdateJob extends Job {
 
     protected final Set<Observer> observers = new HashSet<Observer>();
 
+    private static final ISchedulingRule rule = new ISchedulingRule() {
+
+        public boolean isConflicting(ISchedulingRule rule) {
+            return rule == this;
+        }
+
+        public boolean contains(ISchedulingRule rule) {
+            return rule == this;
+        }
+
+    };
+
     private final static int WORK_LEXING = 1;
     private final static int WORK_PARSING = 3;
     private final static int WORK_CHECKING = 1;
@@ -70,6 +83,7 @@ public class GraphUpdateJob extends Job {
         this.showNodeLabels = showNodeLabels;
         this.showEdgeLabels = showEdgeLabels;
         setUser(true);
+        setRule(rule);
     }
 
     @Override
@@ -77,7 +91,8 @@ public class GraphUpdateJob extends Job {
 
         final ConcurrentJob job = new ConcurrentJob(monitor);
         final FutureTask<GraphUpdateStatus> status = new FutureTask<GraphUpdateStatus>(job);
-        new Thread(status, getClass().getSimpleName() + " worker").start();
+        final Thread executingThread = new Thread(status, getClass().getSimpleName() + " worker");
+        executingThread.start();
 
         while (true) {
             try {
@@ -93,6 +108,12 @@ public class GraphUpdateJob extends Job {
             } catch (final TimeoutException e) {
                 if (monitor.isCanceled()) {
                     status.cancel(true);
+                    try {
+                        executingThread.join();
+                    } catch (final InterruptedException e1) {
+                        // restore and ignore
+                        Thread.currentThread().interrupt();
+                    }
                     return new GraphUpdateStatus(IStatus.CANCEL, "Cancelled.");
                 }
             }
@@ -210,10 +231,12 @@ public class GraphUpdateJob extends Job {
                     return new GraphUpdateStatus(IStatus.CANCEL, "cancelled");
 
                 monitor.subTask("Checking expression...");
+                /*
                 if (!ccsProgram.isGuarded())
                     throw new ParseException("Your recursive definitions are not guarded.");
                 if (!ccsProgram.isRegular())
                     throw new ParseException("Your recursive definitions are not regular.");
+                */
                 monitor.worked(WORK_CHECKING);
 
                 if (monitor.isCanceled())

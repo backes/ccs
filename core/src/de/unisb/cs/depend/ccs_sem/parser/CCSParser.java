@@ -500,6 +500,8 @@ public class CCSParser implements Parser {
         while (tokens.hasNext()) {
 
             final Action newAction = readAction(tokens, false);
+            if (newAction == null)
+                throw new ParseException("Expected an action here");
 
             actions.add(newAction);
 
@@ -520,6 +522,8 @@ public class CCSParser implements Parser {
     private Action readAction(ExtendedIterator<Token> tokens, boolean tauAllowed) throws ParseException {
         if (tokens.hasNext()) {
             final Channel channel = readChannel(tokens);
+            if (channel == null)
+                return null;
             if (channel instanceof TauChannel) {
                 if (!tauAllowed)
                     throw new ParseException("Tau action not allowed here");
@@ -600,7 +604,7 @@ public class CCSParser implements Parser {
             }
             tokens.previous();
         }
-        throw new ParseException("Expected channel identifier.");
+        return null;
     }
 
     /**
@@ -638,21 +642,11 @@ public class CCSParser implements Parser {
         if (tokens.hasNext()) {
             // this is not very nice: we have to save the iterator position to
             // (possibly) reset it
-            final int oldPosition = tokens.nextIndex();
-            boolean foundDot = false;
-            final Action action;
-            try {
-                action = readAction(tokens, true);
-            } catch (final ParseException e) {
-                if (foundDot)
-                    throw e;
-                // otherwise ignore this and reset to old position
-                tokens.setPosition(oldPosition);
+            final Action action = readAction(tokens, true);
+            if (action == null)
                 return readWhenExpression(tokens);
-            }
 
             if (tokens.hasNext() && tokens.peek() instanceof Dot) {
-                foundDot = true;
                 tokens.next();
                 // if the read action is an InputAction with a parameter, we
                 // have to add this parameter to the list of parameters
