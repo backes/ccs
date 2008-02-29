@@ -176,7 +176,7 @@ public class Main {
     private void parseCommandLine(String[] args) {
         int index = 0;
         while (index < args.length) {
-            final String arg = args[index++];
+            String arg = args[index++];
 
             if ("--help".equals(arg)) {
                 printHelp(System.out);
@@ -203,8 +203,10 @@ public class Main {
             } else if ("--minimizeStrong".equals(arg)) {
                 minimizeStrong = true;
             } else if (arg.length() >= 2 && arg.charAt(0) == '-' && arg.charAt(1) != '-') {
-                for (int i = 1; i < arg.length(); ++i) {
-                    final char c = arg.charAt(i);
+                arg = arg.substring(1);
+                while (arg.length() > 0) {
+                    final char c = arg.charAt(0);
+                    arg = arg.substring(1);
                     switch (c) {
                     case 'h':
                         printHelp(System.out);
@@ -220,24 +222,32 @@ public class Main {
                         break;
 
                     case 'o':
-                        if (i < arg.length() - 1 || index == args.length) {
-                            System.err.println("Expecting argument for \"-o\" switch.");
-                            System.exit(-1);
+                        if (arg.length() == 0) {
+                            if (index == args.length) {
+                                System.err.println("Expecting argument for \"-o\" switch.");
+                                System.exit(-1);
+                            }
+                            arg = args[index++];
                         }
-                        parseOutputFile(args[index++]);
+                        parseOutputFile(arg);
+                        arg = "";
                         break;
 
                     case 'p':
-                        if (i < arg.length() - 1 || index == args.length) {
-                            System.err.println("Expecting argument for \"-p\" switch.");
-                            System.exit(-1);
+                        if (arg.length() == 0) {
+                            if (index == args.length) {
+                                System.err.println("Expecting argument for \"-p\" switch.");
+                                System.exit(-1);
+                            }
+                            arg = args[index++];
                         }
                         try {
-                            setPolicy(Integer.valueOf(args[index++]));
+                            setPolicy(Integer.valueOf(arg));
                         } catch (final NumberFormatException e) {
                             System.err.println("Integer expected after \"-p\" switch.");
                             System.exit(-1);
                         }
+                        arg = "";
                         break;
 
                     default:

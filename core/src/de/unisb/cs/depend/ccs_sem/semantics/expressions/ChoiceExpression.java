@@ -50,13 +50,18 @@ public class ChoiceExpression extends Expression {
         final List<Transition> leftTrans = left.getTransitions();
         final List<Transition> rightTrans = right.getTransitions();
 
+        if (leftTrans.isEmpty())
+            return rightTrans;
+        if (rightTrans.isEmpty())
+            return leftTrans;
+
         // decide if we use a clever way to combine the transitions or not
-        final boolean useCleverWay = leftTrans.size() * rightTrans.size() > 20;
+        final boolean useHashSetToCompare = leftTrans.size() > 5 && rightTrans.size() > 5;
         final List<Transition> transitions =
             new ArrayList<Transition>(leftTrans.size() + rightTrans.size());
         transitions.addAll(leftTrans);
 
-        final Collection<Transition> leftTransToCompare = useCleverWay
+        final Collection<Transition> leftTransToCompare = useHashSetToCompare
             ? new HashSet<Transition>(leftTrans) : leftTrans;
 
         for (final Transition trans: rightTrans) {

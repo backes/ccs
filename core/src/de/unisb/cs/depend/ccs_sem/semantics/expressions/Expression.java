@@ -125,17 +125,20 @@ public abstract class Expression {
     // we store the hashCode so that we only compute it once
     @Override
     public final int hashCode() {
-        int h = this.hash;
+        int h = this.hash; // volatile-read
         if (h == 0) {
             synchronized (this) {
+                // double-checking (hm...)
                 if ((h = this.hash) == 0)
                     h = hashCode0();
                 // we don't allow "0" as hashCode
-                this.hash = h == 0 ? 1 : h;
+                if (h == 0)
+                    h = 1;
+                this.hash = h; // volatile-write
             }
         }
 
-        assert h == hashCode0() || (h == 0 && hashCode0() == 1);
+        assert h == hashCode0() || (h == 1 && hashCode0() == 0);
 
         return h;
     }
