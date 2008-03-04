@@ -95,8 +95,7 @@ public abstract class IntegrationTest {
     @After
     public void cleanUp() {
         ExpressionRepository.reset();
-        states = null;
-        transitions = null;
+        program = null;
         states = null;
         transitions = null;
     }

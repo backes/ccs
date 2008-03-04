@@ -539,7 +539,9 @@ public class CCSParser implements Parser {
                         // either a parameter
                         if (tokens.peek() instanceof Identifier) {
                             final Identifier identifier = (Identifier)tokens.next();
-                            if (!identifier.isQuoted()) {
+                            if (identifier.isQuoted())
+                                tokens.previous();
+                            else {
 	                            Range range = null;
 	                            if (tokens.hasNext() && tokens.peek() instanceof Colon) {
 	                                tokens.next();
@@ -548,7 +550,7 @@ public class CCSParser implements Parser {
 	                            return new InputAction(channel, new Parameter(identifier.getName(), range));
                             }
                         }
-                        
+
                         // ELSE:
                         // an arithmetic expression (if it is more complex,
                         // it must have parenthesis around it)
