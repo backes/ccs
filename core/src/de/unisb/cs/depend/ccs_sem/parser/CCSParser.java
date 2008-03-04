@@ -301,7 +301,7 @@ public class CCSParser implements Parser {
             // or a set of independant values
             if (tokens.peek() instanceof LBrace) {
                 tokens.next();
-                final Set<ConstantValue> rangeValues = readRangeValues(tokens);
+                final Set<Value> rangeValues = readRangeValues(tokens);
                 return new SetRange(rangeValues);
             }
 
@@ -336,21 +336,23 @@ public class CCSParser implements Parser {
         throw new ParseException("Unexpected EOF.");
     }
 
-    private Set<ConstantValue> readRangeValues(ExtendedIterator<Token> tokens) throws ParseException {
+    private Set<Value> readRangeValues(ExtendedIterator<Token> tokens) throws ParseException {
         if (tokens.hasNext() && tokens.peek() instanceof RBrace) {
             tokens.next();
             return Collections.emptySet();
         }
 
-        final Set<ConstantValue> values = new TreeSet<ConstantValue>();
+        final Set<Value> values = new TreeSet<Value>();
 
         while (tokens.hasNext()) {
             final Value value = readArithmeticExpression(tokens);
 
+            /*
             if (!(value instanceof ConstantValue))
                 throw new ParseException("Only constant values allowed in ranges.");
+            */
 
-            values.add((ConstantValue)value);
+            values.add(value);
 
             if (!tokens.hasNext())
                 throw new ParseException("Expected '}'");
@@ -535,29 +537,32 @@ public class CCSParser implements Parser {
                     // read the input value
                     if (tokens.hasNext()) {
                         // either a parameter
-                        if (tokens.peek() instanceof Identifier && !((Identifier)tokens.peek()).isQuoted()) {
+                        if (tokens.peek() instanceof Identifier) {
                             final Identifier identifier = (Identifier)tokens.next();
-                            Range range = null;
-                            if (tokens.hasNext() && tokens.peek() instanceof Colon) {
-                                tokens.next();
-                                range = readRangeDef(tokens);
+                            if (!identifier.isQuoted()) {
+	                            Range range = null;
+	                            if (tokens.hasNext() && tokens.peek() instanceof Colon) {
+	                                tokens.next();
+	                                range = readRangeDef(tokens);
+	                            }
+	                            return new InputAction(channel, new Parameter(identifier.getName(), range));
                             }
-                            return new InputAction(channel, new Parameter(identifier.getName(), range));
-                        } else {
-                            // or an arithmetic expression (if it is more complex,
-                            // it must have parenthesis around it)
+                        }
+                        
+                        // ELSE:
+                        // an arithmetic expression (if it is more complex,
+                        // it must have parenthesis around it)
 
-                            // save the old position
-                            final int oldPosition = tokens.nextIndex();
-                            try {
-                                final Value value = readArithmeticBaseExpression(tokens);
-                                if (value instanceof ParameterReference)
-                                    ((ParameterReference)value).getParam().setType(Parameter.Type.VALUE);
-                                return new InputAction(channel, value);
-                            } catch (final ParseException e) {
-                                // ok, there was no arithmetic expression
-                                tokens.setPosition(oldPosition);
-                            }
+                        // save the old position
+                        final int oldPosition = tokens.nextIndex();
+                        try {
+                            final Value value = readArithmeticBaseExpression(tokens);
+                            if (value instanceof ParameterReference)
+                                ((ParameterReference)value).getParam().setType(Parameter.Type.VALUE);
+                            return new InputAction(channel, value);
+                        } catch (final ParseException e) {
+                            // ok, there was no arithmetic expression
+                            tokens.setPosition(oldPosition);
                         }
                     }
                     return new InputAction(channel, (Value)null);

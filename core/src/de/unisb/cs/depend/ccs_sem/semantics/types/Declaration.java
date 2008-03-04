@@ -165,8 +165,8 @@ public class Declaration {
     /**
      * @return the name together with the parameters
      */
-    public Object getFullName() {
-        return name + parameters;
+    public String getFullName() {
+        return parameters.isEmpty() ? name : name + parameters;
     }
 
     /**

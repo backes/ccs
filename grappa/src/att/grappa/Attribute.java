@@ -631,7 +631,7 @@ public final class Attribute extends java.util.Observable implements
                                 "shape")) == null
                             || (value = Grappa.keyToShape.get(attr.getValue())) == null) {
                         throw new InternalError(
-                                "could not provide default when unkown shape ("
+                                "could not provide default when unknown shape ("
                                         + stringValue
                                         + ") supplied for attribute \"" + name
                                         + "\"");

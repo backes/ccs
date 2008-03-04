@@ -37,8 +37,8 @@ public class Main {
     private final List<Exporter> exporters = new ArrayList<Exporter>(2);
     private boolean minimizeWeak = false;
     private boolean minimizeStrong = false;
-    private final boolean allowUnguarded = true; //false;
-    private final boolean allowUnregular = true; //false;
+    private static final boolean allowUnguarded = true; //false;
+    private static final boolean allowUnregular = true; //false;
 
 
     public Main(String[] args) {
@@ -382,7 +382,7 @@ public class Main {
                 log(states + " states, " + transitions + " transitions so far...");
         }
 
-        public void ready() {
+        public synchronized void ready() {
             log((isMinimization ? "Minimized " : "Evaluated ") + states + " states and " + transitions + " transitions.");
         }
 

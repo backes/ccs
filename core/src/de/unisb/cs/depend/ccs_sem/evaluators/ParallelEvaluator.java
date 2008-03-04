@@ -238,7 +238,7 @@ public class ParallelEvaluator implements Evaluator {
 
     // static to improve performance, even if we have to copy the
     // ExecutorService reference
-    private class Barrier {
+    private static class Barrier {
 
         private final Runnable job;
         private final Executor jobExecutor;

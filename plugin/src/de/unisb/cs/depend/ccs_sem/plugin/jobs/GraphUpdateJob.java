@@ -231,12 +231,11 @@ public class GraphUpdateJob extends Job {
                     return new GraphUpdateStatus(IStatus.CANCEL, "cancelled");
 
                 monitor.subTask("Checking expression...");
-                /*
+                // TODO let user set to ignore failed checks here
                 if (!ccsProgram.isGuarded())
                     throw new ParseException("Your recursive definitions are not guarded.");
                 if (!ccsProgram.isRegular())
                     throw new ParseException("Your recursive definitions are not regular.");
-                */
                 monitor.worked(WORK_CHECKING);
 
                 if (monitor.isCanceled())
@@ -266,10 +265,10 @@ public class GraphUpdateJob extends Job {
                     monitor.worked(WORK_MINIMIZING);
                 }
             } catch (final LexException e) {
-                warning = "Error lexing: " + e.getMessage() + "\\n"
+                warning = "Error lexing: " + e.getMessage() + Globals.getNewline()
                     + "(around this context: " + e.getEnvironment() + ")";
             } catch (final ParseException e) {
-                warning = "Error parsing: " + e.getMessage() + "\\n"
+                warning = "Error parsing: " + e.getMessage() + Globals.getNewline()
                     + "(around this context: " + e.getEnvironment() + ")";
             }
 
@@ -291,6 +290,7 @@ public class GraphUpdateJob extends Job {
                 node.setAttribute(GrappaConstants.FILLCOLOR_ATTR, GraphHelper.WARN_NODE_COLOR);
                 node.setAttribute(GrappaConstants.TIP_ATTR,
                     "The graph could not be built. This is the reason why.");
+                node.setAttribute(GrappaConstants.SHAPE_ATTR, "plaintext");
                 graph.addNode(node);
             }
 

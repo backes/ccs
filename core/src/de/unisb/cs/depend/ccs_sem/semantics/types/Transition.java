@@ -125,7 +125,7 @@ public class Transition {
                     Range newRange = myParam.getRange();
                     if (newRange == null)
                         newRange = new FullRange();
-                    newRange = newRange.subtract(new SetRange(Collections.singleton(restrictionValue)));
+                    newRange = newRange.subtract(new SetRange(Collections.singleton((Value)restrictionValue)));
                     final Parameter newParam = new Parameter(myParam.getName(), newRange);
                     final Action newAction = new InputAction(myInputAction.getChannel(), newParam);
                     // in the target, the old parameter has to be substituted with the new one

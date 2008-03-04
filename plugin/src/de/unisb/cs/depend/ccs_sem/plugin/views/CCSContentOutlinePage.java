@@ -19,11 +19,9 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 
 public class CCSContentOutlinePage implements IContentOutlinePage, Observer {
     private Composite outerOne;
-    private final CCSEditor editor;
     private Program program;
 
     public CCSContentOutlinePage(CCSEditor editor) {
-        this.editor = editor;
         editor.registerReparsingListener(this);
     }
 

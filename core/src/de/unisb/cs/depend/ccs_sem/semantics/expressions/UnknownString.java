@@ -76,10 +76,13 @@ public class UnknownString extends Expression {
                     proposals.add(decl);
             final StringBuilder sb = new StringBuilder("Unknown recursion identifier ");
             sb.append(this);
-            if (proposals.size() > 0) {
+            if (proposals.size() > 1) {
                 sb.append(". Did you mean");
-                for (final Declaration prop: proposals)
-                    sb.append(Globals.getNewline()).append("  - ").append(prop.getFullName());
+                if (proposals.size() == 1)
+                	sb.append(' ').append(proposals.get(0).getFullName()).append('?');
+                else
+	                for (final Declaration prop: proposals)
+	                    sb.append(Globals.getNewline()).append("  - ").append(prop.getFullName());
             }
 
             throw new ParseException(sb.toString());

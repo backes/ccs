@@ -7,9 +7,11 @@ import java.util.Map;
 
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPage;
@@ -26,15 +28,11 @@ public class CCSGraphView extends ViewPart implements ISelectionListener {
 
     private static List<CCSGraphView> views = new ArrayList<CCSGraphView>(1);
 
-
     private PageBook myPages;
 
-
-    private Text defaultText;
-
+	private Composite defaultComp;
 
     private Control currentView;
-
 
     private final Map<CCSEditor, GrappaFrame> frames = new HashMap<CCSEditor, GrappaFrame>();
 
@@ -49,11 +47,14 @@ public class CCSGraphView extends ViewPart implements ISelectionListener {
 
         myPages = new PageBook(parent, SWT.None);
 
-        defaultText = new Text(myPages, SWT.None);
-        defaultText.setText("No CCS file opened...");
-        defaultText.setEditable(false);
+        defaultComp = new Composite(myPages, SWT.NONE);
+        defaultComp.setLayout(new GridLayout(1, true));
 
-        myPages.showPage(currentView = defaultText);
+        Label defaultLabel = new Label(defaultComp, SWT.None);
+        defaultLabel.setText("No CCS file opened...");
+        defaultLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+        myPages.showPage(currentView = defaultComp);
 
         final IWorkbenchPartSite site = getSite();
         final IWorkbenchPage page = site.getPage();
@@ -105,7 +106,7 @@ public class CCSGraphView extends ViewPart implements ISelectionListener {
             if (updateGraph)
                 gFrame.updateGraph();
         } else {
-            myPages.showPage(currentView = defaultText);
+            myPages.showPage(currentView = defaultComp);
         }
     }
 

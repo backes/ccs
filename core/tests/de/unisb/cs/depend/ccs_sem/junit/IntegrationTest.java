@@ -158,7 +158,7 @@ public abstract class IntegrationTest {
 
         // first check if the starting state is the same
         assertEquals("The starting states are different",
-            states.get(0).toString(), expression.toString());
+            states.get(0), expression.toString());
 
         while (!queue.isEmpty()) {
             final int stateNr = queue.poll();

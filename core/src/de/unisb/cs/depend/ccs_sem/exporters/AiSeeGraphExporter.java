@@ -68,7 +68,7 @@ public class AiSeeGraphExporter implements Exporter {
                 aiSeeWriter.print("\" target: \"");
                 aiSeeWriter.print(targetStateNr);
                 aiSeeWriter.print("\" label: \"");
-                aiSeeWriter.print(quote(trans.getAction().getLabel().toString()));
+                aiSeeWriter.print(quote(trans.getAction().getLabel()));
                 aiSeeWriter.println("\" }");
                 if (written.add(targetExpr))
                     queue.add(targetExpr);
