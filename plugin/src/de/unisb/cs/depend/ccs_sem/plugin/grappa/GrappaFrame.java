@@ -326,6 +326,17 @@ public class GrappaFrame extends Composite implements Observer {
                 });
             }
         });
+
+        // set the parent size
+        getDisplay().asyncExec(new Runnable() {
+            public void run() {
+                if (newGrappaPanel.getOverriddenParentSize() != null)
+                    return;
+                final Rectangle rect = scrollComposite.getClientArea();
+                newGrappaPanel.overrideParentSize(new Dimension(rect.width, rect.height));
+            }
+        });
+
         return newGrappaPanel;
     }
 

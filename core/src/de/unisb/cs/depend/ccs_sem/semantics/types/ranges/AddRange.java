@@ -2,9 +2,11 @@ package de.unisb.cs.depend.ccs_sem.semantics.types.ranges;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
@@ -15,7 +17,7 @@ public class AddRange extends AbstractRange {
     private final Range right;
     private final boolean isSub;
 
-    public AddRange(AbstractRange left, Range right, boolean isSub) {
+    public AddRange(Range left, Range right, boolean isSub) {
         super();
         this.left = left;
         this.right = right;
@@ -50,6 +52,15 @@ public class AddRange extends AbstractRange {
             return false;
 
         return true;
+    }
+
+    @Override
+    public Range instantiate(Map<Parameter, Value> parameters) {
+        final Range newLeft = left.instantiate(parameters);
+        final Range newRight = right.instantiate(parameters);
+        if (newLeft.equals(left) && newRight.equals(right))
+            return this;
+        return new AddRange(newLeft, newRight, isSub);
     }
 
     @Override

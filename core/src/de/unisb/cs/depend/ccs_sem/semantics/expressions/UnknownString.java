@@ -125,7 +125,7 @@ public class UnknownString extends Expression {
     @Override
     protected int hashCode0() {
         final int PRIME = 31;
-        int result = 8;
+        int result = 1;
         result = PRIME * result + name.hashCode();
         result = PRIME * result + parameters.hashCode();
         return result;

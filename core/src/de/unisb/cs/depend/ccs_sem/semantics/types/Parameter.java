@@ -2,6 +2,7 @@ package de.unisb.cs.depend.ccs_sem.semantics.types;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.IntervalRange;
@@ -178,6 +179,16 @@ public class Parameter {
         if (connectedParameters == null)
             connectedParameters = new ArrayList<Parameter>(2);
         connectedParameters.add(param);
+    }
+
+    public Parameter instantiate(Map<Parameter, Value> parameters) {
+        if (range == null)
+            return this;
+
+        final Range newRange = range.instantiate(parameters);
+        if (range.equals(newRange))
+            return this;
+        return new Parameter(name, newRange);
     }
 
     // hashCode and equals are not overridden (only identical Parameters are equal)

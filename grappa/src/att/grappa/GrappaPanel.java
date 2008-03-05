@@ -10,16 +10,7 @@
 
 package att.grappa;
 
-import java.awt.Color;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.EventQueue;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Shape;
+import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
@@ -1419,6 +1410,10 @@ public class GrappaPanel extends javax.swing.JPanel implements
 
     public void overrideParentSize(Dimension dim) {
         overriddenParentSize = dim;
+    }
+
+    public Dimension getOverriddenParentSize() {
+        return overriddenParentSize;
     }
 
 }

@@ -1,8 +1,11 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types.ranges;
 
 import java.util.Collection;
+import java.util.Map;
 
+import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 
 
@@ -18,6 +21,10 @@ public abstract class AbstractRange implements Range {
 
     public Range subtract(Range otherRange) {
         return new AddRange(this, otherRange, true);
+    }
+
+    public Range instantiate(Map<Parameter, Value> parameters) {
+        return this;
     }
 
     @Override

@@ -2,6 +2,7 @@ package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -10,6 +11,8 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.InputAction;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterReference;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 
@@ -51,7 +54,22 @@ public class PrefixExpression extends Expression {
     @Override
     public Expression instantiate(Map<Parameter, Value> parameters) {
         final Action newPrefix = prefix.instantiate(parameters);
-        final Expression newTarget = target.instantiate(parameters);
+        // if the prefix is an input action and its parameter changed, we have
+        // to substitute it in the target
+        final Expression newTarget;
+        if (prefix instanceof InputAction) {
+            assert newPrefix instanceof InputAction;
+            final InputAction oldIA = (InputAction) prefix;
+            final InputAction newIA = (InputAction) newPrefix;
+            if (oldIA.getParameter() != null && !oldIA.getParameter().equals(newIA.getParameter())) {
+                assert newIA.getParameter() != null;
+                final Map<Parameter, Value> newParameters = new HashMap<Parameter, Value>(parameters);
+                newParameters.put(oldIA.getParameter(), new ParameterReference(newIA.getParameter()));
+                newTarget = target.instantiate(newParameters);
+            } else
+                newTarget = target.instantiate(parameters);
+        } else
+            newTarget = target.instantiate(parameters);
         if (newPrefix.equals(prefix) && newTarget.equals(target))
             return this;
         return ExpressionRepository.getExpression(new PrefixExpression(newPrefix, newTarget));
@@ -78,7 +96,7 @@ public class PrefixExpression extends Expression {
     @Override
     protected int hashCode0() {
         final int PRIME = 31;
-        int result = 4;
+        int result = 1;
         result = PRIME * result + target.hashCode();
         result = PRIME * result + prefix.hashCode();
         return result;

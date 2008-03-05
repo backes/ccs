@@ -22,6 +22,8 @@ public class ParameterRefChannel extends ParameterReference implements Channel {
         }
         if (newValue instanceof ParameterReference)
             return new ParameterRefChannel(((ParameterReference)newValue).getParam());
+
+        // one of the things above must have been true
         assert false;
         return null;
     }

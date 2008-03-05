@@ -123,7 +123,7 @@ public class RecursiveExpression extends Expression {
     @Override
     protected int hashCode0() {
         final int PRIME = 31;
-        int result = 5;
+        int result = 1;
         result = PRIME * result + referencedDeclaration.hashCode();
         result = PRIME * result + parameterValues.hashCode();
         return result;

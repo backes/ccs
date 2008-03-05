@@ -255,14 +255,14 @@ public class CCSParser implements Parser {
             if (myParameters == null || !tokens.hasNext()
                     || !(tokens.next() instanceof Assign))
                 return null;
+            // save old parameters
             final Stack<Parameter> oldParameters = parameters;
+            // set new parameters
             parameters = new Stack<Parameter>();
             parameters.addAll(myParameters);
-            try {
-                expr = readExpression(tokens);
-            } finally {
-                parameters = oldParameters;
-            }
+            expr = readExpression(tokens);
+            // restore old parameters
+            parameters = oldParameters;
         } else
             return null;
 
@@ -309,17 +309,14 @@ public class CCSParser implements Parser {
             final Value startValue = readArithmeticExpression(tokens);
             // are there '..'?
             if (tokens.hasNext() && (tokens.peek() instanceof IntervalDots)) {
-                if (!(startValue instanceof ConstIntegerValue))
-                    throw new ParseException("Expected constant integer expression before '..'.");
+                ensureInteger(startValue, "Expected constant integer expression before '..'.");
 
                 tokens.next();
 
                 final Value endValue = readArithmeticExpression(tokens);
-                if (!(endValue instanceof ConstIntegerValue))
-                    throw new ParseException("Expected constant integer expression after '..'.");
+                ensureInteger(endValue, "Expected constant integer expression after '..'.");
 
-                return new IntervalRange(((ConstIntegerValue)startValue).getValue(),
-                    ((ConstIntegerValue)endValue).getValue());
+                return new IntervalRange(startValue, endValue);
             }
 
             // or another range (if the value was a string value)

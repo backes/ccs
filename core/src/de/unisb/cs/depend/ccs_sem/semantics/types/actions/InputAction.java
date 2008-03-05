@@ -7,6 +7,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.Range;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstIntegerValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterReference;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
@@ -41,7 +42,11 @@ public class InputAction extends Action {
         if (param != null)
             valueString = param.toString();
         else if (value != null) {
-            if (value instanceof ConstantValue || value instanceof ParameterReference)
+            final boolean noParenthesis = (value instanceof ConstantValue
+                    && !(value instanceof ConstIntegerValue
+                            && ((ConstIntegerValue)value).getValue() < 0))
+                || value instanceof ParameterReference;
+            if (noParenthesis)
                 valueString = value.getStringValue();
             else
                 valueString = '('+value.getStringValue()+')';
@@ -111,9 +116,15 @@ public class InputAction extends Action {
         final Channel newChannel = channel.instantiate(parameters);
 
         if (value == null) {
-            if (channel.equals(newChannel))
+            if (param == null) {
+                if (channel.equals(newChannel))
+                    return this;
+                return new InputAction(newChannel, param);
+            }
+            final Parameter newParam = param.instantiate(parameters);
+            if (channel.equals(newChannel) && newParam.equals(param))
                 return this;
-            return new InputAction(newChannel, param);
+            return new InputAction(newChannel, newParam);
         }
 
         final Value newValue = value.instantiate(parameters);

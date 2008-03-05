@@ -1,7 +1,9 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types.ranges;
 
 import java.util.Collection;
+import java.util.Map;
 
+import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
@@ -47,5 +49,15 @@ public interface Range {
      *         to a finite set
      */
     boolean isRangeRestricted();
+
+    /**
+     * Instantiate this Range with some parameters.
+     * If it does not contain any of the parameters in the given set, it just
+     * returns itself.
+     *
+     * @param parameters the parameters to substitute
+     * @return either <code>this</code> or a new Range
+     */
+    Range instantiate(Map<Parameter, Value> parameters);
 
 }

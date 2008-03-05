@@ -89,7 +89,6 @@ public abstract class IntegrationTest {
 
         if (states.size() == 0)
             fail("This testcase contains no nodes.");
-
     }
 
     @After
@@ -402,6 +401,14 @@ public abstract class IntegrationTest {
                 return new ConstIntegerValue(Integer.valueOf(valueString));
             } catch (final NumberFormatException e) {
                 // ignore
+            }
+
+            if (valueString.startsWith("(") && valueString.endsWith(")")) {
+                try {
+                    return new ConstIntegerValue(Integer.valueOf(valueString.substring(1, valueString.length()-1)));
+                } catch (final NumberFormatException e) {
+                    // ignore
+                }
             }
 
             if ("true".equals(valueString))

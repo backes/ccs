@@ -91,7 +91,7 @@ public class ConditionalExpression extends Expression {
     @Override
     protected int hashCode0() {
         final int prime = 31;
-        int result = 9;
+        int result = 1;
         result = prime * result + condition.hashCode();
         result = prime * result + consequence.hashCode();
         return result;

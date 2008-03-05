@@ -153,7 +153,7 @@ public class RestrictExpression extends Expression {
     @Override
     protected int hashCode0() {
         final int PRIME = 31;
-        int result = 6;
+        int result = 1;
         result = PRIME * result + innerExpr.hashCode();
         result = PRIME * result + restricted.hashCode();
         return result;

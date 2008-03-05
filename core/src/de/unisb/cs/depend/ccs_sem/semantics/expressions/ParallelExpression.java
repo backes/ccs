@@ -240,7 +240,7 @@ public class ParallelExpression extends Expression {
     @Override
     protected int hashCode0() {
         final int PRIME = 31;
-        int result = 3;
+        int result = 1;
         result = PRIME * result + left.hashCode();
         result = PRIME * result + right.hashCode();
         return result;

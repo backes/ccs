@@ -5,6 +5,7 @@ import java.util.Map;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstIntegerValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterReference;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
@@ -27,10 +28,16 @@ public class OutputAction extends Action {
         String valueString;
         if (value == null)
             valueString = "";
-        else if (value instanceof ConstantValue || value instanceof ParameterReference)
-            valueString = value.getStringValue();
-        else
-            valueString = '('+value.getStringValue()+')';
+        else {
+            final boolean noParenthesis = (value instanceof ConstantValue
+                    && !(value instanceof ConstIntegerValue
+                            && ((ConstIntegerValue)value).getValue() < 0))
+                || value instanceof ParameterReference;
+            if (noParenthesis)
+                valueString = value.getStringValue();
+            else
+                valueString = '('+value.getStringValue()+')';
+        }
 
         final int size = channelString.length() + 1 +
             (valueString == null ? 0 : valueString.length());
