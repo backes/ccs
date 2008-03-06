@@ -12,6 +12,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.InputAction;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.SimpleAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterReference;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
@@ -45,6 +46,12 @@ public class PrefixExpression extends Expression {
 
     @Override
     public Expression replaceRecursion(List<Declaration> declarations) throws ParseException {
+        if (prefix instanceof SimpleAction) {
+            final String prefixLabel = ((SimpleAction) prefix).getLabel();
+            for (final Declaration decl: declarations)
+                if (decl.getName().equals(prefixLabel))
+                    throw new ParseException("Illegal use of recursion variable");
+        }
         final Expression newTarget = target.replaceRecursion(declarations);
         if (newTarget.equals(target))
             return this;

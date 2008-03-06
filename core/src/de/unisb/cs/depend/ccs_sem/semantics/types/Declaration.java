@@ -91,14 +91,23 @@ public class Declaration {
         return true;
     }
 
+    /**
+     * @return the name of the recursion variable
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * @return the nr of parameters of this recursion variable
+     */
     public int getParamNr() {
         return parameters.size();
     }
 
+    /**
+     * @return the expression that this recursion variable represents
+     */
     public Expression getValue() {
         return value;
     }
