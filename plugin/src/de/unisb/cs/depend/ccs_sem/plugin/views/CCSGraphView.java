@@ -22,6 +22,7 @@ import org.eclipse.ui.part.ViewPart;
 
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor;
 import de.unisb.cs.depend.ccs_sem.plugin.grappa.GrappaFrame;
+import de.unisb.cs.depend.ccs_sem.plugin.views.components.CCSFrame;
 
 
 public class CCSGraphView extends ViewPart implements ISelectionListener {
@@ -34,7 +35,7 @@ public class CCSGraphView extends ViewPart implements ISelectionListener {
 
     private Control currentView;
 
-    private final Map<CCSEditor, GrappaFrame> frames = new HashMap<CCSEditor, GrappaFrame>();
+    private final Map<CCSEditor, CCSFrame> frames = new HashMap<CCSEditor, CCSFrame>();
 
     public CCSGraphView() {
         synchronized (views) {
@@ -51,7 +52,7 @@ public class CCSGraphView extends ViewPart implements ISelectionListener {
         defaultComp.setLayout(new GridLayout(1, true));
 
         Label defaultLabel = new Label(defaultComp, SWT.None);
-        defaultLabel.setText("No CCS file opened...");
+        defaultLabel.setText("No CCS file opened.");
         defaultLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
         myPages.showPage(currentView = defaultComp);
@@ -98,13 +99,13 @@ public class CCSGraphView extends ViewPart implements ISelectionListener {
     private synchronized void showGraphFor0(IEditorPart activeEditor, boolean updateGraph) {
         if (activeEditor instanceof CCSEditor) {
             final CCSEditor editor = (CCSEditor) activeEditor;
-            GrappaFrame gFrame = frames.get(editor);
-            if (gFrame == null)
-                frames.put(editor, gFrame = new GrappaFrame(myPages, SWT.None, editor));
+            CCSFrame control = frames.get(editor);
+            if (control == null)
+                frames.put(editor, control = new CCSFrame(myPages, editor));
 
-            myPages.showPage(currentView = gFrame);
+            myPages.showPage(currentView = control);
             if (updateGraph)
-                gFrame.updateGraph();
+                control.showGraph(true);
         } else {
             myPages.showPage(currentView = defaultComp);
         }

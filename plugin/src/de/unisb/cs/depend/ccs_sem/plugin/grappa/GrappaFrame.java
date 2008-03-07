@@ -17,13 +17,9 @@ import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
 
 import att.grappa.Graph;
 import att.grappa.Grappa;
@@ -49,14 +45,6 @@ public class GrappaFrame extends Composite implements Observer {
     protected Lock graphLock = new ReentrantLock();
 
     private GraphUpdateJob graphUpdateJob;
-    protected Button buttonScaleToFit;
-    protected Button buttonZoomIn;
-    protected Button buttonZoomOut;
-    protected Button buttonShowNodeLabels;
-    protected Button buttonShowEdgeLabels;
-    protected Button buttonMinimize;
-    protected Button buttonLayoutTopToBottom;
-    protected Button buttonLayoutLeftToRight;
     protected Frame bridgeFrame;
     protected ScrolledComposite scrollComposite;
     protected Graph graph;
@@ -88,10 +76,6 @@ public class GrappaFrame extends Composite implements Observer {
         } finally {
             graphLock.unlock();
         }
-
-        final Composite controlsComposite = new Composite(this, SWT.None);
-        controlsComposite.setLayout(new FillLayout(SWT.HORIZONTAL));
-        controlsComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
         scrollComposite = new ScrolledComposite(this, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
         scrollComposite.setExpandHorizontal(true);
@@ -129,159 +113,6 @@ public class GrappaFrame extends Composite implements Observer {
         Grappa.antiAliasText = true;
         Grappa.useAntiAliasing = true;
         Grappa.elementSelection = GrappaConstants.NODE | GrappaConstants.EDGE;
-
-        buttonScaleToFit = new Button(controlsComposite, SWT.CHECK);
-        buttonScaleToFit.setSelection(true);
-        buttonScaleToFit.setText("Scale to fit");
-
-        buttonZoomIn = new Button(controlsComposite, SWT.PUSH);
-        buttonZoomIn.setEnabled(false);
-        buttonZoomIn.setText("Zoom in");
-
-        buttonZoomOut = new Button(controlsComposite, SWT.PUSH);
-        buttonZoomOut.setEnabled(false);
-        buttonZoomOut.setText("Zoom out");
-
-        buttonShowNodeLabels = new Button(controlsComposite, SWT.CHECK);
-        buttonShowNodeLabels.setSelection(true);
-        buttonShowNodeLabels.setText("Show node labels");
-
-        buttonShowEdgeLabels = new Button(controlsComposite, SWT.CHECK);
-        buttonShowEdgeLabels.setSelection(true);
-        buttonShowEdgeLabels.setText("Show edge labels");
-
-        buttonMinimize = new Button(controlsComposite, SWT.CHECK);
-        buttonMinimize.setSelection(false);
-        buttonMinimize.setText("Minimize LTS");
-
-        buttonLayoutTopToBottom = new Button(controlsComposite, SWT.RADIO);
-        buttonLayoutTopToBottom.setSelection(false);
-        buttonLayoutTopToBottom.setText("Layout top to bottom");
-
-        buttonLayoutLeftToRight = new Button(controlsComposite, SWT.RADIO);
-        buttonLayoutLeftToRight.setSelection(true);
-        buttonLayoutLeftToRight.setText("Layout left to right");
-
-        buttonScaleToFit.addListener(SWT.Selection, new Listener() {
-
-            public void handleEvent(Event event) {
-                graphLock.lock();
-                try {
-                    scaleToFit = buttonScaleToFit.getSelection();
-                    buttonZoomIn.setEnabled(!scaleToFit);
-                    buttonZoomOut.setEnabled(!scaleToFit);
-                    grappaPanel.setScaleToFit(scaleToFit);
-                    /*
-                    if (scaleToFit) {
-                        final Rectangle rect = scrollComposite.getClientArea();
-                        grappaPanel.setSize(rect.width, rect.height);
-                    }
-                    */
-                    grappaPanel.repaint();
-                } finally {
-                    graphLock.unlock();
-                }
-            }
-
-        });
-        buttonZoomIn.addListener(SWT.Selection, new Listener() {
-
-            public void handleEvent(Event event) {
-                graphLock.lock();
-                try {
-                    grappaPanel.multiplyScaleFactor(1.25);
-                    grappaPanel.repaint();
-                } finally {
-                    graphLock.unlock();
-                }
-            }
-
-        });
-        buttonZoomOut.addListener(SWT.Selection, new Listener() {
-
-            public void handleEvent(Event event) {
-                graphLock.lock();
-                try {
-                    grappaPanel.multiplyScaleFactor(0.8);
-                    grappaPanel.repaint();
-                } finally {
-                    graphLock.unlock();
-                }
-            }
-
-        });
-
-        buttonShowNodeLabels.addListener(SWT.Selection, new Listener() {
-
-            public void handleEvent(Event event) {
-                graphLock.lock();
-                try {
-                    showNodeLabels = buttonShowNodeLabels.getSelection();
-                    updateGraph();
-                } finally {
-                    graphLock.unlock();
-                }
-            }
-
-        });
-        buttonShowEdgeLabels.addListener(SWT.Selection, new Listener() {
-
-            public void handleEvent(Event event) {
-                graphLock.lock();
-                try {
-                    showEdgeLabels = buttonShowEdgeLabels.getSelection();
-                    updateGraph();
-                } finally {
-                    graphLock.unlock();
-                }
-            }
-
-        });
-
-        buttonMinimize.addListener(SWT.Selection, new Listener() {
-
-            public void handleEvent(Event event) {
-                graphLock.lock();
-                try {
-                    minimizeGraph  = buttonMinimize.getSelection();
-                    updateGraph();
-                } finally {
-                    graphLock.unlock();
-                }
-            }
-
-        });
-
-        buttonLayoutTopToBottom.addListener(SWT.Selection, new Listener() {
-
-            public void handleEvent(Event event) {
-                graphLock.lock();
-                try {
-                    if (!buttonLayoutTopToBottom.getSelection() || !layoutLeftToRight)
-                        return;
-                    layoutLeftToRight = false;
-                    updateGraph();
-                } finally {
-                    graphLock.unlock();
-                }
-            }
-
-        });
-        buttonLayoutLeftToRight.addListener(SWT.Selection, new Listener() {
-
-            public void handleEvent(Event event) {
-                graphLock.lock();
-                try {
-                    if (!buttonLayoutLeftToRight.getSelection() || layoutLeftToRight)
-                        return;
-                    layoutLeftToRight = true;
-                    updateGraph();
-                } finally {
-                    graphLock.unlock();
-                }
-            }
-
-        });
     }
 
     private Graph createGraph() {
@@ -376,21 +207,90 @@ public class GrappaFrame extends Composite implements Observer {
                     bridgeFrame.validate();
                 }
             });
-
-            // update buttons
-            final GraphUpdateJob job = status.getJob();
-            getDisplay().asyncExec(new Runnable() {
-                public void run() {
-                    buttonMinimize.setSelection(job.isMinimize());
-                    buttonLayoutLeftToRight.setSelection(job.isLayoutLeftToRight());
-                    buttonLayoutTopToBottom.setSelection(!job.isLayoutLeftToRight());
-                    buttonShowEdgeLabels.setSelection(job.isShowEdgeLabels());
-                    buttonShowNodeLabels.setSelection(job.isShowNodeLabels());
-                }
-            });
         } finally {
             graphLock.unlock();
         }
     }
+
+	public void setScaleToFit(boolean scaleToFit) {
+        graphLock.lock();
+        try {
+        	this.scaleToFit = scaleToFit;
+            grappaPanel.setScaleToFit(scaleToFit);
+            /*
+            if (scaleToFit) {
+                final Rectangle rect = scrollComposite.getClientArea();
+                grappaPanel.setSize(rect.width, rect.height);
+            }
+            */
+            grappaPanel.repaint();
+        } finally {
+            graphLock.unlock();
+        }
+	}
+
+	public void zoomIn() {
+        graphLock.lock();
+        try {
+            grappaPanel.multiplyScaleFactor(1.25);
+            grappaPanel.repaint();
+        } finally {
+            graphLock.unlock();
+        }
+	}
+
+	public void zoomOut() {
+        graphLock.lock();
+        try {
+            grappaPanel.multiplyScaleFactor(0.8);
+            grappaPanel.repaint();
+        } finally {
+            graphLock.unlock();
+        }
+	}
+
+	public void setShowNodes(boolean showNodeLabels, boolean updateGraph) {
+        graphLock.lock();
+        try {
+            this.showNodeLabels = showNodeLabels;
+            if (updateGraph)
+            	updateGraph();
+        } finally {
+            graphLock.unlock();
+        }
+	}
+
+	public void setShowEdges(boolean showEdgeLabels, boolean updateGraph) {
+        graphLock.lock();
+        try {
+            this.showEdgeLabels = showEdgeLabels;
+            if (updateGraph)
+            	updateGraph();
+        } finally {
+            graphLock.unlock();
+        }
+	}
+
+	public void setMinimize(boolean minimize, boolean updateGraph) {
+        graphLock.lock();
+        try {
+            minimizeGraph  = minimize;
+            if (updateGraph)
+            	updateGraph();
+        } finally {
+            graphLock.unlock();
+        }
+	}
+
+	public void setLayoutLeftToRight(boolean layoutLeftToRight, boolean updateGraph) {
+        graphLock.lock();
+        try {
+            this.layoutLeftToRight = layoutLeftToRight;
+            if (updateGraph)
+            	updateGraph();
+        } finally {
+            graphLock.unlock();
+        }
+	}
 
 }
