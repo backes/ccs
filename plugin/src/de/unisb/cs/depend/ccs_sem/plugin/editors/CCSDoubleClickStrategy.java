@@ -5,6 +5,7 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextDoubleClickStrategy;
 import org.eclipse.jface.text.ITextViewer;
 
+// TODO
 public class CCSDoubleClickStrategy implements ITextDoubleClickStrategy {
 	protected ITextViewer fText;
 
@@ -20,6 +21,7 @@ public class CCSDoubleClickStrategy implements ITextDoubleClickStrategy {
 			selectWord(pos);
 		}
 	}
+
 	protected boolean selectComment(int caretPos) {
 		final IDocument doc = fText.getDocument();
 		int startPos, endPos;
@@ -103,6 +105,7 @@ public class CCSDoubleClickStrategy implements ITextDoubleClickStrategy {
 			return true;
 
 		} catch (final BadLocationException x) {
+		    // ignore
 		}
 
 		return false;

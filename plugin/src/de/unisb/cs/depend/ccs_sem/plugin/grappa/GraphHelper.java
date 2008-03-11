@@ -22,7 +22,7 @@ import de.unisb.cs.depend.ccs_sem.plugin.Global;
 public class GraphHelper {
 
     static {
-        // don't show this ugly Exception windows
+        // don't show this ugly Exception window
         Grappa.doDisplayException = false;
     }
 

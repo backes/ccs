@@ -51,7 +51,7 @@ public class CCSGraphView extends ViewPart implements ISelectionListener {
         defaultComp = new Composite(myPages, SWT.NONE);
         defaultComp.setLayout(new GridLayout(1, true));
 
-        Label defaultLabel = new Label(defaultComp, SWT.None);
+        final Label defaultLabel = new Label(defaultComp, SWT.None);
         defaultLabel.setText("No CCS file opened.");
         defaultLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
@@ -64,6 +64,12 @@ public class CCSGraphView extends ViewPart implements ISelectionListener {
         final IEditorPart activeEditor = page.getActiveEditor();
         if (activeEditor != null)
             selectionChanged(activeEditor, null);
+    }
+
+    @Override
+    public void dispose() {
+        myPages.dispose();
+        super.dispose();
     }
 
     @Override

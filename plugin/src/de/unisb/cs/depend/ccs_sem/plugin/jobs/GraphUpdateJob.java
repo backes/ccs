@@ -53,17 +53,7 @@ public class GraphUpdateJob extends Job {
 
     protected final Set<Observer> observers = new HashSet<Observer>();
 
-    private static final ISchedulingRule rule = new ISchedulingRule() {
-
-        public boolean isConflicting(ISchedulingRule rule) {
-            return rule == this;
-        }
-
-        public boolean contains(ISchedulingRule rule) {
-            return rule == this;
-        }
-
-    };
+    private static final ISchedulingRule rule = new IdentityRule();
 
     private final static int WORK_LEXING = 1;
     private final static int WORK_PARSING = 3;
@@ -300,8 +290,10 @@ public class GraphUpdateJob extends Job {
                 return new GraphUpdateStatus(IStatus.CANCEL, "cancelled");
 
             monitor.subTask("Layouting graph...");
-            if (!GraphHelper.filterGraph(graph))
-                return new GraphUpdateStatus(IStatus.ERROR, "Error layouting graph.");
+            if (!GraphHelper.filterGraph(graph, false))
+                return new GraphUpdateStatus(IStatus.ERROR,
+                    "The graph could not be layout, most probably there was an error starting the dot tool.\n" +
+                    "You can configure the path for this tool in your preferences on the \"CCS\" page.");
             monitor.worked(WORK_LAYOUT_GRAPH);
 
             if (monitor.isCanceled())

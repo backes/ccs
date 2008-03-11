@@ -1,85 +1,72 @@
 package de.unisb.cs.depend.ccs_sem.plugin.views;
 
-import java.util.Observable;
-import java.util.Observer;
-
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IActionBars;
-import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
+import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
 
+import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSDocument;
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor;
+import de.unisb.cs.depend.ccs_sem.plugin.editors.IParsingListener;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 
 
-public class CCSContentOutlinePage implements IContentOutlinePage, Observer {
-    private Composite outerOne;
+public class CCSContentOutlinePage extends ContentOutlinePage
+        implements IParsingListener {
+
     private Program program;
+    private Composite outerOne;
+    private Tree outlineTree;
 
     public CCSContentOutlinePage(CCSEditor editor) {
-        editor.registerReparsingListener(this);
+        final IDocument doc = editor.getDocument();
+        if (doc instanceof CCSDocument) {
+            ((CCSDocument)doc).addParsingListener(this);
+        }
     }
 
+    @Override
     public void createControl(Composite parent) {
 
-        outerOne = new Composite(parent, SWT.MULTI);
+        outerOne = new Composite(parent, SWT.NONE);
 
-        outerOne.setLayout(new FillLayout(SWT.VERTICAL));
+        outerOne.setLayout(new FillLayout());
 
-        final Text text = new Text(outerOne, SWT.MULTI);
-        text.setText("No outline available so far...");
-        text.setEnabled(false);
+        outlineTree = new Tree(outerOne, SWT.NONE);
+
+        final TreeItem defaultItem = new TreeItem(outlineTree, SWT.NONE);
+        defaultItem.setText("-- not build yet --");
     }
 
+    @Override
     public void dispose() {
         outerOne.dispose();
     }
 
+    @Override
     public Control getControl() {
         return outerOne;
     }
 
+    @Override
     public void setActionBars(IActionBars actionBars) {
         // nothing to do
     }
 
+    @Override
     public void setFocus() {
         outerOne.setFocus();
     }
 
-    public void addSelectionChangedListener(ISelectionChangedListener listener) {
-        // nothing to do
-    }
 
-    public ISelection getSelection() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    public void removeSelectionChangedListener(
-                                               ISelectionChangedListener listener) {
+    public void parsingDone(IDocument document, Program parsedProgram) {
         // TODO Auto-generated method stub
 
-    }
-
-    public void setSelection(ISelection selection) {
-        // TODO Auto-generated method stub
-
-    }
-
-    public void update(Observable o, Object arg) {
-        // check if there was a change
-        if (arg instanceof Program) {
-            final Program newProgram = (Program) arg;
-            if (newProgram.equals(program))
-                return;
-        }
-        // TODO
     }
 
 }

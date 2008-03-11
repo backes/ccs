@@ -5,6 +5,7 @@ import java.util.List;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.Job;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
@@ -13,21 +14,30 @@ import de.unisb.cs.depend.ccs_sem.lexer.CCSLexer;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Token;
 import de.unisb.cs.depend.ccs_sem.parser.CCSParser;
 import de.unisb.cs.depend.ccs_sem.plugin.Global;
-import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor;
+import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSDocument;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 
 
 public class ParseCCSProgramJob extends Job {
 
-    private final CCSEditor editor;
+    private final CCSDocument ccsDocument;
+
+    public boolean shouldRunImmediately = false;
+
+    // the mod count of the text to parse.
+    // is used when parsing is done to check if the text is still up-to-date
+    public long docModCount = -1;
 
     private final static int WORK_LEXING = 2;
     private final static int WORK_PARSING = 5;
     private final static int WORK_CHECKING = 1;
 
-    public ParseCCSProgramJob(CCSEditor editor) {
+    private static final ISchedulingRule rule = new IdentityRule();
+
+    public ParseCCSProgramJob(CCSDocument document) {
         super("Parse CCS Term");
-        this.editor = editor;
+        this.ccsDocument = document;
+        setRule(rule);
         setSystem(true);
     }
 
@@ -41,7 +51,15 @@ public class ParseCCSProgramJob extends Job {
         String warning = null;
         try {
             monitor.subTask("Lexing...");
-            final List<Token> tokens = new CCSLexer().lex(editor.getText());
+            ccsDocument.lock();
+            String text;
+            try {
+                docModCount = ccsDocument.getModificationStamp();
+                text = ccsDocument.get();
+            } finally {
+                ccsDocument.unlock();
+            }
+            final List<Token> tokens = new CCSLexer().lex(ccsDocument.get());
             monitor.worked(WORK_LEXING);
 
             monitor.subTask("Parsing...");
@@ -62,35 +80,40 @@ public class ParseCCSProgramJob extends Job {
                 + "(around this context: " + e.getEnvironment() + ")";
         }
 
-        final ParseStatus status = new ParseStatus(IStatus.OK, "");
-        status.setParsedProgram(ccsProgram);
+        final ParseStatus status = new ParseStatus(IStatus.OK, "", ccsProgram, docModCount);
 
-        editor.reparsed(status);
+        //document.reparsed(status);
 
         // TODO ParseResult, highlighting, ...
         // TODO additional parameter for the parsing result (map expression->position)
         //editor.setProgram(ccsProgram);
         // TODO Auto-generated method stub
+
         return status;
     }
 
-    @SuppressWarnings("restriction")
-    public class ParseStatus extends Status {
+    public static class ParseStatus extends Status {
 
         private Program parsedProgram;
+        private long docModCount;
 
         public ParseStatus(int severity, String message) {
-            super(severity, Global.getPluginID(), message);
+            super(severity, Global.getPluginID(), IStatus.OK, message, null);
+        }
+
+        public ParseStatus(int severity, String message, Program parsedProgram, long docModCount) {
+            this(severity, message);
+            this.parsedProgram = parsedProgram;
+            this.docModCount = docModCount;
         }
 
         public Program getParsedProgram() {
             return parsedProgram;
         }
 
-        public void setParsedProgram(Program parsedProgram) {
-            this.parsedProgram = parsedProgram;
+        public long getDocModCount() {
+            return docModCount;
         }
-
     }
 
 }

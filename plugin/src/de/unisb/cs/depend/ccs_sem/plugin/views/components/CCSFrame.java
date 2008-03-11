@@ -17,26 +17,26 @@ import de.unisb.cs.depend.ccs_sem.plugin.grappa.GrappaFrame;
 
 public class CCSFrame extends SashForm {
 
-	private final GrappaFrame gFrame;
+	protected final GrappaFrame gFrame;
 
 	public CCSFrame(Composite parent, CCSEditor editor) {
 		super(parent, SWT.HORIZONTAL);
-		CTabFolder tabs = new CTabFolder(this, SWT.NONE);
+		final CTabFolder tabs = new CTabFolder(this, SWT.NONE);
 		gFrame = new GrappaFrame(this, SWT.NONE, editor);
 
 		setWeights(new int[] { 2, 8 });
 
-		CTabItem optionsTab = new CTabItem(tabs, SWT.NONE);
+		final CTabItem optionsTab = new CTabItem(tabs, SWT.NONE);
 		optionsTab.setText("Options");
-		Composite optionsComp = new Composite(tabs, SWT.NONE);
+		final Composite optionsComp = new Composite(tabs, SWT.NONE);
 		optionsTab.setControl(optionsComp);
 		tabs.showItem(optionsTab);
 
-		optionsComp.setLayout(new GridLayout());
+		optionsComp.setLayout(new GridLayout(1, true));
 
-        Group scalingGroup = new Group(optionsComp, SWT.NONE);
+        final Group scalingGroup = new Group(optionsComp, SWT.NONE);
         scalingGroup.setText("Scaling");
-        FillLayout scalingGroupLayout = new FillLayout(SWT.VERTICAL);
+        final FillLayout scalingGroupLayout = new FillLayout(SWT.VERTICAL);
         scalingGroupLayout.marginHeight = scalingGroupLayout.marginWidth = 5;
         scalingGroupLayout.spacing = 3;
         scalingGroup.setLayout(scalingGroupLayout);
@@ -45,7 +45,7 @@ public class CCSFrame extends SashForm {
         buttonScaleToFit.setSelection(true);
         buttonScaleToFit.setText("Scale to fit");
 
-        Composite zoomingButtons = new Composite(scalingGroup, SWT.NONE);
+        final Composite zoomingButtons = new Composite(scalingGroup, SWT.NONE);
         zoomingButtons.setLayout(new GridLayout(2, true));
 
         final Button buttonZoomIn = new Button(zoomingButtons, SWT.PUSH);
@@ -61,9 +61,9 @@ public class CCSFrame extends SashForm {
         buttonMinimize.setSelection(false);
         buttonMinimize.setText("Minimize LTS");
 
-        Group layoutGroup = new Group(optionsComp, SWT.NONE);
+        final Group layoutGroup = new Group(optionsComp, SWT.NONE);
         layoutGroup.setText("Layout");
-        FillLayout layoutGroupLayout = new FillLayout(SWT.VERTICAL);
+        final FillLayout layoutGroupLayout = new FillLayout(SWT.VERTICAL);
         layoutGroupLayout.marginHeight = layoutGroupLayout.marginWidth = 5;
         layoutGroupLayout.spacing = 3;
         layoutGroup.setLayout(layoutGroupLayout);
