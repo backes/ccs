@@ -61,7 +61,7 @@ public class StopExpression extends Expression {
 
     public static StopExpression get() {
         if (instance == null)
-            instance = new StopExpression();
+            instance = (StopExpression) ExpressionRepository.getExpression(new StopExpression());
         return instance;
     }
 

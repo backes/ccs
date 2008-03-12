@@ -37,7 +37,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.*;
  * constDecl          --> "const" identifier "=" arithExpression ";"
  * rangeDecl          --> "range" identifier "=" range ";"
  * recursiveDecl      --> recursionVariable = expression ";"
- * recursionVariable  --> identifier ( "[" ( ( parameter "," )* parameter)? "]"  )?
+ * recursionVariable  --> ucIdentifier ( "[" ( ( parameter "," )* parameter)? "]"  )?
  *
  * expression          --> restrictExpression
  * restrictExpression  --> parallelExpression
@@ -55,9 +55,13 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.*;
  *                          | recursionVariable
  *                          | action
  *
- * action              --> identifier ( "?" inputValue | "!" outputValue )?
+ * action              --> lcIdentifier ( "?" inputValue | "!" outputValue )?
  * identifier          --> character ( digit | character ) *
+ * lcIdentifier        --> lcCharacter ( digit | character ) *
+ * ucIdentifier        --> ucCharacter ( digit | character ) *
  * character           --> "a" | ... | "z" | "A" | ... | "Z" | "_"
+ * ucCharacter         --> "A" | ... | "Z" | "_"
+ * lcCharacter         --> "a" | ... | "z" | "_"
  * digit               --> "0" | ... | "9"
  * inputValue          --> inputParameter | "" | arithBase
  * outputValue         --> arithBase | ""
@@ -123,7 +127,7 @@ public class CCSParser implements Parser {
             readDeclarations(it, declarations);
 
             // then, read the ccs expression
-            Expression expr = readExpression(it);
+            Expression expr = readMainExpression(it);
 
             // now make it a "top most expression"
             expr = new TopMostExpression(expr);
@@ -225,9 +229,9 @@ public class CCSParser implements Parser {
     }
 
     /**
-     * @return <code>null</code>, if there is no more declaration
+     * @return <code>null</code>, if there are no more declarations
      */
-    private Declaration readDeclaration(ExtendedIterator<Token> tokens) throws ParseException {
+    protected Declaration readDeclaration(ExtendedIterator<Token> tokens) throws ParseException {
         Token token1 = null;
         Token token2 = null;
         if (tokens.hasNext())
@@ -242,7 +246,7 @@ public class CCSParser implements Parser {
             return null;
 
         final Identifier identifier = (Identifier) token1;
-        if (identifier.isQuoted())
+        if (identifier.isQuoted() || !Character.isUpperCase(identifier.getName().charAt(0)))
             return null;
         List<Parameter> myParameters;
         Expression expr;
@@ -381,7 +385,6 @@ public class CCSParser implements Parser {
         }
 
         while (tokens.hasNext()) {
-
             // read one parameter
             Token nextToken = tokens.next();
             if (nextToken instanceof Identifier) {
@@ -462,11 +465,18 @@ public class CCSParser implements Parser {
     }
 
     /**
-     * Read one "main expression".
+     * Read one Expression.
      */
     private Expression readExpression(ExtendedIterator<Token> tokens) throws ParseException {
         // the topmost operator is restriction:
         return readRestrictExpression(tokens);
+    }
+
+    /**
+     * Read the "main expression".
+     */
+    protected Expression readMainExpression(ExtendedIterator<Token> tokens) throws ParseException {
+        return readExpression(tokens);
     }
 
     /**
@@ -590,22 +600,20 @@ public class CCSParser implements Parser {
     }
 
     private Channel readChannel(ExtendedIterator<Token> tokens) throws ParseException {
-        if (tokens.hasNext()) {
-            final Token nextToken = tokens.next();
-            if (nextToken instanceof Identifier) {
-                final Identifier identifier = (Identifier)nextToken;
-                if ("i".equals(identifier.getName()))
-                    return TauChannel.get();
-                if (!identifier.isQuoted()) {
-                    for (final Parameter param: parameters) {
-                        if (param.getName().equals(identifier.getName())) {
-                            param.setType(Parameter.Type.CHANNEL);
-                            return new ParameterRefChannel(param);
-                        }
+        if (tokens.hasNext() && tokens.peek() instanceof Identifier) {
+            final Identifier identifier = (Identifier)tokens.next();
+            if ("i".equals(identifier.getName()))
+                return TauChannel.get();
+            if (!identifier.isQuoted()) {
+                for (final Parameter param: parameters) {
+                    if (param.getName().equals(identifier.getName())) {
+                        param.setType(Parameter.Type.CHANNEL);
+                        return new ParameterRefChannel(param);
                     }
                 }
-                return new ConstStringChannel(identifier.getName());
             }
+            if (Character.isLowerCase(identifier.getName().charAt(0)))
+                return new ConstStringChannel(identifier.getName());
             tokens.previous();
         }
         return null;
@@ -644,8 +652,6 @@ public class CCSParser implements Parser {
      */
     private Expression readPrefixExpression(ExtendedIterator<Token> tokens) throws ParseException {
         if (tokens.hasNext()) {
-            // this is not very nice: we have to save the iterator position to
-            // (possibly) reset it
             final Action action = readAction(tokens, true);
             if (action == null)
                 return readWhenExpression(tokens);
@@ -669,19 +675,8 @@ public class CCSParser implements Parser {
                 }
                 return ExpressionRepository.getExpression(new PrefixExpression(action, target));
             }
-            // if it was not a SimpleAction, it must be a
-            // PrefixExpression (followed by Stop)
-            // otherwise try to read the parameters
-            if (action instanceof SimpleAction) {
-                List<Value> myParameters = Collections.emptyList();
-                if (tokens.hasNext() && tokens.peek() instanceof LBracket) {
-                    tokens.next();
-                    myParameters = readParameterValues(tokens);
-                }
-                return ExpressionRepository.getExpression(new UnknownString(action.getLabel(), myParameters));
-            } else {
-                return ExpressionRepository.getExpression(new PrefixExpression(action, StopExpression.get()));
-            }
+            // otherwise, we append ".0" (i.e. we make a PrefixExpression with target = STOP
+            return ExpressionRepository.getExpression(new PrefixExpression(action, StopExpression.get()));
         }
         return readWhenExpression(tokens);
     }
@@ -717,7 +712,7 @@ public class CCSParser implements Parser {
     }
 
     /**
-     * Read one base expression (stop, expression in parentheses, or an identifier/action).
+     * Read one base expression (stop, error, expression in parentheses, or recursion variable).
      */
     private Expression readBaseExpression(ExtendedIterator<Token> tokens) throws ParseException {
         if (tokens.hasNext()) {
@@ -734,6 +729,18 @@ public class CCSParser implements Parser {
                 if (!tokens.hasNext() || !(tokens.next() instanceof RParenthesis))
                     throw new ParseException("Expected ')'");
                 return expr;
+            }
+
+            if (nextToken instanceof Identifier) {
+                final Identifier id = (Identifier) nextToken;
+                if (Character.isUpperCase(id.getName().charAt(0))) {
+                    List<Value> myParameters = Collections.emptyList();
+                    if (tokens.hasNext() && tokens.peek() instanceof LBracket) {
+                        tokens.next();
+                        myParameters = readParameterValues(tokens);
+                    }
+                    return ExpressionRepository.getExpression(new UnknownRecursiveExpression(id.getName(), myParameters));
+                }
             }
 
             throw new ParseException("Syntax error. Unexpected '" + nextToken + "'");

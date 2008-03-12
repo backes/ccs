@@ -6,49 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.And;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Assign;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Colon;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Comma;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.ConstToken;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Division;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Dot;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Else;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Equals;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.ErrorToken;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Exclamation;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.False;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Geq;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Greater;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Identifier;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.IntegerToken;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.IntervalDots;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.LBrace;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.LBracket;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.LParenthesis;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.LeftShift;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Leq;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Less;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Minus;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Modulo;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Multiplication;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Neq;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Or;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Parallel;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Plus;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.QuestionMark;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.RBrace;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.RBracket;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.RParenthesis;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.RangeToken;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Restrict;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.RightShift;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Semicolon;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Stop;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Then;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Token;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.True;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.When;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.*;
 
 
 public class CCSLexer extends AbstractLexer {
@@ -100,7 +58,8 @@ public class CCSLexer extends AbstractLexer {
                 if (nextChar == '.')
                     tokens.add(new IntervalDots(position, ++position));
                 else {
-                    input.unread(nextChar);
+                    if (nextChar != -1)
+                        input.unread(nextChar);
                     tokens.add(new Dot(position));
                 }
                 break;
@@ -121,11 +80,15 @@ public class CCSLexer extends AbstractLexer {
                 // check for comment
                 nextChar = input.read();
                 if (nextChar == '/') {
-                    while ((nextChar = input.read()) != -1)
+                    ++position;
+                    while ((nextChar = input.read()) != -1) {
+                        ++position;
                         if (nextChar == '\n' || nextChar == '\r')
                             break;
+                    }
                 } else {
-                    input.unread(nextChar);
+                    if (nextChar != -1)
+                        input.unread(nextChar);
                     tokens.add(new Division(position));
                 }
                 break;
@@ -161,9 +124,12 @@ public class CCSLexer extends AbstractLexer {
                 // check for comment
                 nextChar = input.read();
                 if (nextChar == '*') {
+                    ++position;
                     while ((nextChar = input.read()) != -1) {
+                        ++position;
                         if (nextChar == '*') {
                             nextChar = input.read();
+                            ++position;
                             if (nextChar == ')')
                                 break;
                         }
@@ -171,7 +137,8 @@ public class CCSLexer extends AbstractLexer {
                     if (nextChar == -1)
                         throw new LexException("Comment is not closed");
                 } else {
-                    input.unread(nextChar);
+                    if (nextChar != -1)
+                        input.unread(nextChar);
                     tokens.add(new LParenthesis(position));
                 }
                 break;

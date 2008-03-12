@@ -92,9 +92,9 @@ public abstract class Expression {
     }
 
     /**
-     * Replaces every {@link UnknownString} either by a {@link PrefixExpression} and
-     * a {@link StopExpression}, or by a {@link RecursiveExpression}, if a corresponding
-     * Declaration has been found.
+     * Replaces every {@link UnknownRecursiveExpression} by a
+     * {@link RecursiveExpression}, if a corresponding Declaration has been
+     * found.
      * Typically delegates to it's subterms.
      * @return either itself or a new created Expression, if something changed
      */

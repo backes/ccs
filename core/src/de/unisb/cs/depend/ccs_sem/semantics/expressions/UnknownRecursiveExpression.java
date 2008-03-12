@@ -18,23 +18,22 @@ import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
 
 /**
- * Is later (by replaceRecursion()) replaced by a PrefixExpression+StopExpression,
- * or by a RecursiveExpression.
+ * Is later (by replaceRecursion()) replaced by a RecursiveExpression.
  *
  * @author Clemens Hammacher
  */
-public class UnknownString extends Expression {
+public class UnknownRecursiveExpression extends Expression {
 
     private final String name;
     private final List<Value> parameters;
 
-    public UnknownString(String name, List<Value> parameters) {
+    public UnknownRecursiveExpression(String name, List<Value> parameters) {
         super();
         this.name = name;
         this.parameters = parameters;
     }
 
-    public UnknownString(String name) {
+    public UnknownRecursiveExpression(String name) {
         super();
         this.name = name;
         this.parameters = Collections.emptyList();
@@ -51,7 +50,7 @@ public class UnknownString extends Expression {
     }
 
     /**
-     * Replaces this {@link UnknownString} by either a {@link RecursiveExpression} or
+     * Replaces this {@link UnknownRecursiveExpression} by either a {@link RecursiveExpression} or
      * a {@link PrefixExpression} with a {@link StopExpression} on the right hand side.
      */
     @Override
@@ -94,6 +93,10 @@ public class UnknownString extends Expression {
 
     @Override
     public Expression instantiate(Map<Parameter, Value> params) {
+        // TODO check
+        assert false;
+
+
         final List<Value> newParameters = new ArrayList<Value>(parameters.size());
         boolean changed = false;
         for (final Value param: parameters) {
@@ -106,7 +109,7 @@ public class UnknownString extends Expression {
         if (!changed)
             return this;
 
-        return ExpressionRepository.getExpression(new UnknownString(name, newParameters));
+        return ExpressionRepository.getExpression(new UnknownRecursiveExpression(name, newParameters));
     }
 
     @Override
@@ -139,7 +142,7 @@ public class UnknownString extends Expression {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        final UnknownString other = (UnknownString) obj;
+        final UnknownRecursiveExpression other = (UnknownRecursiveExpression) obj;
         // hashCode is cached, so we compare it first (it's cheap)
         if (hashCode() != other.hashCode())
             return false;

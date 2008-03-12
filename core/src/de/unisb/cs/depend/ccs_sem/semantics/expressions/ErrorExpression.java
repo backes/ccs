@@ -61,7 +61,7 @@ public class ErrorExpression extends Expression {
 
     public static ErrorExpression get() {
         if (instance == null)
-            instance = new ErrorExpression();
+            instance = (ErrorExpression) ExpressionRepository.getExpression(new ErrorExpression());
         return instance;
     }
 
