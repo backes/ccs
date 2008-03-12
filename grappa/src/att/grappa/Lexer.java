@@ -1,18 +1,11 @@
-/*
- *  This software may only be used by you under license from AT&T Corp.
- *  ("AT&T").  A copy of AT&T's Source Code Agreement is available at
- *  AT&T's Internet website having the URL:
- *  <http://www.research.att.com/sw/tools/graphviz/license/source.html>
- *  If you received this software without first entering into a license
- *  with AT&T, you have an infringing copy of this software and cannot use
- *  it without violating AT&T's intellectual property rights.
- */
-
 package att.grappa;
 
-import java_cup.runtime.Symbol;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Reader;
 import java.util.Hashtable;
-import java.io.*;
+
+import java_cup.runtime.Symbol;
 
 /**
  * A class for doing lexical analysis of <i>dot</i> formatted input.
@@ -75,16 +68,16 @@ public class Lexer
     /**
      *  hash tables to hold symbols
      */
-    private Hashtable<String, Integer> keywords = new Hashtable<String, Integer>(32);
-    private Hashtable<Integer, Integer> char_symbols = new Hashtable<Integer, Integer>(32);
+    private final Hashtable<String, Integer> keywords = new Hashtable<String, Integer>(32);
+    private final Hashtable<Integer, Integer> char_symbols = new Hashtable<Integer, Integer>(32);
 
-    private Reader inReader;
+    private final Reader inReader;
     private PrintWriter errWriter = null;
 
     /**
      * common StringBuffer (suggested by Ginny Travers (bbn.com))
      */
-    private StringBuffer cmnstrbuf = new StringBuffer();
+    private final StringBuffer cmnstrbuf = new StringBuffer();
 
 
     /**
@@ -148,7 +141,7 @@ public class Lexer
     public void advance() throws IOException {
 	if(retreated) {
 	    retreated = false;
-	    int tmp_char = old_char;
+	    final int tmp_char = old_char;
 	    old_char = next_char;
 	    next_char = next_char2;
 	    next_char2 = tmp_char;
@@ -206,7 +199,7 @@ public class Lexer
 	} else {
 	    current_position--;
 	}
-	int tmp_char = next_char2;
+	final int tmp_char = next_char2;
 	next_char2 = next_char;
 	next_char = old_char;
 	old_char = tmp_char;
@@ -221,7 +214,7 @@ public class Lexer
      * @param message the message to print.
      */
     private void emit_error(String message) {
-	String output = "Lexer" + getLocation() + ": " + message;
+	final String output = "Lexer" + getLocation() + ": " + message;
 	if(errWriter != null) {
 	    errWriter.println("ERROR: " + output);
 	}
@@ -231,13 +224,13 @@ public class Lexer
 
     /**
      * Get the current location in the form "[line_number(character_offser)]".
-     * 
+     *
      * @return info about the current position in the input
      */
     public String getLocation() {
 	return "[" + current_line + "(" + current_position + ")]";
     }
-  
+
 
     /**
      * Emit a warning message.  The message will be marked with both the
@@ -390,7 +383,7 @@ public class Lexer
 		    emit_error("Specification file ends inside an html string");
 		    break;
 		}
-		    
+
 		if (next_char == '<')
 		    angles++;
 		else if (next_char == '>')
@@ -418,7 +411,7 @@ public class Lexer
     private Symbol do_id() throws IOException {
 	String result_str;
 	Integer keyword_num;
-	char buffer[] = new char[1];
+	final char buffer[] = new char[1];
 
 	// next_char holds first character of id
 	buffer[0] = (char) next_char;
@@ -488,7 +481,7 @@ public class Lexer
 	    sym_num = find_single_char(next_char);
 	    if (sym_num != -1) {
 		if (sym_num == Symbols.LCUR && !haveId) {
-		    Symbol result = new Symbol(Symbols.SUBGRAPH);
+		    final Symbol result = new Symbol(Symbols.SUBGRAPH);
 		    haveId = true;
 		    retreat();
 		    return result;
@@ -548,7 +541,7 @@ public class Lexer
      */
     public Symbol next_token(int debugLevel) throws IOException {
 	if(debugLevel > 0) {
-	    Symbol result = real_next_token();
+	    final Symbol result = real_next_token();
 	    if(errWriter != null && debugLevel >= 5) {
 		errWriter.println("DEBUG: Lexer: next_token() => " + result.sym);
 	    }

@@ -1,4 +1,3 @@
-
 package java_cup.runtime;
 
 import java.util.Stack;

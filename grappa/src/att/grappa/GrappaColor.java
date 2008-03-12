@@ -1,17 +1,7 @@
-/*
- *  This software may only be used by you under license from AT&T Corp.
- *  ("AT&T").  A copy of AT&T's Source Code Agreement is available at
- *  AT&T's Internet website having the URL:
- *  <http://www.research.att.com/sw/tools/graphviz/license/source.html>
- *  If you received this software without first entering into a license
- *  with AT&T, you have an infringing copy of this software and cannot use
- *  it without violating AT&T's intellectual property rights.
- */
-
 package att.grappa;
 
-import java.awt.*;
-import java.util.*;
+import java.awt.Color;
+import java.util.Hashtable;
 
 /**
  * This abstract class sets up and provides name-to-color and color-to-name
@@ -728,7 +718,7 @@ public abstract class GrappaColor
     if(name == null || color == null) {
       throw new IllegalArgumentException("supplied name or color is null");
     }
-    String canonName = canonColor(name, null);
+    final String canonName = canonColor(name, null);
     if(canonName == null) {
       throw new IllegalArgumentException("supplied name does not contain alphabetics (" + name + ")");
     }
@@ -752,10 +742,10 @@ public abstract class GrappaColor
       hsb[0] = hsb[1] = hsb[2] = -1;
     }
     if(name == null) return null;
-    char[] array = name.toCharArray();
+    final char[] array = name.toCharArray();
     int len = 0;
     int commas = 0;
-    int[] commaSpots = new int[3];
+    final int[] commaSpots = new int[3];
     int dots = 0;
     boolean allDigits = true;
     for(int i = 0; i < array.length; i++) {
@@ -787,14 +777,14 @@ public abstract class GrappaColor
 	  hsb[i] = Float.valueOf(name.substring(prev,commaSpots[i])).floatValue();
 	  prev = commaSpots[i] + 1;
 	}
-      } catch(NumberFormatException nfe) {
+      } catch(final NumberFormatException nfe) {
 	return null;
       }
       return new String(array,0,len);
     }
     if(len == 0 || allDigits) return null;
     if(commas > 0 || dots > 0) {
-      int l = len;
+      final int l = len;
       len = 0;
       for(int i = 0; i < l; i++) {
 	if(array[i] != '.' && array[i] != ',') {
@@ -822,12 +812,12 @@ public abstract class GrappaColor
    */
   public static Color getColor(String name, Color color) {
     if(color == null) color = defaultColor;
-    
+
     if(name == null) return color;
 
-    float[] hsb = new float[3];
+    final float[] hsb = new float[3];
 
-    String canonName = canonColor(name, hsb);
+    final String canonName = canonColor(name, hsb);
 
     Color retColor = colorTable.get(canonName);
 
@@ -859,7 +849,7 @@ public abstract class GrappaColor
       if(color == null) return null;
       String name = (colorLookUp.get(color));
       if(name == null) {
-	  float[] hsb = Color.RGBtoHSB(color.getRed(),color.getGreen(),color.getBlue(),null);
+	  final float[] hsb = Color.RGBtoHSB(color.getRed(),color.getGreen(),color.getBlue(),null);
 	  name = hsb[0]+","+hsb[1]+","+hsb[2];
       }
       return(name);

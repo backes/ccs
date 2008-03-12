@@ -1,28 +1,9 @@
-/*
- *  This software may only be used by you under license from AT&T Corp.
- *  ("AT&T").  A copy of AT&T's Source Code Agreement is available at
- *  AT&T's Internet website having the URL:
- *  <http://www.research.att.com/sw/tools/graphviz/license/source.html>
- *  If you received this software without first entering into a license
- *  with AT&T, you have an infringing copy of this software and cannot use
- *  it without violating AT&T's intellectual property rights.
- */
-
 package att.grappa;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.StringWriter;
+import java.io.*;
 import java.util.Enumeration;
 import java.util.StringTokenizer;
 import java.util.Vector;

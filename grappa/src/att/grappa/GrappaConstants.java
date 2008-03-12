@@ -1,13 +1,3 @@
-/*
- *  This software may only be used by you under license from AT&T Corp.
- *  ("AT&T").  A copy of AT&T's Source Code Agreement is available at
- *  AT&T's Internet website having the URL:
- *  <http://www.research.att.com/sw/tools/graphviz/license/source.html>
- *  If you received this software without first entering into a license
- *  with AT&T, you have an infringing copy of this software and cannot use
- *  it without violating AT&T's intellectual property rights.
- */
-
 package att.grappa;
 
 /**
@@ -181,19 +171,19 @@ public interface GrappaConstants
     /**
      * String name for background color attribute (grappaBackgroundColor).
      */
-    public final static String GRAPPA_BACKGROUND_COLOR_ATTR   = Grappa.PKG_LOWER+"BackgroundColor";
+    public final static String GRAPPA_BACKGROUND_COLOR_ATTR   = GrappaConstants.PKG_LOWER+"BackgroundColor";
     /**
      * String name for selection color attribute (grappaSelectionColor).
      */
-    public final static String GRAPPA_SELECTION_STYLE_ATTR   = Grappa.PKG_LOWER+"SelectionColor";
+    public final static String GRAPPA_SELECTION_STYLE_ATTR   = GrappaConstants.PKG_LOWER+"SelectionColor";
     /**
      * String name for deletion color attribute (grappaDeletionColor).
      */
-    public final static String GRAPPA_DELETION_STYLE_ATTR   = Grappa.PKG_LOWER+"DeletionColor";
+    public final static String GRAPPA_DELETION_STYLE_ATTR   = GrappaConstants.PKG_LOWER+"DeletionColor";
     /**
      * String name for fontsize adjustment attribute (grappaFontsizeAdjustment).
      */
-    public final static String GRAPPA_FONTSIZE_ADJUSTMENT_ATTR   = Grappa.PKG_LOWER+"FontsizeAdjustment";
+    public final static String GRAPPA_FONTSIZE_ADJUSTMENT_ATTR   = GrappaConstants.PKG_LOWER+"FontsizeAdjustment";
     /**
      * String name for height attribute (height).
      */
