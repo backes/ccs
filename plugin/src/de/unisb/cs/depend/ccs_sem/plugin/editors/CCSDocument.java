@@ -1,10 +1,10 @@
 package de.unisb.cs.depend.ccs_sem.plugin.editors;
 
-import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
@@ -15,7 +15,6 @@ import org.eclipse.jface.text.IDocumentListener;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.ParseCCSProgramJob;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.ParseCCSProgramJob.ParseStatus;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
-import de.unisb.cs.depend.ccs_sem.utils.ConcurrentHashSet;
 
 
 public class CCSDocument extends Document implements IDocumentListener {
@@ -31,8 +30,7 @@ public class CCSDocument extends Document implements IDocumentListener {
             final IStatus result = event.getResult();
             if (result instanceof ParseStatus) {
                 final ParseStatus parseResult = (ParseStatus)result;
-                parsedProgram(parseResult.getParsedProgram(),
-                    parseResult.getDocModCount());
+                parsedProgram(parseResult);
             }
         }
     }
@@ -40,7 +38,7 @@ public class CCSDocument extends Document implements IDocumentListener {
     private final JobDoneListener jobDoneListener = new JobDoneListener();
     private Program ccsProgram = null;
     private long modStampOfCachedProgram = -1;
-    private final Set<IParsingListener> parsingListeners = new ConcurrentHashSet<IParsingListener>();
+    private final ListenerList parsingListeners = new ListenerList();
     private ParseCCSProgramJob reparsingJob;
     private final Lock lock = new ReentrantLock(true);
 
@@ -49,18 +47,19 @@ public class CCSDocument extends Document implements IDocumentListener {
         addDocumentListener(this);
     }
 
-    protected synchronized void parsedProgram(Program parsedProgram, long docModCount) {
-        if (docModCount > modStampOfCachedProgram) {
-            modStampOfCachedProgram = docModCount;
-            ccsProgram = parsedProgram;
-            for (final IParsingListener parsingListener: parsingListeners) {
-                parsingListener.parsingDone(this, parsedProgram);
+    protected synchronized void parsedProgram(ParseStatus result) {
+        if (result.getDocModCount() > modStampOfCachedProgram) {
+            modStampOfCachedProgram = result.getDocModCount();
+            ccsProgram = result.getParsedProgram();
+            final Object[] listeners = parsingListeners.getListeners();
+            for (final Object o: listeners) {
+                ((IParsingListener)o).parsingDone(this, result);
             }
         }
     }
 
     public void addParsingListener(IParsingListener listener) {
-        parsingListeners .add(listener);
+        parsingListeners.add(listener);
     }
 
     public void documentAboutToBeChanged(DocumentEvent event) {
@@ -68,23 +67,26 @@ public class CCSDocument extends Document implements IDocumentListener {
             if (!reparsingJob.shouldRunImmediately)
                 reparsingJob.cancel();
         }
+        lock();
     }
 
     public void documentChanged(DocumentEvent event) {
+        unlock();
         reparsingJob = new ParseCCSProgramJob(this);
         reparsingJob.addJobChangeListener(jobDoneListener);
         reparsingJob.schedule(500);
     }
 
-    public void reparseNow() {
+    public void reparseNow(boolean waitForFinish) throws InterruptedException {
         if (reparsingJob.getState() == Job.WAITING) {
             reparsingJob.shouldRunImmediately = true;
-            reparsingJob.schedule();
         } else {
             reparsingJob = new ParseCCSProgramJob(this);
             reparsingJob.addJobChangeListener(jobDoneListener);
-            reparsingJob.schedule();
         }
+        reparsingJob.schedule();
+        if (waitForFinish)
+            reparsingJob.join();
     }
 
     public void lock() {

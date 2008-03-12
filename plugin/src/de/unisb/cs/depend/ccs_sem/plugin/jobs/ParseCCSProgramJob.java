@@ -12,7 +12,8 @@ import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.lexer.CCSLexer;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Token;
-import de.unisb.cs.depend.ccs_sem.parser.CCSParser;
+import de.unisb.cs.depend.ccs_sem.parser.LoggingCCSParser;
+import de.unisb.cs.depend.ccs_sem.parser.ParsingResult;
 import de.unisb.cs.depend.ccs_sem.plugin.Global;
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSDocument;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
@@ -49,21 +50,22 @@ public class ParseCCSProgramJob extends Job {
 
         Program ccsProgram = null;
         String warning = null;
+        final ParsingResult result = new ParsingResult();
         try {
             monitor.subTask("Lexing...");
-            ccsDocument.lock();
             String text;
+            ccsDocument.lock();
             try {
                 docModCount = ccsDocument.getModificationStamp();
                 text = ccsDocument.get();
             } finally {
                 ccsDocument.unlock();
             }
-            final List<Token> tokens = new CCSLexer().lex(ccsDocument.get());
+            final List<Token> tokens = new CCSLexer().lex(text);
             monitor.worked(WORK_LEXING);
 
             monitor.subTask("Parsing...");
-            ccsProgram = new CCSParser().parse(tokens);
+            ccsProgram = new LoggingCCSParser(result).parse(tokens);
             monitor.worked(WORK_PARSING);
 
             monitor.subTask("Checking Expression");
@@ -80,14 +82,10 @@ public class ParseCCSProgramJob extends Job {
                 + "(around this context: " + e.getEnvironment() + ")";
         }
 
-        final ParseStatus status = new ParseStatus(IStatus.OK, "", ccsProgram, docModCount);
-
-        //document.reparsed(status);
+        final ParseStatus status = new ParseStatus(IStatus.OK, "", ccsProgram, docModCount, result);
 
         // TODO ParseResult, highlighting, ...
         // TODO additional parameter for the parsing result (map expression->position)
-        //editor.setProgram(ccsProgram);
-        // TODO Auto-generated method stub
 
         return status;
     }
@@ -96,15 +94,18 @@ public class ParseCCSProgramJob extends Job {
 
         private Program parsedProgram;
         private long docModCount;
+        private ParsingResult parsingResult;
 
         public ParseStatus(int severity, String message) {
             super(severity, Global.getPluginID(), IStatus.OK, message, null);
         }
 
-        public ParseStatus(int severity, String message, Program parsedProgram, long docModCount) {
+        public ParseStatus(int severity, String message, Program parsedProgram,
+                long docModCount, ParsingResult result) {
             this(severity, message);
             this.parsedProgram = parsedProgram;
             this.docModCount = docModCount;
+            this.parsingResult = result;
         }
 
         public Program getParsedProgram() {
@@ -113,6 +114,10 @@ public class ParseCCSProgramJob extends Job {
 
         public long getDocModCount() {
             return docModCount;
+        }
+
+        public ParsingResult getParsingResult() {
+            return parsingResult;
         }
     }
 

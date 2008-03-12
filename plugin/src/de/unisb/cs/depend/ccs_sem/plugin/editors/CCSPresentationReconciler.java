@@ -17,18 +17,14 @@ import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
 
-import de.unisb.cs.depend.ccs_sem.plugin.jobs.ParseCCSProgramJob;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.ParseCCSProgramJob.ParseStatus;
-import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 
 
 public class CCSPresentationReconciler implements IPresentationReconciler,
         IPresentationDamager, IPresentationRepairer, IParsingListener {
 
     protected ITextViewer textViewer;
-    private ParseCCSProgramJob reparsingJob;
     private final ColorManager colorManager;
-    private ParseStatus lastResult;
 
 
     public CCSPresentationReconciler(ColorManager colorManager) {
@@ -52,28 +48,7 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
     }
 
     public void uninstall() {
-        // nothing to do
-    }
-
-    protected void updatePresentation(final ParseStatus result) {
-        this.lastResult = result;
-        final TextPresentation newPresentation = new TextPresentation();
-        createPresentation0(newPresentation);
-
-
-        final StyledText textWidget = textViewer.getTextWidget();
-        final Display display = textWidget == null ? null : textWidget.getDisplay();
-        if (display != null) {
-            display.asyncExec(new Runnable() {
-
-                public void run() {
-                    if (result.getDocModCount() == getDocModCount(textViewer)) {
-                        textViewer.changeTextPresentation(newPresentation , true);
-                    }
-                }
-
-            });
-        }
+        textViewer = null;
     }
 
     protected long getDocModCount(ITextViewer textViewer) {
@@ -100,25 +75,35 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
         assert textViewer != null;
 
         final IDocument doc = textViewer.getDocument();
-        if (doc instanceof CCSDocument)
-            ((CCSDocument)doc).reparseNow();
+        if (doc instanceof CCSDocument) {
+            try {
+                ((CCSDocument)doc).reparseNow(true);
+            } catch (final InterruptedException e) {
+                // ignore and reset interruption flag
+                Thread.currentThread().interrupt();
+            }
+        }
         // TODO
     }
 
-    private void createPresentation0(TextPresentation presentation) {
-        final IDocument doc = textViewer.getDocument();
-        final int length = doc == null ? 0 : doc.getLength();
-        presentation.setDefaultStyleRange(new StyleRange(0, length, null, null));
+    public void parsingDone(IDocument document, final ParseStatus result) {
+        final TextPresentation presentation = new TextPresentation();
+        presentation.setDefaultStyleRange(new StyleRange(0, document.getLength(), null, null));
 
         // TODO remove, and add correct presentation
         presentation.addStyleRange(new StyleRange(0, 5, colorManager.getColor(new RGB(255, 0, 0)), null, SWT.BOLD));
 
-    }
-
-    public void parsingDone(IDocument document, Program parsedProgram) {
-
-        // TODO Auto-generated method stub
-
+        final StyledText textWidget = textViewer.getTextWidget();
+        final Display display = textWidget == null ? null : textWidget.getDisplay();
+        if (display != null) {
+            display.asyncExec(new Runnable() {
+                public void run() {
+                    if (getDocModCount(textViewer) == result.getDocModCount()) {
+                        textViewer.changeTextPresentation(presentation, true);
+                    }
+                }
+            });
+        }
     }
 
 }

@@ -29,7 +29,7 @@ public class CCSEditor extends TextEditor {
     public Object getAdapter(Class required) {
         if (IContentOutlinePage.class.equals(required)) {
             if (fOutlinePage == null)
-                fOutlinePage = new CCSContentOutlinePage(this);
+                fOutlinePage = new CCSContentOutlinePage(getSourceViewer());
             return fOutlinePage;
         }
         return super.getAdapter(required);
