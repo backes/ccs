@@ -10,9 +10,6 @@ import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
-import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
-import de.unisb.cs.depend.ccs_sem.semantics.types.actions.SimpleAction;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstStringChannel;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
@@ -51,7 +48,7 @@ public class UnknownRecursiveExpression extends Expression {
 
     /**
      * Replaces this {@link UnknownRecursiveExpression} by either a {@link RecursiveExpression} or
-     * a {@link PrefixExpression} with a {@link StopExpression} on the right hand side.
+     * throw a {@link ParseException}.
      */
     @Override
     public Expression replaceRecursion(List<Declaration> declarations) throws ParseException {
@@ -65,30 +62,23 @@ public class UnknownRecursiveExpression extends Expression {
             }
         }
 
-        // no match: take the string as prefix and add a "stop"
-        // (error if parameters are given)
-        if (parameters.size() > 0) {
-            // search for possible matches
-            final List<Declaration> proposals = new ArrayList<Declaration>();
-            for (final Declaration decl: declarations)
-                if (decl.getName().equalsIgnoreCase(name))
-                    proposals.add(decl);
-            final StringBuilder sb = new StringBuilder("Unknown recursion identifier ");
-            sb.append(this);
-            if (proposals.size() > 1) {
-                sb.append(". Did you mean");
-                if (proposals.size() == 1)
-                	sb.append(' ').append(proposals.get(0).getFullName()).append('?');
-                else
-	                for (final Declaration prop: proposals)
-	                    sb.append(Globals.getNewline()).append("  - ").append(prop.getFullName());
-            }
-
-            throw new ParseException(sb.toString());
+        // search for possible matches
+        final List<Declaration> proposals = new ArrayList<Declaration>();
+        for (final Declaration decl: declarations)
+            if (decl.getName().equalsIgnoreCase(name))
+                proposals.add(decl);
+        final StringBuilder sb = new StringBuilder("Unknown recursion identifier ");
+        sb.append(this);
+        if (proposals.size() > 1) {
+            sb.append(". Did you mean");
+            if (proposals.size() == 1)
+            	sb.append(' ').append(proposals.get(0).getFullName()).append('?');
+            else
+                for (final Declaration prop: proposals)
+                    sb.append(Globals.getNewline()).append("  - ").append(prop.getFullName());
         }
-        final Action prefix = new SimpleAction(new ConstStringChannel(name));
-        final Expression stopExpression = ExpressionRepository.getExpression(StopExpression.get());
-        return ExpressionRepository.getExpression(new PrefixExpression(prefix, stopExpression));
+
+        throw new ParseException(sb.toString());
     }
 
     @Override
