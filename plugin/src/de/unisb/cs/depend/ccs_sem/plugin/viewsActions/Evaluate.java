@@ -8,7 +8,7 @@ import org.eclipse.ui.IViewPart;
 import de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView;
 
 
-public class RefreshGraph implements IViewActionDelegate {
+public class Evaluate implements IViewActionDelegate {
 
     private IViewPart view;
 
@@ -22,8 +22,7 @@ public class RefreshGraph implements IViewActionDelegate {
     }
 
     public void selectionChanged(IAction action, ISelection selection) {
-        // TODO Auto-generated method stub
-
+        // ignore
     }
 
 }

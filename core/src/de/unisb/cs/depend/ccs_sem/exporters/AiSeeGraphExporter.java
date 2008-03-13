@@ -53,20 +53,20 @@ public class AiSeeGraphExporter implements Exporter {
 
         while (!queue.isEmpty()) {
             final Expression e = queue.poll();
-            final int sourceStateNr = stateNumbers.get(e);
+            final int sourceStateNo = stateNumbers.get(e);
             aiSeeWriter.print("node: { title: \"");
-            aiSeeWriter.print(sourceStateNr);
+            aiSeeWriter.print(sourceStateNo);
             aiSeeWriter.print("\" label: \"");
             aiSeeWriter.print(quote(e.toString()));
             aiSeeWriter.println("\" }");
 
             for (final Transition trans: e.getTransitions()) {
                 final Expression targetExpr = trans.getTarget();
-                final int targetStateNr = stateNumbers.get(targetExpr);
+                final int targetStateNo = stateNumbers.get(targetExpr);
                 aiSeeWriter.print("edge: { source: \"");
-                aiSeeWriter.print(sourceStateNr);
+                aiSeeWriter.print(sourceStateNo);
                 aiSeeWriter.print("\" target: \"");
-                aiSeeWriter.print(targetStateNr);
+                aiSeeWriter.print(targetStateNo);
                 aiSeeWriter.print("\" label: \"");
                 aiSeeWriter.print(quote(trans.getAction().getLabel()));
                 aiSeeWriter.println("\" }");

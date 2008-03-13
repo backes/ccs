@@ -21,7 +21,6 @@ import org.eclipse.ui.part.PageBook;
 import org.eclipse.ui.part.ViewPart;
 
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor;
-import de.unisb.cs.depend.ccs_sem.plugin.grappa.GrappaFrame;
 import de.unisb.cs.depend.ccs_sem.plugin.views.components.CCSFrame;
 
 
@@ -33,7 +32,7 @@ public class CCSGraphView extends ViewPart implements ISelectionListener {
 
 	private Composite defaultComp;
 
-    private Control currentView;
+    private Control currentPage;
 
     private final Map<CCSEditor, CCSFrame> frames = new HashMap<CCSEditor, CCSFrame>();
 
@@ -55,7 +54,7 @@ public class CCSGraphView extends ViewPart implements ISelectionListener {
         defaultLabel.setText("No CCS file opened.");
         defaultLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-        myPages.showPage(currentView = defaultComp);
+        myPages.showPage(currentPage = defaultComp);
 
         final IWorkbenchPartSite site = getSite();
         final IWorkbenchPage page = site.getPage();
@@ -90,8 +89,8 @@ public class CCSGraphView extends ViewPart implements ISelectionListener {
     }
 
     public synchronized void update() {
-        if (currentView instanceof GrappaFrame) {
-            ((GrappaFrame)currentView).updateGraph();
+        if (currentPage instanceof CCSFrame) {
+            ((CCSFrame)currentPage).updateEvaluation();
         }
     }
 
@@ -105,15 +104,15 @@ public class CCSGraphView extends ViewPart implements ISelectionListener {
     private synchronized void showGraphFor0(IEditorPart activeEditor, boolean updateGraph) {
         if (activeEditor instanceof CCSEditor) {
             final CCSEditor editor = (CCSEditor) activeEditor;
-            CCSFrame control = frames.get(editor);
-            if (control == null)
-                frames.put(editor, control = new CCSFrame(myPages, editor));
+            CCSFrame ccsFrame = frames.get(editor);
+            if (ccsFrame == null)
+                frames.put(editor, ccsFrame = new CCSFrame(myPages, editor));
 
-            myPages.showPage(currentView = control);
+            myPages.showPage(currentPage = ccsFrame);
             if (updateGraph)
-                control.showGraph(true);
+                ccsFrame.showGraph(true);
         } else {
-            myPages.showPage(currentView = defaultComp);
+            myPages.showPage(currentPage = defaultComp);
         }
     }
 

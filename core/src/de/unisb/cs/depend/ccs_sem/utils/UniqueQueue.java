@@ -1,6 +1,7 @@
 package de.unisb.cs.depend.ccs_sem.utils;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -27,6 +28,10 @@ public class UniqueQueue<E> extends ArrayQueue<E> {
     public UniqueQueue(int numElements) {
         super(numElements);
         seen = new HashSet<E>(numElements);
+    }
+
+    public Set<E> getSeen() {
+        return Collections.unmodifiableSet(seen);
     }
 
     @Override

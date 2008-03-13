@@ -9,7 +9,7 @@ import de.unisb.cs.depend.ccs_sem.junit.IntegrationTest;
 /*
 The CCS program:
 
-SEMA[channel, nr, max] = when nr < max channel?"up".SEMA[channel, nr + 1, max] + when nr > 0 channel?"down".SEMA[channel, nr - 1, max];
+SEMA[channel, no, max] = when no < max channel?"up".SEMA[channel, no + 1, max] + when no > 0 channel?"down".SEMA[channel, no - 1, max];
 PRODUCER[sema_ch] = sema_ch!produce.sema_ch!up.PRODUCER[sema_ch];
 CONSUMER[sema_ch] = sema_ch!down.sema_ch!consume.CONSUMER[sema_ch];
 TOGETHER[sema_ch] = PRODUCER[sema_ch] | CONSUMER[sema_ch] | SEMA[sema_ch, 0, 2] \ {sema_ch!down, sema_ch!up, sema_ch?down, sema_ch?up};
@@ -21,7 +21,7 @@ public class ProducerConsumer extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "SEMA[channel, nr, max] = when nr < max channel?\"up\".SEMA[channel, nr + 1, max] + when nr > 0 channel?\"down\".SEMA[channel, nr - 1, max];\n"
+        return "SEMA[channel, no, max] = when no < max channel?\"up\".SEMA[channel, no + 1, max] + when no > 0 channel?\"down\".SEMA[channel, no - 1, max];\n"
             + "PRODUCER[sema_ch] = sema_ch!produce.sema_ch!up.PRODUCER[sema_ch];\n"
             + "CONSUMER[sema_ch] = sema_ch!down.sema_ch!consume.CONSUMER[sema_ch];\n"
             + "TOGETHER[sema_ch] = PRODUCER[sema_ch] | CONSUMER[sema_ch] | SEMA[sema_ch, 0, 2] \\ {sema_ch!down, sema_ch!up, sema_ch?down, sema_ch?up};\n"

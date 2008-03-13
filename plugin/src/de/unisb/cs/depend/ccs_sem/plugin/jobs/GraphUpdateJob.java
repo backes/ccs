@@ -1,12 +1,8 @@
 package de.unisb.cs.depend.ccs_sem.plugin.jobs;
 
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Observer;
 import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -23,52 +19,32 @@ import att.grappa.Edge;
 import att.grappa.Graph;
 import att.grappa.GrappaConstants;
 import att.grappa.Node;
-import de.unisb.cs.depend.ccs_sem.evaluators.EvaluationMonitor;
-import de.unisb.cs.depend.ccs_sem.evaluators.Evaluator;
-import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
-import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
-import de.unisb.cs.depend.ccs_sem.lexer.CCSLexer;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Token;
-import de.unisb.cs.depend.ccs_sem.parser.CCSParser;
 import de.unisb.cs.depend.ccs_sem.plugin.Global;
 import de.unisb.cs.depend.ccs_sem.plugin.grappa.GraphHelper;
+import de.unisb.cs.depend.ccs_sem.plugin.jobs.EvaluationJob.EvaluationStatus;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
-import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
-import de.unisb.cs.depend.ccs_sem.utils.Globals;
 import de.unisb.cs.depend.ccs_sem.utils.UniqueQueue;
 
 
 public class GraphUpdateJob extends Job {
 
-
-    protected final boolean minimize;
-
-    protected final String ccsCode;
-
     protected final boolean layoutLeftToRight;
 
     protected final boolean showNodeLabels;
     protected final boolean showEdgeLabels;
-
-    protected final Set<Observer> observers = new HashSet<Observer>();
+    protected final EvaluationStatus evalStatus;
 
     private static final ISchedulingRule rule = new IdentityRule();
 
-    private final static int WORK_LEXING = 1;
-    private final static int WORK_PARSING = 3;
-    private final static int WORK_CHECKING = 1;
-    private final static int WORK_EVALUATING = 20;
-    private final static int WORK_MINIMIZING = 60;
     private final static int WORK_CREATE_GRAPH = 5;
     private final static int WORK_LAYOUT_GRAPH = 50;
-    private final static int WORK_SUPPLY = 5;
 
-    public GraphUpdateJob(String ccsCode, boolean minimize,
-            boolean layoutLeftToRight, boolean showNodeLabels, boolean showEdgeLabels) {
+    public GraphUpdateJob(EvaluationStatus evalStatus,
+            boolean layoutLeftToRight, boolean showNodeLabels,
+            boolean showEdgeLabels) {
         super("Update Graph");
-        this.ccsCode = ccsCode;
-        this.minimize = minimize;
+        this.evalStatus = evalStatus;
         this.layoutLeftToRight = layoutLeftToRight;
         this.showNodeLabels = showNodeLabels;
         this.showEdgeLabels = showEdgeLabels;
@@ -110,16 +86,6 @@ public class GraphUpdateJob extends Job {
         }
     }
 
-    public void addObserver(Observer obs) {
-        synchronized (observers) {
-            observers.add(obs);
-        }
-    }
-
-    public boolean isMinimize() {
-        return minimize;
-    }
-
     public boolean isLayoutLeftToRight() {
         return layoutLeftToRight;
     }
@@ -132,51 +98,6 @@ public class GraphUpdateJob extends Job {
         return showEdgeLabels;
     }
 
-
-    public class EvalMonitor implements EvaluationMonitor {
-
-        private String error;
-        private final String prefix;
-        private final IProgressMonitor monitor;
-        private int states = 0;
-        private int transitions = 0;
-        private final int outputNum;
-
-        public EvalMonitor(IProgressMonitor monitor, String prefix, int outputNum) {
-            this.monitor = monitor;
-            this.prefix = prefix;
-            this.outputNum = outputNum;
-        }
-
-        public String getErrorString() {
-            return error;
-        }
-
-        public void error(String errorString) {
-            this.error = errorString;
-        }
-
-        public synchronized void newState() {
-            ++states;
-            if (states % outputNum == 0) {
-                monitor.subTask(prefix + states + " States, " + transitions + " Transitions");
-            }
-        }
-
-        public synchronized void newTransitions(int count) {
-            transitions += count;
-        }
-
-        public void ready() {
-            monitor.subTask(prefix + states + " ready");
-        }
-
-        public synchronized void newState(int numTransitions) {
-            newTransitions(numTransitions);
-            newState();
-        }
-
-    }
 
     private class ConcurrentJob implements Callable<GraphUpdateStatus> {
 
@@ -191,76 +112,9 @@ public class GraphUpdateJob extends Job {
         }
 
         public GraphUpdateStatus call() throws Exception {
-            int totalWork = WORK_LEXING + WORK_PARSING + WORK_CHECKING
-            + WORK_EVALUATING + WORK_CREATE_GRAPH + WORK_LAYOUT_GRAPH
-            + WORK_SUPPLY;
-            if (minimize)
-                totalWork += WORK_MINIMIZING;
+            final int totalWork = WORK_CREATE_GRAPH + WORK_LAYOUT_GRAPH;
 
             monitor.beginTask(getName(), totalWork);
-
-            if (monitor.isCanceled())
-                return new GraphUpdateStatus(IStatus.CANCEL, "cancelled");
-
-            // parse ccs term
-            Program ccsProgram = null;
-            String warning = null;
-            try {
-                monitor.subTask("Lexing...");
-                final List<Token> tokens = new CCSLexer().lex(ccsCode);
-                monitor.worked(WORK_LEXING);
-
-                if (monitor.isCanceled())
-                    return new GraphUpdateStatus(IStatus.CANCEL, "cancelled");
-
-                monitor.subTask("Parsing...");
-                ccsProgram = new CCSParser().parse(tokens);
-                monitor.worked(WORK_PARSING);
-
-                if (monitor.isCanceled())
-                    return new GraphUpdateStatus(IStatus.CANCEL, "cancelled");
-
-                monitor.subTask("Checking expression...");
-                // TODO let user set to ignore failed checks here
-                if (!ccsProgram.isGuarded())
-                    throw new ParseException("Your recursive definitions are not guarded.");
-                if (!ccsProgram.isRegular())
-                    throw new ParseException("Your recursive definitions are not regular.");
-                monitor.worked(WORK_CHECKING);
-
-                if (monitor.isCanceled())
-                    return new GraphUpdateStatus(IStatus.CANCEL, "cancelled");
-
-                monitor.subTask("Evaluating...");
-                final Evaluator evaluator = Globals.getDefaultEvaluator();
-                final EvalMonitor evalMonitor = new EvalMonitor(monitor, "Evaluating... ", 100);
-                if (!ccsProgram.evaluate(evaluator, evalMonitor)) {
-                    final String error = evalMonitor.getErrorString();
-                    return new GraphUpdateStatus(IStatus.ERROR,
-                        "Error evaluating: " + error);
-                }
-                monitor.worked(WORK_EVALUATING);
-
-                if (monitor.isCanceled())
-                    return new GraphUpdateStatus(IStatus.CANCEL, "cancelled");
-
-                if (minimize) {
-                    monitor.subTask("Minimizing...");
-                    final EvalMonitor minimizationMonitor = new EvalMonitor(monitor, "Minimizing... ", 100);
-                    if (!ccsProgram.minimizeTransitions(evaluator, minimizationMonitor, false)) {
-                        final String error = evalMonitor.getErrorString();
-                        return new GraphUpdateStatus(IStatus.ERROR,
-                            "Error minimizing: " + error);
-                    }
-                    monitor.worked(WORK_MINIMIZING);
-                }
-            } catch (final LexException e) {
-                warning = "Error lexing: " + e.getMessage() + Globals.getNewline()
-                    + "(around this context: " + e.getEnvironment() + ")";
-            } catch (final ParseException e) {
-                warning = "Error parsing: " + e.getMessage() + Globals.getNewline()
-                    + "(around this context: " + e.getEnvironment() + ")";
-            }
 
             if (monitor.isCanceled())
                 return new GraphUpdateStatus(IStatus.CANCEL, "cancelled");
@@ -268,20 +122,14 @@ public class GraphUpdateJob extends Job {
             monitor.subTask("Creating graph...");
 
             final Graph graph;
-            if (warning == null) {
-                graph = createGraph(ccsProgram.getExpression());
+            if (evalStatus.getSeverity() == IStatus.CANCEL) {
+                graph = createWarningGraph("Graph creation cancelled.");
+            } else if (evalStatus.getWarning() != null) {
+                graph = createWarningGraph(evalStatus.getWarning());
+            } else if (evalStatus.isOK()) {
+                graph = createGraph(evalStatus.getCcsProgram().getExpression());
             } else {
-                graph = new Graph("WARNING");
-                graph.setToolTipText("");
-
-                final Node node = new Node(graph, "warn_node");
-                node.setAttribute(GrappaConstants.LABEL_ATTR, warning);
-                node.setAttribute(GrappaConstants.STYLE_ATTR, "filled");
-                node.setAttribute(GrappaConstants.FILLCOLOR_ATTR, GraphHelper.WARN_NODE_COLOR);
-                node.setAttribute(GrappaConstants.TIP_ATTR,
-                    "The graph could not be built. This is the reason why.");
-                node.setAttribute(GrappaConstants.SHAPE_ATTR, "plaintext");
-                graph.addNode(node);
+                graph = createWarningGraph("Unknown error.");
             }
 
             monitor.worked(WORK_CREATE_GRAPH);
@@ -299,23 +147,27 @@ public class GraphUpdateJob extends Job {
             if (monitor.isCanceled())
                 return new GraphUpdateStatus(IStatus.CANCEL, "cancelled");
 
-            monitor.subTask("Supplying changes...");
-            final GraphUpdateStatus status;
-            //if (warning == null)
-                status = new GraphUpdateStatus(IStatus.OK, "", graph);
-            //else
-                //status = new GraphUpdateStatus(IStatus.ERROR, warning, graph);
-
-            synchronized (observers) {
-                for (final Observer obs: observers)
-                    obs.update(null, status);
-            }
-
-            monitor.worked(WORK_SUPPLY);
-
             monitor.done();
 
+            final GraphUpdateStatus status = new GraphUpdateStatus(IStatus.OK, "", graph);
+
             return status;
+        }
+
+        private Graph createWarningGraph(String warning) {
+            final Graph graph;
+            graph = new Graph("WARNING");
+            graph.setToolTipText("");
+
+            final Node node = new Node(graph, "warn_node");
+            node.setAttribute(GrappaConstants.LABEL_ATTR, warning);
+            node.setAttribute(GrappaConstants.STYLE_ATTR, "filled");
+            node.setAttribute(GrappaConstants.FILLCOLOR_ATTR, GraphHelper.WARN_NODE_COLOR);
+            node.setAttribute(GrappaConstants.TIP_ATTR,
+                "The graph could not be built. This is the reason why.");
+            node.setAttribute(GrappaConstants.SHAPE_ATTR, "plaintext");
+            graph.addNode(node);
+            return graph;
         }
 
         private Graph createGraph(Expression mainExpression) throws InterruptedException {
@@ -410,6 +262,10 @@ public class GraphUpdateJob extends Job {
 
         public GraphUpdateJob getJob() {
             return GraphUpdateJob.this;
+        }
+
+        public EvaluationStatus getEvalStatus() {
+            return evalStatus;
         }
 
     }

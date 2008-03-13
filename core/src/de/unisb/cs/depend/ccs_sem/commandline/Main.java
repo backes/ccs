@@ -27,6 +27,7 @@ import de.unisb.cs.depend.ccs_sem.lexer.CCSLexer;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Token;
 import de.unisb.cs.depend.ccs_sem.parser.CCSParser;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
+import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
 
 public class Main {
@@ -168,8 +169,7 @@ public class Main {
             System.exit(-1);
         }
         if (evaluator == null) {
-            evaluator = new ThreadBasedEvaluator();
-            //evaluator = new SequentialEvaluator();
+            evaluator = Globals.getDefaultEvaluator();
         }
     }
 
@@ -342,7 +342,7 @@ public class Main {
         out.println("  -p, --policy=<integer>");
         out.println("     sets the number of threads used to evaluate the ccs expression.");
         out.println("     There are some special numbers:");
-        out.println("     0 means: <nr of available processors>+1");
+        out.println("     0 means: <number of available processors>+1");
         out.println("     1 means: evaluate sequentially (this is sometimes faster than parallel evaluation of a dual-core system)");
         out.println("     any other number means: take that much threads for parallel evaluation.");
         out.println();

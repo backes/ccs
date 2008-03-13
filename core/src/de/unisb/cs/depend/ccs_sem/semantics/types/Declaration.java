@@ -99,9 +99,9 @@ public class Declaration {
     }
 
     /**
-     * @return the nr of parameters of this recursion variable
+     * @return the number of parameters of this recursion variable
      */
-    public int getParamNr() {
+    public int getParamCount() {
         return parameters.size();
     }
 
@@ -199,37 +199,6 @@ public class Declaration {
         return true;
     }
 
-    // TODO really? then caching doesn't make much sense
     // NO HASHCODE COMPUTATION HERE. ONLY THE SAME DECLARATIONS ARE EQUAL!!
-    /*
-    @Override
-    public int hashCode() {
-        return System.identityHashCode(this);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        final Declaration other = (Declaration) obj;
-        if (name == null) {
-            if (other.name != null)
-                return false;
-        } else if (!name.equals(other.name))
-            return false;
-        if (paramNr != other.paramNr)
-            return false;
-        if (value == null) {
-            if (other.value != null)
-                return false;
-        } else if (!value.equals(other.value))
-            return false;
-        return true;
-    }
-    */
-
+    // TODO really? then caching doesn't make much sense
 }

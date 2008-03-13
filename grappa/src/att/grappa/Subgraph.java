@@ -1877,21 +1877,19 @@ public class Subgraph extends Element implements Comparator<Object> {
     }
 
     double score(double wd, double ht) {
-        return ((ht <= PATCHEDGE2 || wd <= PATCHEDGE2)
-                                                      ? Double.MAX_VALUE
-                                                      : (ht > wd
-                                                                ? (wd == 0
-                                                                          ? (ht == 0
-                                                                                    ? 1
-                                                                                    : Double.MAX_VALUE)
-                                                                          : ht
-                                                                                  / wd)
-                                                                : (ht == 0
-                                                                          ? (wd == 0
-                                                                                    ? 1
-                                                                                    : Double.MAX_VALUE)
-                                                                          : wd
-                                                                                  / ht)));
+        return (ht <= PATCHEDGE2 || wd <= PATCHEDGE2)
+                ? Double.MAX_VALUE
+                : (ht > wd
+                        ? (wd == 0
+                                ? (ht == 0
+                                        ? 1
+                                        : Double.MAX_VALUE)
+                                : ht / wd)
+                        : (ht == 0
+                                ? (wd == 0
+                                        ? 1
+                                        : Double.MAX_VALUE)
+                                : wd / ht));
     }
 
     public void computePatchWork(java.awt.geom.Rectangle2D.Double r,

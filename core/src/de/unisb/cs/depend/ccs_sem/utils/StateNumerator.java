@@ -16,6 +16,10 @@ public class StateNumerator {
     private static int lastStartIndex;
     private static Map<Expression, Integer> lastStateNumbers;
 
+    private StateNumerator() {
+        // prevend from instantiation
+    }
+
     /**
      * Numerates the graph built by the given Expression. The starting expression
      * always gets the startIndex, the other Expressions are numbered in a BFS manner.
@@ -26,8 +30,10 @@ public class StateNumerator {
     public static Map<Expression, Integer> numerateStates(
             Expression mainExpression, int startIndex) {
 
-        if (mainExpression.equals(lastExpression) && startIndex == lastStartIndex)
-            return lastStateNumbers;
+        synchronized (StateNumerator.class) {
+            if (mainExpression.equals(lastExpression) && startIndex == lastStartIndex)
+                return lastStateNumbers;
+        }
 
         final Map<Expression, Integer> numbers = new HashMap<Expression, Integer>();
         numbers.put(mainExpression, startIndex);
@@ -50,9 +56,11 @@ public class StateNumerator {
             }
         }
 
-        lastExpression = mainExpression;
-        lastStartIndex = startIndex;
-        lastStateNumbers = numbers;
+        synchronized (StateNumerator.class) {
+            lastExpression = mainExpression;
+            lastStartIndex = startIndex;
+            lastStateNumbers = numbers;
+        }
 
         return numbers;
     }

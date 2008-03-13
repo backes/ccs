@@ -67,12 +67,12 @@ public class ETMCCExporter implements Exporter {
                     new PriorityQueue<Transition>(transitions.size(),
                             new TransitionsTargetNumberComparator(stateNumbers));
             transQueue.addAll(transitions);
-            final int sourceStateNr = stateNumbers.get(e);
+            final int sourceStateNo = stateNumbers.get(e);
             while (!transQueue.isEmpty()) {
                 final Transition trans = transQueue.poll();
                 final Expression targetExpr = trans.getTarget();
-                final int targetStateNr = stateNumbers.get(targetExpr);
-                traWriter.println("d " + sourceStateNr + " " + targetStateNr
+                final int targetStateNo = stateNumbers.get(targetExpr);
+                traWriter.println("d " + sourceStateNo + " " + targetStateNo
                         + " 0.0 I");
                 if (written.add(targetExpr))
                     queue.add(targetExpr);

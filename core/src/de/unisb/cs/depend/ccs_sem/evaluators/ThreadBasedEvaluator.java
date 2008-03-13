@@ -18,8 +18,8 @@ public class ThreadBasedEvaluator extends ParallelEvaluator {
 
     @Override
     protected ExecutorService getExecutor(int threadsToInstantiate,
-            ThreadFactory myThreadFactory) {
-        return new ThreadBasedExecutor(threadsToInstantiate, myThreadFactory);
+            ThreadFactory threadFactory) {
+        return new ThreadBasedExecutor(threadsToInstantiate, threadFactory);
     }
 
 }

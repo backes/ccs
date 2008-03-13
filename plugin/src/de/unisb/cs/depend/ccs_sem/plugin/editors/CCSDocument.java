@@ -14,7 +14,6 @@ import org.eclipse.jface.text.IDocumentListener;
 
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.ParseCCSProgramJob;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.ParseCCSProgramJob.ParseStatus;
-import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 
 
 public class CCSDocument extends Document implements IDocumentListener {
@@ -36,7 +35,6 @@ public class CCSDocument extends Document implements IDocumentListener {
     }
 
     private final JobDoneListener jobDoneListener = new JobDoneListener();
-    private Program ccsProgram = null;
     private long modStampOfCachedProgram = -1;
     private final ListenerList parsingListeners = new ListenerList();
     private ParseCCSProgramJob reparsingJob;
@@ -50,7 +48,6 @@ public class CCSDocument extends Document implements IDocumentListener {
     protected synchronized void parsedProgram(ParseStatus result) {
         if (result.getDocModCount() > modStampOfCachedProgram) {
             modStampOfCachedProgram = result.getDocModCount();
-            ccsProgram = result.getParsedProgram();
             final Object[] listeners = parsingListeners.getListeners();
             for (final Object o: listeners) {
                 ((IParsingListener)o).parsingDone(this, result);
@@ -78,7 +75,7 @@ public class CCSDocument extends Document implements IDocumentListener {
     }
 
     public void reparseNow(boolean waitForFinish) throws InterruptedException {
-        if (reparsingJob.getState() == Job.WAITING) {
+        if (reparsingJob != null && reparsingJob.getState() == Job.WAITING) {
             reparsingJob.shouldRunImmediately = true;
         } else {
             reparsingJob = new ParseCCSProgramJob(this);

@@ -77,10 +77,10 @@ public class GrappaAdapter implements GrappaConstants, GrappaListener,
                                     ((Element) (subg.currentSelection)).highlight &=
                                             ~HIGHLIGHT_MASK;
                                 } else {
-                                    final Vector<?> vec =
-                                            ((Vector<?>) (subg.currentSelection));
+                                    final Vector<Element> vec =
+                                            ((Vector<Element>) (subg.currentSelection));
                                     for (int i = 0; i < vec.size(); i++) {
-                                        ((Element) (vec.elementAt(i))).highlight &=
+                                        vec.elementAt(i).highlight &=
                                                 ~HIGHLIGHT_MASK;
                                     }
                                 }
@@ -95,10 +95,10 @@ public class GrappaAdapter implements GrappaConstants, GrappaListener,
                                     ((Element) (subg.currentSelection)).highlight &=
                                             ~HIGHLIGHT_MASK;
                                 } else {
-                                    final Vector<?> vec =
-                                            ((Vector<?>) (subg.currentSelection));
+                                    final Vector<Element> vec =
+                                            ((Vector<Element>) (subg.currentSelection));
                                     for (int i = 0; i < vec.size(); i++) {
-                                        ((Element) (vec.elementAt(i))).highlight &=
+                                        vec.elementAt(i).highlight &=
                                                 ~HIGHLIGHT_MASK;
                                     }
                                 }

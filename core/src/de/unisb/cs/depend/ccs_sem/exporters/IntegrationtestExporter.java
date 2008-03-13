@@ -149,13 +149,13 @@ public class IntegrationtestExporter implements Exporter {
         stateCnt = methodCnt = 0;
         while (!queue.isEmpty()) {
             final Expression e = queue.poll();
-            final int sourceStateNr = stateNumbers.get(e);
+            final int sourceStateNo = stateNumbers.get(e);
 
             for (final Transition trans: e.getTransitions()) {
                 final Expression targetExpr = trans.getTarget();
-                final int targetStateNr = stateNumbers.get(targetExpr);
-                javaWriter.println("        addTransition(" + sourceStateNr + ", "
-                    + targetStateNr + ", " + encode0(trans.getAction().getLabel()) + ");");
+                final int targetStateNo = stateNumbers.get(targetExpr);
+                javaWriter.println("        addTransition(" + sourceStateNo + ", "
+                    + targetStateNo + ", " + encode0(trans.getAction().getLabel()) + ");");
                 if (++stateCnt % 5000 == 0) {
                     javaWriter.println("        addTransitions" + methodCnt + "();");
                     javaWriter.println("    }");

@@ -53,11 +53,11 @@ public abstract class IntegrationTest {
 
     private static class SimpleTrans {
         public String label;
-        int endNodeNr;
+        int endNodeNo;
 
-        public SimpleTrans(String label, int endNodeNr) {
+        public SimpleTrans(String label, int endNodeNo) {
             this.label = label;
-            this.endNodeNr = endNodeNr;
+            this.endNodeNo = endNodeNo;
         }
     }
 
@@ -100,24 +100,24 @@ public abstract class IntegrationTest {
     }
 
     @Test
-    public void checkStateNr() {
-        final int foundNr = StateNumerator.numerateStates(program.getExpression()).size();
+    public void checkStateNumber() {
+        final int found = StateNumerator.numerateStates(program.getExpression()).size();
 
-        if (foundNr != states.size())
+        if (found != states.size())
             fail("The number of states does not match. Expected "
-                + states.size() + ", found " + foundNr);
+                + states.size() + ", found " + found);
     }
 
     @Test
-    public void checkTransitionNr() {
-        final int foundNr = TransitionCounter.countTransitions(program.getExpression());
-        int expectedNr = 0;
+    public void checkTransitionNumber() {
+        final int found = TransitionCounter.countTransitions(program.getExpression());
+        int expected = 0;
         for (final List<SimpleTrans> trans: transitions)
-            expectedNr += trans.size();
+            expected += trans.size();
 
-        if (foundNr != expectedNr)
+        if (found != expected)
             fail("The number of transitions does not match. Expected "
-                + expectedNr + ", found " + foundNr);
+                + expected + ", found " + found);
     }
 
     @Test
@@ -150,7 +150,7 @@ public abstract class IntegrationTest {
         final Queue<Integer> queue = new LinkedList<Integer>();
         queue.add(0);
 
-        // mapping from stateNr to expression in the program
+        // mapping from stateNo to expression in the program
         final List<Expression> generatedExpr = new ArrayList<Expression>(states.size());
         generatedExpr.add(expression);
 
@@ -159,15 +159,15 @@ public abstract class IntegrationTest {
             states.get(0), expression.toString());
 
         while (!queue.isEmpty()) {
-            final int stateNr = queue.poll();
-            final List<SimpleTrans> expectedTrans = transitions.get(stateNr);
-            final Expression foundExpr = generatedExpr.get(stateNr);
+            final int stateNo = queue.poll();
+            final List<SimpleTrans> expectedTrans = transitions.get(stateNo);
+            final Expression foundExpr = generatedExpr.get(stateNo);
             final List<Transition> foundTrans = foundExpr.getTransitions();
 
             // now compare outTrans with the outgoing transitions of expr
             if (expectedTrans.size() != foundTrans.size())
-                failAtState(stateNr, foundExpr,
-                    "Nr of outgoing transitions does not match");
+                failAtState(stateNo, foundExpr,
+                    "Number of outgoing transitions does not match");
 
             outer:
             for (final Transition trans: foundTrans) {
@@ -175,7 +175,7 @@ public abstract class IntegrationTest {
                 final String targetLabel = trans.getTarget().toString();
                 for (final SimpleTrans sTrans: expectedTrans) {
                     boolean isError = false;
-                    String label = states.get(sTrans.endNodeNr);
+                    String label = states.get(sTrans.endNodeNo);
                     if (label.startsWith("error_")) {
                         isError = true;
                         label = label.substring(6);
@@ -185,32 +185,32 @@ public abstract class IntegrationTest {
                     if (sTrans.label.equals(transLabel) &&
                             label.equals(targetLabel) &&
                             isError == trans.getTarget().isError()) {
-                        while (generatedExpr.size() <= sTrans.endNodeNr)
+                        while (generatedExpr.size() <= sTrans.endNodeNo)
                             generatedExpr.add(null);
-                        generatedExpr.set(sTrans.endNodeNr, trans.getTarget());
+                        generatedExpr.set(sTrans.endNodeNo, trans.getTarget());
                         continue outer;
                     }
                 }
-                failAtState(stateNr, foundExpr, "Transition \""
+                failAtState(stateNo, foundExpr, "Transition \""
                     + foundExpr.toString() + "\" --\"" + transLabel
                     + "\"-> \"" + targetLabel + "\" shouldn't be there");
             }
         }
     }
 
-    private void failAtState(int stateNr, Expression foundExpr, String message) {
+    private void failAtState(int stateNo, Expression foundExpr, String message) {
         final StringBuilder sb = new StringBuilder();
-        sb.append(message).append(" at state \"").append(states.get(stateNr));
+        sb.append(message).append(" at state \"").append(states.get(stateNo));
         sb.append('"').append(Globals.getNewline());
         sb.append("Expected Transitions:").append(Globals.getNewline());
-        final List<SimpleTrans> expectedTrans = transitions.get(stateNr);
+        final List<SimpleTrans> expectedTrans = transitions.get(stateNo);
         if (expectedTrans.isEmpty())
             sb.append("    (none)").append(Globals.getNewline());
         else
             for (final SimpleTrans trans: expectedTrans) {
                 sb.append("    - \"").append(trans.label);
                 boolean isError = false;
-                String label = states.get(trans.endNodeNr);
+                String label = states.get(trans.endNodeNo);
                 if (label.startsWith("error_")) {
                     isError = true;
                     label = label.substring(6);
@@ -264,14 +264,14 @@ public abstract class IntegrationTest {
         transitions.add(new ArrayList<SimpleTrans>(3));
     }
 
-    protected void addTransition(int startNodeNr, int endNodeNr, String label) {
-        if (startNodeNr >= states.size())
-            fail("Error in the testcase itself. Node nr " + startNodeNr
+    protected void addTransition(int startNodeNo, int endNodeNo, String label) {
+        if (startNodeNo >= states.size())
+            fail("Error in the testcase itself. Node " + startNodeNo
                 + " is greater/equal to the number of nodes (" + states.size() + ")");
-        if (endNodeNr >= states.size())
-            fail("Error in the testcase itself. Node nr " + endNodeNr
+        if (endNodeNo >= states.size())
+            fail("Error in the testcase itself. Node " + endNodeNo
                 + " is greater/equal to the number of nodes (" + states.size() + ")");
-        transitions.get(startNodeNr).add(new SimpleTrans(label, endNodeNr));
+        transitions.get(startNodeNo).add(new SimpleTrans(label, endNodeNo));
     }
 
 
@@ -315,7 +315,7 @@ public abstract class IntegrationTest {
                 final List<SimpleTrans> myTransitions = transitions.get(i);
                 final List<Transition> newTransitions = new ArrayList<Transition>(myTransitions.size());
                 for (final SimpleTrans st: myTransitions)
-                    newTransitions.add(new RebuiltTransition(st.label, createdExpressions.get(st.endNodeNr)));
+                    newTransitions.add(new RebuiltTransition(st.label, createdExpressions.get(st.endNodeNo)));
                 createdExpressions.get(i).transitions = newTransitions;
                 createdExpressions.get(i).evaluate();
             }

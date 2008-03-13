@@ -119,8 +119,8 @@ public class ParallelEvaluator implements Evaluator {
     }
 
     protected ExecutorService getExecutor(final int threadsToInstantiate,
-            final ThreadFactory myThreadFactory) {
-        return Executors.newFixedThreadPool(threadsToInstantiate, myThreadFactory);
+            final ThreadFactory threadFactory) {
+        return Executors.newFixedThreadPool(threadsToInstantiate, threadFactory);
     }
 
     private void shutdown() {
@@ -242,22 +242,22 @@ public class ParallelEvaluator implements Evaluator {
 
         private final Runnable job;
         private final Executor jobExecutor;
-        private final AtomicInteger waitNr;
+        private final AtomicInteger waitNo;
 
-        public Barrier(Runnable jobToRun, Executor executor, int startNr) {
+        public Barrier(Runnable jobToRun, Executor executor, int startNo) {
             this.job = jobToRun;
             this.jobExecutor = executor;
-            this.waitNr = new AtomicInteger(startNr);
+            this.waitNo = new AtomicInteger(startNo);
         }
 
         public void inc() {
-            waitNr.incrementAndGet();
+            waitNo.incrementAndGet();
         }
 
         public void inform() {
-            assert waitNr.get() > 0;
+            assert waitNo.get() > 0;
 
-            final int remaining = waitNr.decrementAndGet();
+            final int remaining = waitNo.decrementAndGet();
             if (remaining == 0)
                 jobExecutor.execute(job);
         }

@@ -6,7 +6,7 @@ public class BCGWriter {
 
     private static boolean isInitialized = false;
     private static boolean isOpen = false;
-    private static int lastStateNr = Integer.MIN_VALUE;
+    private static int lastStateNo = Integer.MIN_VALUE;
 
     public static boolean initialize() {
         if (isInitialized)
@@ -26,7 +26,7 @@ public class BCGWriter {
             throw new ExportException("BCG file is already open.");
 
         isOpen = true;
-        lastStateNr = Integer.MIN_VALUE;
+        lastStateNo = Integer.MIN_VALUE;
         open0(filename, noInitialState, comment);
     }
 
@@ -34,8 +34,9 @@ public class BCGWriter {
 
     public static void writeTransition(int fromState, int toState,
             String label) throws ExportException {
-        if (fromState < lastStateNr)
+        if (fromState < lastStateNo)
             throw new ExportException("The numbers of the source state must increase monotously.");
+        lastStateNo = fromState;
 
         writeTransition0(fromState, toState, label);
     }

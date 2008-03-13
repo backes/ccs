@@ -63,12 +63,12 @@ public class BCGExporter implements Exporter {
                                 new TransitionsTargetNumberComparator(
                                         stateNumbers));
                 transQueue.addAll(transitions);
-                final int sourceStateNr = stateNumbers.get(e);
+                final int sourceStateNo = stateNumbers.get(e);
                 while (!transQueue.isEmpty()) {
                     final Transition trans = transQueue.poll();
                     final Expression targetExpr = trans.getTarget();
-                    final int targetStateNr = stateNumbers.get(targetExpr);
-                    BCGWriter.writeTransition(sourceStateNr, targetStateNr,
+                    final int targetStateNo = stateNumbers.get(targetExpr);
+                    BCGWriter.writeTransition(sourceStateNo, targetStateNo,
                         trans.getAction().getLabel());
                     if (written.add(targetExpr))
                         queue.add(targetExpr);

@@ -56,7 +56,7 @@ public class UnknownRecursiveExpression extends Expression {
     @Override
     public Expression replaceRecursion(List<Declaration> declarations) throws ParseException {
         for (final Declaration decl: declarations) {
-            if (decl.getName().equals(name) && decl.getParamNr() == parameters.size()) {
+            if (decl.getName().equals(name) && decl.getParamCount() == parameters.size()) {
                 // check if parameters match
                 // this possibly throws a ParseException
                 decl.checkMatch(parameters);

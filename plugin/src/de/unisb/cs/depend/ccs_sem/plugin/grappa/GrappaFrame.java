@@ -6,33 +6,43 @@ import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.util.Observable;
-import java.util.Observer;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Vector;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.eclipse.core.runtime.jobs.IJobChangeEvent;
+import org.eclipse.core.runtime.jobs.JobChangeAdapter;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 
+import att.grappa.Edge;
+import att.grappa.Element;
 import att.grappa.Graph;
 import att.grappa.Grappa;
 import att.grappa.GrappaAdapter;
 import att.grappa.GrappaConstants;
 import att.grappa.GrappaPanel;
 import att.grappa.Node;
+import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSDocument;
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.GraphUpdateJob;
+import de.unisb.cs.depend.ccs_sem.plugin.jobs.EvaluationJob.EvaluationStatus;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.GraphUpdateJob.GraphUpdateStatus;
 
 
-public class GrappaFrame extends Composite implements Observer {
+public class GrappaFrame extends Composite {
 
     protected volatile GrappaPanel grappaPanel;
     private final CCSEditor ccsEditor;
@@ -44,16 +54,17 @@ public class GrappaFrame extends Composite implements Observer {
 
     protected Lock graphLock = new ReentrantLock();
 
-    private GraphUpdateJob graphUpdateJob;
+    private volatile GraphUpdateJob graphUpdateJob;
     protected Frame bridgeFrame;
     protected ScrolledComposite scrollComposite;
-    protected Graph graph;
+    protected volatile Graph graph;
+    protected volatile EvaluationStatus lastEvalStatus;
 
     public GrappaFrame(Composite parent, int style, CCSEditor editor) {
         super(parent, style);
 
         this.ccsEditor = editor;
-        setLayout(new org.eclipse.swt.layout.GridLayout());
+        setLayout(new FillLayout());
 
         graphLock.lock();
         try {
@@ -82,7 +93,6 @@ public class GrappaFrame extends Composite implements Observer {
         scrollComposite.setExpandVertical(true);
         scrollComposite.setMinWidth(100);
         scrollComposite.setMinHeight(100);
-        scrollComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
 
         final Composite embeddedComposite = new Composite(scrollComposite, SWT.EMBEDDED);
         scrollComposite.setContent(embeddedComposite);
@@ -161,45 +171,26 @@ public class GrappaFrame extends Composite implements Observer {
         // set the parent size
         getDisplay().asyncExec(new Runnable() {
             public void run() {
-                if (newGrappaPanel.getOverriddenParentSize() != null)
-                    return;
-                final Rectangle rect = scrollComposite.getClientArea();
-                newGrappaPanel.overrideParentSize(new Dimension(rect.width, rect.height));
+                if (newGrappaPanel.getOverriddenParentSize() == null) {
+                    final Rectangle rect = scrollComposite.getClientArea();
+                    newGrappaPanel.overrideParentSize(new Dimension(rect.width, rect.height));
+                }
             }
         });
 
         return newGrappaPanel;
     }
 
-    public synchronized void updateGraph() {
-        if (graphUpdateJob != null)
-            graphUpdateJob.cancel();
-        graphUpdateJob = new GraphUpdateJob(ccsEditor.getText(), minimizeGraph,
-            layoutLeftToRight, showNodeLabels, showEdgeLabels);
-        graphUpdateJob.addObserver(this);
-        graphUpdateJob.schedule();
-    }
-
     public CCSEditor getCCSEditor() {
         return ccsEditor;
     }
 
-    public void update(Observable o, Object arg) {
-        if (arg instanceof GraphUpdateStatus) {
-            final GraphUpdateStatus status = (GraphUpdateStatus) arg;
-            /*
-            if (!status.isOK())
-                return;
-            */
-            setGraph(status);
-        }
-    }
-
-    private void setGraph(GraphUpdateStatus status) {
+    protected void setGraph(GraphUpdateStatus status) {
         graphLock.lock();
         try {
-            final Graph graph = status.getGraph();
-            grappaPanel = createGrappaPanel(graph);
+            final Graph newGraph = status.getGraph();
+            grappaPanel = createGrappaPanel(newGraph);
+            graph = newGraph;
             EventQueue.invokeLater(new Runnable() {
                 public void run() {
                     bridgeFrame.removeAll();
@@ -217,12 +208,6 @@ public class GrappaFrame extends Composite implements Observer {
         try {
         	this.scaleToFit = scaleToFit;
             grappaPanel.setScaleToFit(scaleToFit);
-            /*
-            if (scaleToFit) {
-                final Rectangle rect = scrollComposite.getClientArea();
-                grappaPanel.setSize(rect.width, rect.height);
-            }
-            */
             grappaPanel.repaint();
         } finally {
             graphLock.unlock();
@@ -292,5 +277,120 @@ public class GrappaFrame extends Composite implements Observer {
             graphLock.unlock();
         }
 	}
+
+    public void update(EvaluationStatus evalStatus) {
+        if (graphUpdateJob != null)
+            graphUpdateJob.cancel();
+        if (evalStatus == null)
+            evalStatus = lastEvalStatus;
+        graphUpdateJob = new GraphUpdateJob(evalStatus,
+            layoutLeftToRight, showNodeLabels, showEdgeLabels);
+        graphUpdateJob.addJobChangeListener(new JobChangeAdapter() {
+
+            @Override
+            public void done(IJobChangeEvent event) {
+                if (event.getResult() instanceof GraphUpdateStatus) {
+                    final GraphUpdateStatus status = (GraphUpdateStatus) event.getResult();
+                    lastEvalStatus = status.getEvalStatus();
+                    setGraph(status);
+                }
+            }
+
+        });
+        graphUpdateJob.schedule();
+    }
+
+    public synchronized void updateGraph() {
+        if (lastEvalStatus == null) {
+            final IDocument doc = ccsEditor.getDocument();
+            if (doc instanceof CCSDocument) {
+                try {
+                    ((CCSDocument)doc).reparseNow(true);
+                    assert lastEvalStatus != null;
+                } catch (final InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    // and ignore it...
+                }
+            }
+        } else {
+            update(lastEvalStatus);
+        }
+    }
+
+    public void selectNodes(String[] selection) {
+        final Collection<String> nodesToSelect = selection.length < 4
+            ? new ArrayList<String>(selection.length)
+            : new HashSet<String>(selection.length*4/3 + 1);
+
+        for (final String s: selection)
+            nodesToSelect.add(s);
+
+        graphLock.lock();
+        try {
+            unselectAll();
+
+            final Vector<Element> newSelection = new Vector<Element>();
+            final Enumeration<Node> nodes = graph.nodeElements();
+            while (nodes.hasMoreElements()) {
+                final Node node = nodes.nextElement();
+                if (nodesToSelect.contains(node.getAttributeValue(GrappaConstants.LABEL_ATTR))) {
+                    newSelection.add(node);
+                    node.highlight |= GrappaConstants.SELECTION_MASK;
+                } else {
+                    node.highlight &= ~GrappaConstants.HIGHLIGHT_MASK;
+                }
+            }
+
+            graph.currentSelection = newSelection;
+        } finally {
+            graphLock.unlock();
+        }
+    }
+
+    public void selectTransitions(String[] selection) {
+        final Collection<String> edgesToSelect = selection.length < 4
+            ? new ArrayList<String>(selection.length)
+            : new HashSet<String>(selection.length*4/3 + 1);
+
+        for (final String s: selection)
+            edgesToSelect.add(s);
+
+        graphLock.lock();
+        try {
+            unselectAll();
+
+            final Vector<Element> newSelection = new Vector<Element>();
+            final Enumeration<Edge> edges = graph.edgeElements();
+            while (edges.hasMoreElements()) {
+                final Edge edge = edges.nextElement();
+                if (edgesToSelect.contains(edge.getAttributeValue(GrappaConstants.LABEL_ATTR))) {
+                    newSelection.add(edge);
+                    edge.highlight |= GrappaConstants.SELECTION_MASK;
+                } else {
+                    edge.highlight &= ~GrappaConstants.HIGHLIGHT_MASK;
+                }
+            }
+
+            graph.currentSelection = newSelection;
+        } finally {
+            graphLock.unlock();
+        }
+    }
+
+    private void unselectAll() {
+        if (graph.currentSelection instanceof Element) {
+            ((Element)graph.currentSelection).highlight &= ~GrappaConstants.HIGHLIGHT_MASK;
+        } else if (graph.currentSelection instanceof Vector) {
+            for (final Object elem: (Vector<?>)graph.currentSelection) {
+                ((Element)elem).highlight &= ~GrappaConstants.HIGHLIGHT_MASK;
+            }
+        }
+    }
+
+    @Override
+    public void redraw() {
+        grappaPanel.repaint();
+        super.redraw();
+    }
 
 }

@@ -204,9 +204,9 @@ public class CCSParser implements Parser {
                 // check if a declaration with the same name and number of parameters is already known
                 for (final Declaration decl: declarations)
                     if (decl.getName().equals(nextDeclaration.getName())
-                            && decl.getParamNr() == nextDeclaration.getParamNr())
+                            && decl.getParamCount() == nextDeclaration.getParamCount())
                         throw new ParseException("Duplicate recursion variable definition ("
-                            + nextDeclaration.getName() + "[" + nextDeclaration.getParamNr() + "]");
+                            + nextDeclaration.getName() + "[" + nextDeclaration.getParamCount() + "]");
 
                 declarations.add(nextDeclaration);
             }
@@ -312,7 +312,7 @@ public class CCSParser implements Parser {
             // or a range of integer values
             final Value startValue = readArithmeticExpression(tokens);
             // are there '..'?
-            if (tokens.hasNext() && (tokens.peek() instanceof IntervalDots)) {
+            if (tokens.hasNext() && tokens.peek() instanceof IntervalDots) {
                 ensureInteger(startValue, "Expected constant integer expression before '..'.");
 
                 tokens.next();
@@ -563,6 +563,7 @@ public class CCSParser implements Parser {
                         // it must have parenthesis around it)
 
                         // save the old position
+                        // TODO make this nicer
                         final int oldPosition = tokens.nextIndex();
                         try {
                             final Value value = readArithmeticBaseExpression(tokens);
@@ -590,6 +591,7 @@ public class CCSParser implements Parser {
 
     // returns null if there is no output value
     private Value readOutputValue(ExtendedIterator<Token> tokens) {
+        // TODO make nicer
         final int oldPosition = tokens.nextIndex();
         try {
             return readArithmeticBaseExpression(tokens);
@@ -797,7 +799,8 @@ public class CCSParser implements Parser {
 
     private Value readArithmeticEqExpression(ExtendedIterator<Token> tokens) throws ParseException {
         Value value = readArithmeticCompExpression(tokens);
-        while (tokens.hasNext() && tokens.peek() instanceof Equals || tokens.peek() instanceof Neq) {
+        while (tokens.hasNext() && (tokens.peek() instanceof Equals
+                || tokens.peek() instanceof Neq)) {
             final boolean isNeq = tokens.next() instanceof Neq;
             final Value secondValue = readArithmeticCompExpression(tokens);
             ensureEqualTypes(value, secondValue, "Values to compare must have the same type.");

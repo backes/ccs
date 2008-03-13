@@ -1,10 +1,7 @@
 package de.unisb.cs.depend.ccs_sem.utils;
 
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
@@ -15,16 +12,19 @@ public class TransitionCounter {
     private static Expression lastExpression = null;
     private static int lastCount;
 
+    private TransitionCounter() {
+        // prevend from instantiation
+    }
+
     public static int countTransitions(Expression mainExpr) {
 
-        if (mainExpr.equals(lastExpression))
-            return lastCount;
+        synchronized (TransitionCounter.class) {
+            if (mainExpr.equals(lastExpression))
+                return lastCount;
+        }
 
-        final Queue<Expression> toCount = new LinkedList<Expression>();
+        final Queue<Expression> toCount = new UniqueQueue<Expression>();
         toCount.add(mainExpr);
-
-        final Set<Expression> counted = new HashSet<Expression>();
-        counted.add(mainExpr);
 
         int count = 0;
 
@@ -37,14 +37,14 @@ public class TransitionCounter {
             count += transitions.size();
 
             for (final Transition trans: transitions) {
-                final Expression succ = trans.getTarget();
-                if (counted.add(succ))
-                    toCount.add(succ);
+                toCount.add(trans.getTarget());
             }
         }
 
-        lastExpression = mainExpr;
-        lastCount = count;
+        synchronized (TransitionCounter.class) {
+            lastExpression = mainExpr;
+            lastCount = count;
+        }
 
         return count;
     }

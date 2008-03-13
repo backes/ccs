@@ -34,12 +34,12 @@ import de.unisb.cs.depend.ccs_sem.utils.Bisimulation.TransitionToPartition;
  */
 public class MinimisingExpression extends Expression {
 
-    private final int stateNr;
+    private final int stateNo;
     private List<Transition> transitions;
 
-    private MinimisingExpression(int stateNr) {
+    private MinimisingExpression(int stateNo) {
         super();
-        this.stateNr = stateNr;
+        this.stateNo = stateNo;
         this.transitions = new ArrayList<Transition>();
     }
 
@@ -50,7 +50,7 @@ public class MinimisingExpression extends Expression {
         // create the new Expressions (in a BFS manner)
         final Queue<Partition> queue = new UniqueQueue<Partition>();
         queue.add(partitions.get(expr));
-        int nextStateNr = 0;
+        int nextStateNo = 0;
         final Map<Partition, MinimisingExpression> newExpressions =
             new HashMap<Partition, MinimisingExpression>();
         final Map<Partition, Set<TransitionToPartition>> partitionTransitions =
@@ -61,7 +61,7 @@ public class MinimisingExpression extends Expression {
                 assert part.getAllTransitions().isEmpty();
                 newExpressions.put(part, new MinimisingExpression(-1));
             } else
-                newExpressions.put(part, new MinimisingExpression(nextStateNr++));
+                newExpressions.put(part, new MinimisingExpression(nextStateNo++));
             final Set<TransitionToPartition> partTransitions = part.getAllTransitions();
             partitionTransitions.put(part, partTransitions);
             for (final TransitionToPartition trans: partTransitions)
@@ -106,12 +106,12 @@ public class MinimisingExpression extends Expression {
 
     @Override
     protected boolean isError0() {
-        return stateNr == -1;
+        return stateNo == -1;
     }
 
     @Override
     public String toString() {
-        return String.valueOf(stateNr);
+        return String.valueOf(stateNo);
     }
 
     @Override

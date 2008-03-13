@@ -286,14 +286,14 @@ public class CCSLexer extends AbstractLexer {
         }
     }
 
-    private String readEnvironment(HistoryPushbackReader input, int nr) {
-        final StringBuilder sb = new StringBuilder(nr);
-        // append the last "nr" read chars
-        sb.append(input.getHistory(nr));
-        // append the next "nr" chars
+    private String readEnvironment(HistoryPushbackReader input, int envSize) {
+        final StringBuilder sb = new StringBuilder(envSize);
+        // append the last "envSize" read chars
+        sb.append(input.getHistory(envSize));
+        // append the next "envSize" chars
         int c;
         try {
-            while (nr-- > 0 && (c = input.read()) != -1) {
+            while (envSize-- > 0 && (c = input.read()) != -1) {
                 if (c == '\n' || c == '\r')
                     sb.append(' ');
                 else

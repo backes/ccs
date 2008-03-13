@@ -3,7 +3,7 @@ package de.unisb.cs.depend.ccs_sem.utils;
 import java.util.concurrent.ConcurrentHashMap;
 
 import de.unisb.cs.depend.ccs_sem.evaluators.Evaluator;
-import de.unisb.cs.depend.ccs_sem.evaluators.SequentialEvaluator;
+import de.unisb.cs.depend.ccs_sem.evaluators.ThreadBasedEvaluator;
 import de.unisb.cs.depend.ccs_sem.exceptions.SystemException;
 
 
@@ -53,8 +53,7 @@ public final class Globals {
     }
 
     public static Evaluator getDefaultEvaluator() {
-        // TODO change to parallel/threadbased if the last deadlock is found and removed
-        return new SequentialEvaluator();
+        return new ThreadBasedEvaluator();
     }
 
 }

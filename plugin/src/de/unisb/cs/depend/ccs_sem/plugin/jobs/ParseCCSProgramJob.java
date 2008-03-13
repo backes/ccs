@@ -82,7 +82,12 @@ public class ParseCCSProgramJob extends Job {
                 + "(around this context: " + e.getEnvironment() + ")";
         }
 
-        final ParseStatus status = new ParseStatus(IStatus.OK, "", ccsProgram, docModCount, result);
+        final ParseStatus status;
+        if (warning == null)
+            status = new ParseStatus(IStatus.OK, "", ccsProgram, result);
+        else
+            status = new ParseStatus(IStatus.INFO, warning, ccsProgram, result);
+
 
         // TODO ParseResult, highlighting, ...
         // TODO additional parameter for the parsing result (map expression->position)
@@ -90,10 +95,9 @@ public class ParseCCSProgramJob extends Job {
         return status;
     }
 
-    public static class ParseStatus extends Status {
+    public class ParseStatus extends Status {
 
         private Program parsedProgram;
-        private long docModCount;
         private ParsingResult parsingResult;
 
         public ParseStatus(int severity, String message) {
@@ -101,10 +105,9 @@ public class ParseCCSProgramJob extends Job {
         }
 
         public ParseStatus(int severity, String message, Program parsedProgram,
-                long docModCount, ParsingResult result) {
+                ParsingResult result) {
             this(severity, message);
             this.parsedProgram = parsedProgram;
-            this.docModCount = docModCount;
             this.parsingResult = result;
         }
 

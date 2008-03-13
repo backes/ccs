@@ -1,28 +1,24 @@
 package de.unisb.cs.depend.ccs_sem.plugin.views;
 
-import java.util.List;
-
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.source.ISourceViewer;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
 
 import de.unisb.cs.depend.ccs_sem.parser.ParsingResult;
-import de.unisb.cs.depend.ccs_sem.parser.ParsingResult.ReadDeclaration;
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSDocument;
 import de.unisb.cs.depend.ccs_sem.plugin.editors.IParsingListener;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.ParseCCSProgramJob.ParseStatus;
-import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 
 
 public class CCSContentOutlinePage extends ContentOutlinePage
         implements IParsingListener {
 
-    private Program program;
-    private List<ReadDeclaration> displayedDeclarations;
     private CCSDocument ccsDocument;
     private final ISourceViewer sourceViewer;
+    protected volatile boolean firstDisplay = true;
 
     public CCSContentOutlinePage(ISourceViewer sourceViewer) {
         this.sourceViewer = sourceViewer;
@@ -53,8 +49,15 @@ public class CCSContentOutlinePage extends ContentOutlinePage
         getControl().getDisplay().asyncExec(new Runnable() {
             @SuppressWarnings("synthetic-access")
             public void run() {
-                getTreeViewer().setInput(parsingResult);
-                //outlineTree.refresh();
+                final TreeViewer treeViewer2 = getTreeViewer();
+                final Object[] expanded = treeViewer2.getExpandedElements();
+                treeViewer2.setInput(parsingResult);
+                if (firstDisplay) {
+                    firstDisplay = false;
+                    treeViewer2.expandAll();
+                } else {
+                    treeViewer2.setExpandedElements(expanded);
+                }
             }
         });
     }

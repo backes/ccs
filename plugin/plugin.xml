@@ -67,7 +67,7 @@
             id="de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView.Contribution"
             targetID="de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView">
          <action
-               class="de.unisb.cs.depend.ccs_sem.plugin.viewsActions.RefreshGraph"
+               class="de.unisb.cs.depend.ccs_sem.plugin.viewsActions.Evaluate"
                disabledIcon="resources/icons/refresh_dis.gif"
                icon="resources/icons/refresh.gif"
                id="de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView.actions.refresh"

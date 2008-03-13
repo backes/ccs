@@ -95,7 +95,7 @@ public abstract class Expression {
      * Replaces every {@link UnknownRecursiveExpression} by a
      * {@link RecursiveExpression}, if a corresponding Declaration has been
      * found.
-     * Typically delegates to it's subterms.
+     * Typically delegates to its subterms.
      * @return either itself or a new created Expression, if something changed
      */
     public abstract Expression replaceRecursion(List<Declaration> declarations) throws ParseException;
@@ -104,7 +104,7 @@ public abstract class Expression {
      * Is called in the constructor of a {@link RecursiveExpression}.
      * Replaces all {@link ParameterReference}s that occure in the expression by
      * the corresponding {@link Value} from the parameter list.
-     * Typically delegates to it's subterms.
+     * Typically delegates to its subterms.
      * @param parameters the parameters to replace by concrete values
      * @return either <code>this</code> or a new created Expression
      */
