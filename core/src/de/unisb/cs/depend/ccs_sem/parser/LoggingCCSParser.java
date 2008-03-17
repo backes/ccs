@@ -1,9 +1,12 @@
 package de.unisb.cs.depend.ccs_sem.parser;
 
+import java.io.Reader;
 import java.util.List;
 
+import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Token;
+import de.unisb.cs.depend.ccs_sem.lexer.LoggingCCSLexer;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
@@ -22,6 +25,16 @@ public class LoggingCCSParser extends CCSParser {
         if (result == null)
             throw new NullPointerException();
         this.result = result;
+    }
+
+    @Override
+    public Program parse(Reader input) throws ParseException, LexException {
+    	return parse(new LoggingCCSLexer(result).lex(input));
+    }
+
+    @Override
+    public Program parse(String input) throws ParseException, LexException {
+    	return parse(new LoggingCCSLexer(result).lex(input));
     }
 
     public ParsingResult getResult() {

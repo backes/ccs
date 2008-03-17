@@ -4,7 +4,7 @@ import java.io.StringReader;
 import java.util.List;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Token;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token;
 
 
 public abstract class AbstractLexer implements Lexer {

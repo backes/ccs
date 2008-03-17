@@ -151,11 +151,9 @@ public class StepByStepTraverseFrame extends Composite {
             final IDocument doc = activeEditor.getDocument();
             if (doc instanceof CCSDocument) {
                 ((CCSDocument)doc).addParsingListener(parsingListener);
-                try {
-                    ((CCSDocument)doc).reparseNow(false);
-                } catch (final InterruptedException e) {
-                    // ignore and reset interruption flag
-                    Thread.currentThread().interrupt();
+                ParseStatus result = ((CCSDocument)doc).reparseIfNecessary();
+                if (result != null) {
+                	parsingListener.parsingDone(doc, result);
                 }
             }
         }

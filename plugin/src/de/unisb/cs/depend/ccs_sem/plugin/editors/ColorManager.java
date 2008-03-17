@@ -17,6 +17,9 @@ public class ColorManager {
 	}
 
 	public Color getColor(RGB rgb) {
+		if (rgb == null)
+			return null;
+
 		Color color = fColorTable.get(rgb);
 		if (color == null) {
 			color = new Color(Display.getCurrent(), rgb);

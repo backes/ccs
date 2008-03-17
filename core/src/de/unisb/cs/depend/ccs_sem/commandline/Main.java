@@ -24,7 +24,7 @@ import de.unisb.cs.depend.ccs_sem.exporters.GraphVizExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.IntegrationtestExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.bcg.BCGExporter;
 import de.unisb.cs.depend.ccs_sem.lexer.CCSLexer;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Token;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token;
 import de.unisb.cs.depend.ccs_sem.parser.CCSParser;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;

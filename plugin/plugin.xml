@@ -85,7 +85,7 @@
                tooltip="Refresh this graph">
          </action>
          <action
-               class="de.unisb.cs.depend.ccs_sem.plugin.viewActions.StepByStepTraverse"
+               class="de.unisb.cs.depend.ccs_sem.plugin.actions.StepByStepTraverse"
                disabledIcon="resources/icons/step_dis.gif"
                icon="resources/icons/step.gif"
                id="de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView.actions.stepByStepTraverse"

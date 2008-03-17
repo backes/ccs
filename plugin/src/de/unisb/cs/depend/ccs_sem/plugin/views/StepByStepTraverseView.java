@@ -8,7 +8,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.ISelectionListener;
@@ -28,8 +27,6 @@ public class StepByStepTraverseView extends ViewPart implements ISelectionListen
 
 	private Composite defaultComp;
 
-    private Control currentPage;
-
     private final Map<CCSEditor, StepByStepTraverseFrame> frames =
         new HashMap<CCSEditor, StepByStepTraverseFrame>();
 
@@ -45,7 +42,7 @@ public class StepByStepTraverseView extends ViewPart implements ISelectionListen
         defaultLabel.setText("No CCS file opened.");
         defaultLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-        myPages.showPage(currentPage = defaultComp);
+        myPages.showPage(defaultComp);
 
         final IWorkbenchPartSite site = getSite();
         final IWorkbenchPage page = site == null ? null : site.getPage();
@@ -83,9 +80,9 @@ public class StepByStepTraverseView extends ViewPart implements ISelectionListen
             if (stepByStepTraverseFrame == null)
                 frames.put(editor, stepByStepTraverseFrame = new StepByStepTraverseFrame(myPages, SWT.NONE, editor));
 
-            myPages.showPage(currentPage = stepByStepTraverseFrame);
+            myPages.showPage(stepByStepTraverseFrame);
         } else {
-            myPages.showPage(currentPage = defaultComp);
+            myPages.showPage(defaultComp);
         }
     }
 

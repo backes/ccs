@@ -10,8 +10,8 @@ import org.eclipse.core.runtime.jobs.Job;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
-import de.unisb.cs.depend.ccs_sem.lexer.CCSLexer;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.Token;
+import de.unisb.cs.depend.ccs_sem.lexer.LoggingCCSLexer;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token;
 import de.unisb.cs.depend.ccs_sem.parser.LoggingCCSParser;
 import de.unisb.cs.depend.ccs_sem.parser.ParsingResult;
 import de.unisb.cs.depend.ccs_sem.plugin.Global;
@@ -61,7 +61,7 @@ public class ParseCCSProgramJob extends Job {
             } finally {
                 ccsDocument.unlock();
             }
-            final List<Token> tokens = new CCSLexer().lex(text);
+            final List<Token> tokens = new LoggingCCSLexer(result).lex(text);
             monitor.worked(WORK_LEXING);
 
             monitor.subTask("Parsing...");

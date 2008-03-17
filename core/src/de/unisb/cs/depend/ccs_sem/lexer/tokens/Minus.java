@@ -1,7 +1,9 @@
 package de.unisb.cs.depend.ccs_sem.lexer.tokens;
 
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.OperatorToken;
 
-public class Minus extends AbstractToken {
+
+public class Minus extends OperatorToken {
 
     public Minus(int startPosition) {
         super(startPosition, startPosition);
@@ -11,5 +13,5 @@ public class Minus extends AbstractToken {
     public String toString() {
         return "-";
     }
-    
+
 }

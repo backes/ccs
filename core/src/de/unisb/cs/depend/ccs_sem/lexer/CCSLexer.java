@@ -6,7 +6,49 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.*;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.And;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Assign;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Colon;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Comma;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.ConstToken;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Division;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Dot;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Else;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Equals;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.ErrorToken;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Exclamation;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.False;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Geq;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Greater;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Identifier;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.IntegerToken;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.IntervalDots;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.LBrace;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.LBracket;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.LParenthesis;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.LeftShift;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Leq;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Less;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Minus;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Modulo;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Multiplication;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Neq;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Or;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Parallel;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Plus;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.QuestionMark;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.RBrace;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.RBracket;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.RParenthesis;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.RangeToken;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Restrict;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.RightShift;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Semicolon;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Stop;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Then;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.True;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.When;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token;
 
 
 public class CCSLexer extends AbstractLexer {
@@ -31,7 +73,7 @@ public class CCSLexer extends AbstractLexer {
         return tokens;
     }
 
-    private synchronized void lex0(HistoryPushbackReader input, List<Token> tokens) throws IOException, LexException {
+    private void lex0(HistoryPushbackReader input, List<Token> tokens) throws IOException, LexException {
         int nextChar;
 
         // temporaryly needed variables
@@ -80,12 +122,15 @@ public class CCSLexer extends AbstractLexer {
                 // check for comment
                 nextChar = input.read();
                 if (nextChar == '/') {
+                	int commentStartPosition = position;
                     ++position;
                     while ((nextChar = input.read()) != -1) {
                         ++position;
                         if (nextChar == '\n' || nextChar == '\r')
                             break;
                     }
+                    int commentEndPosition = position;
+                    commentRead(commentStartPosition, commentEndPosition);
                 } else {
                     if (nextChar != -1)
                         input.unread(nextChar);
@@ -124,6 +169,7 @@ public class CCSLexer extends AbstractLexer {
                 // check for comment
                 nextChar = input.read();
                 if (nextChar == '*') {
+                	int commentStartPosition = position;
                     ++position;
                     while ((nextChar = input.read()) != -1) {
                         ++position;
@@ -136,6 +182,8 @@ public class CCSLexer extends AbstractLexer {
                     }
                     if (nextChar == -1)
                         throw new LexException("Comment is not closed");
+                    int commentEndPosition = position;
+                    commentRead(commentStartPosition, commentEndPosition);
                 } else {
                     if (nextChar != -1)
                         input.unread(nextChar);
@@ -286,7 +334,11 @@ public class CCSLexer extends AbstractLexer {
         }
     }
 
-    private String readEnvironment(HistoryPushbackReader input, int envSize) {
+    protected void commentRead(int startPosition, int endPosition) {
+    	// ignore in the default implementation
+	}
+
+	private String readEnvironment(HistoryPushbackReader input, int envSize) {
         final StringBuilder sb = new StringBuilder(envSize);
         // append the last "envSize" read chars
         sb.append(input.getHistory(envSize));
