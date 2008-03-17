@@ -21,6 +21,7 @@ public class CCSContentOutlinePage extends ContentOutlinePage
     protected volatile boolean firstDisplay = true;
 
     public CCSContentOutlinePage(ISourceViewer sourceViewer) {
+        super();
         this.sourceViewer = sourceViewer;
         final IDocument doc = sourceViewer.getDocument();
         if (doc instanceof CCSDocument) {
@@ -34,8 +35,15 @@ public class CCSContentOutlinePage extends ContentOutlinePage
         final CCSContentOutlineContentProvider contentProvider = new CCSContentOutlineContentProvider(sourceViewer);
         getTreeViewer().setContentProvider(contentProvider);
         getTreeViewer().addSelectionChangedListener(contentProvider);
-        if (ccsDocument != null)
+        if (ccsDocument != null) {
             ccsDocument.addParsingListener(this);
+            try {
+                ccsDocument.reparseNow(false);
+            } catch (final InterruptedException e) {
+                Thread.currentThread().interrupt();
+                // ... and ignore
+            }
+        }
     }
 
     @Override
@@ -47,7 +55,6 @@ public class CCSContentOutlinePage extends ContentOutlinePage
         final ParsingResult parsingResult = result.getParsingResult();
 
         getControl().getDisplay().asyncExec(new Runnable() {
-            @SuppressWarnings("synthetic-access")
             public void run() {
                 final TreeViewer treeViewer2 = getTreeViewer();
                 final Object[] expanded = treeViewer2.getExpandedElements();
@@ -60,6 +67,11 @@ public class CCSContentOutlinePage extends ContentOutlinePage
                 }
             }
         });
+    }
+
+    @Override
+    protected TreeViewer getTreeViewer() {
+        return super.getTreeViewer();
     }
 
 }

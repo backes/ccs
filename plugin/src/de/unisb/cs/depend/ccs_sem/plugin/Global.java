@@ -10,9 +10,13 @@ public class Global {
     private static final String PREFERENCE_KEY_DOT = "dotExecutable";
     private static final String PREFERENCE_DEFAULT_DOT = "dot";
 
-    private static final String GRAPH_VIEW_ID = "de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView";
+    private static final String GRAPH_VIEW_ID =
+        "de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView";
+    private static final String STEP_BY_STEP_TRAVERSE_VIEW_ID =
+        "de.unisb.cs.depend.ccs_sem.plugin.views.StepByStepTraverseView";
 
     private static final String ACTION_SET_ID = "de.unisb.cs.depend.ccs_sem.plugin.actionSet";
+
 
     private static IPreferenceStore preferenceStore = null;
 
@@ -36,6 +40,10 @@ public class Global {
 
     public static String getGraphViewId() {
         return GRAPH_VIEW_ID;
+    }
+
+    public static String getStepByStepTraverseViewId() {
+        return STEP_BY_STEP_TRAVERSE_VIEW_ID;
     }
 
     public static String getActionSetId() {

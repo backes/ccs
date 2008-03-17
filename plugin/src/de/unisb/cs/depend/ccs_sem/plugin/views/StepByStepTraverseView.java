@@ -19,10 +19,10 @@ import org.eclipse.ui.part.PageBook;
 import org.eclipse.ui.part.ViewPart;
 
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor;
-import de.unisb.cs.depend.ccs_sem.plugin.views.components.CCSFrame;
+import de.unisb.cs.depend.ccs_sem.plugin.views.components.StepByStepTraverseFrame;
 
 
-public class CCSGraphView extends ViewPart implements ISelectionListener {
+public class StepByStepTraverseView extends ViewPart implements ISelectionListener {
 
     private PageBook myPages;
 
@@ -30,7 +30,8 @@ public class CCSGraphView extends ViewPart implements ISelectionListener {
 
     private Control currentPage;
 
-    private final Map<CCSEditor, CCSFrame> frames = new HashMap<CCSEditor, CCSFrame>();
+    private final Map<CCSEditor, StepByStepTraverseFrame> frames =
+        new HashMap<CCSEditor, StepByStepTraverseFrame>();
 
     @Override
     public void createPartControl(Composite parent) {
@@ -47,17 +48,21 @@ public class CCSGraphView extends ViewPart implements ISelectionListener {
         myPages.showPage(currentPage = defaultComp);
 
         final IWorkbenchPartSite site = getSite();
-        final IWorkbenchPage page = site.getPage();
-        page.addSelectionListener(this);
+        final IWorkbenchPage page = site == null ? null : site.getPage();
+        if (page != null)
+            page.addSelectionListener(this);
 
         final IEditorPart activeEditor = page.getActiveEditor();
         if (activeEditor != null)
-            selectionChanged(activeEditor, null);
+            changeEditor(activeEditor);
     }
 
     @Override
     public void dispose() {
-        myPages.dispose();
+        final IWorkbenchPartSite site = getSite();
+        final IWorkbenchPage page = site == null ? null : site.getPage();
+        if (page != null)
+            page.removeSelectionListener(this);
         super.dispose();
     }
 
@@ -68,25 +73,17 @@ public class CCSGraphView extends ViewPart implements ISelectionListener {
 
     public void selectionChanged(IWorkbenchPart part, ISelection selection) {
         if (part instanceof IEditorPart)
-            showGraphFor((IEditorPart) part, false);
+            changeEditor((IEditorPart) part);
     }
 
-    public synchronized void update() {
-        if (currentPage instanceof CCSFrame) {
-            ((CCSFrame)currentPage).updateEvaluation();
-        }
-    }
-
-    public synchronized void showGraphFor(IEditorPart activeEditor, boolean updateGraph) {
+    public void changeEditor(IEditorPart activeEditor) {
         if (activeEditor instanceof CCSEditor) {
             final CCSEditor editor = (CCSEditor) activeEditor;
-            CCSFrame ccsFrame = frames.get(editor);
-            if (ccsFrame == null)
-                frames.put(editor, ccsFrame = new CCSFrame(myPages, editor));
+            StepByStepTraverseFrame stepByStepTraverseFrame = frames.get(editor);
+            if (stepByStepTraverseFrame == null)
+                frames.put(editor, stepByStepTraverseFrame = new StepByStepTraverseFrame(myPages, SWT.NONE, editor));
 
-            myPages.showPage(currentPage = ccsFrame);
-            if (updateGraph)
-                ccsFrame.showGraph(true);
+            myPages.showPage(currentPage = stepByStepTraverseFrame);
         } else {
             myPages.showPage(currentPage = defaultComp);
         }

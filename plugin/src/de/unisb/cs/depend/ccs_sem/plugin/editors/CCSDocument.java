@@ -46,7 +46,7 @@ public class CCSDocument extends Document implements IDocumentListener {
     }
 
     protected synchronized void parsedProgram(ParseStatus result) {
-        if (result.getDocModCount() > modStampOfCachedProgram) {
+        if (result.getDocModCount() >= modStampOfCachedProgram) {
             modStampOfCachedProgram = result.getDocModCount();
             final Object[] listeners = parsingListeners.getListeners();
             for (final Object o: listeners) {
@@ -57,6 +57,11 @@ public class CCSDocument extends Document implements IDocumentListener {
 
     public void addParsingListener(IParsingListener listener) {
         parsingListeners.add(listener);
+    }
+
+    public void removeParsingListener(
+            IParsingListener listener) {
+        parsingListeners.remove(listener);
     }
 
     public void documentAboutToBeChanged(DocumentEvent event) {
@@ -75,12 +80,11 @@ public class CCSDocument extends Document implements IDocumentListener {
     }
 
     public void reparseNow(boolean waitForFinish) throws InterruptedException {
-        if (reparsingJob != null && reparsingJob.getState() == Job.WAITING) {
-            reparsingJob.shouldRunImmediately = true;
-        } else {
+        if (reparsingJob == null || reparsingJob.getState() != Job.WAITING) {
             reparsingJob = new ParseCCSProgramJob(this);
             reparsingJob.addJobChangeListener(jobDoneListener);
         }
+        reparsingJob.shouldRunImmediately = true;
         reparsingJob.schedule();
         if (waitForFinish)
             reparsingJob.join();

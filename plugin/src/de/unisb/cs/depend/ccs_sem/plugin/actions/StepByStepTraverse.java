@@ -13,10 +13,10 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 
 import de.unisb.cs.depend.ccs_sem.plugin.Global;
-import de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView;
+import de.unisb.cs.depend.ccs_sem.plugin.views.StepByStepTraverseView;
 
 
-public class ShowGraph implements IWorkbenchWindowActionDelegate, IEditorActionDelegate {
+public class StepByStepTraverse implements IWorkbenchWindowActionDelegate, IEditorActionDelegate {
 
     public void dispose() {
         // nothing to do
@@ -34,10 +34,10 @@ public class ShowGraph implements IWorkbenchWindowActionDelegate, IEditorActionD
             final IWorkbenchPage activePage = activeWorkbenchWindow == null ? null
                 : activeWorkbenchWindow.getActivePage();
             if (activePage != null) {
-                final IViewPart view = activePage.showView(Global.getGraphViewId());
+                final IViewPart view = activePage.showView(Global.getStepByStepTraverseViewId());
                 final IEditorPart activeEditor = activePage.getActiveEditor();
-                if (activeEditor != null && view instanceof CCSGraphView) {
-                    ((CCSGraphView)view).showGraphFor(activeEditor, true);
+                if (activeEditor != null && view instanceof StepByStepTraverseView) {
+                    ((StepByStepTraverseView)view).changeEditor(activeEditor);
                 }
             }
         } catch (final PartInitException e) {

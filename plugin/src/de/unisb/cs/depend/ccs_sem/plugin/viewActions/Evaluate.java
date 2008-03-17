@@ -1,4 +1,4 @@
-package de.unisb.cs.depend.ccs_sem.plugin.viewsActions;
+package de.unisb.cs.depend.ccs_sem.plugin.viewActions;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;

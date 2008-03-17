@@ -48,7 +48,7 @@ public class UnknownRecursiveExpression extends Expression {
 
     /**
      * Replaces this {@link UnknownRecursiveExpression} by either a {@link RecursiveExpression} or
-     * throw a {@link ParseException}.
+     * throws a {@link ParseException}.
      */
     @Override
     public Expression replaceRecursion(List<Declaration> declarations) throws ParseException {

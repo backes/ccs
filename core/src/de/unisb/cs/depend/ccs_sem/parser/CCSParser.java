@@ -130,7 +130,7 @@ public class CCSParser implements Parser {
             Expression expr = readMainExpression(it);
 
             // now make it a "top most expression"
-            expr = new TopMostExpression(expr);
+            expr = ExpressionRepository.getExpression(new TopMostExpression(expr));
 
             if (it.hasNext())
                 throw new ParseException("Syntax error: Unexpected '" + it.next() + "'");

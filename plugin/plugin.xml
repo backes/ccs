@@ -15,6 +15,14 @@
             id="de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView"
             name="CCS Graph">
       </view>
+      <view
+            allowMultiple="false"
+            category="de.unisb.cs.depend.ccs_sem.plugin.views.CCS_category"
+            class="de.unisb.cs.depend.ccs_sem.plugin.views.StepByStepTraverseView"
+            icon="resources/icons/stepByStepView.gif"
+            id="de.unisb.cs.depend.ccs_sem.plugin.views.StepByStepTraverseView"
+            name="Step by step traverse">
+      </view>
    </extension>
    <extension
          point="org.eclipse.ui.perspectives">
@@ -67,7 +75,7 @@
             id="de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView.Contribution"
             targetID="de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView">
          <action
-               class="de.unisb.cs.depend.ccs_sem.plugin.viewsActions.Evaluate"
+               class="de.unisb.cs.depend.ccs_sem.plugin.viewActions.Evaluate"
                disabledIcon="resources/icons/refresh_dis.gif"
                icon="resources/icons/refresh.gif"
                id="de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView.actions.refresh"
@@ -75,6 +83,16 @@
                menubarPath="graphFunctions"
                toolbarPath="graphFunctions"
                tooltip="Refresh this graph">
+         </action>
+         <action
+               class="de.unisb.cs.depend.ccs_sem.plugin.viewActions.StepByStepTraverse"
+               disabledIcon="resources/icons/step_dis.gif"
+               icon="resources/icons/step.gif"
+               id="de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView.actions.stepByStepTraverse"
+               label="Step by step traverse"
+               menubarPath="graphFunctions"
+               toolbarPath="graphFunctions"
+               tooltip="Step by step traverse">
          </action>
       </viewContribution>
    </extension>
@@ -93,6 +111,17 @@
                style="push"
                toolbarPath="ccsGroup"
                tooltip="Open the Graph view and displays the CCS Graph">
+         </action>
+         <action
+               class="de.unisb.cs.depend.ccs_sem.plugin.actions.StepByStepTraverse"
+               disabledIcon="resources/icons/step_dis.gif"
+               icon="resources/icons/step.gif"
+               id="de.unisb.cs.depend.ccs_sem.plugin.actions.StepByStepTraverse"
+               label="Step by step traverse"
+               menubarPath="ccsMenu/ccsGroup"
+               style="push"
+               toolbarPath="ccsGroup"
+               tooltip="Step by step traverse">
          </action>
          <menu
                id="ccsMenu"
