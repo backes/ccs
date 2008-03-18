@@ -5,10 +5,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 import java.util.TreeSet;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
@@ -95,11 +95,11 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.*;
  */
 public class CCSParser implements Parser {
 
-    // Stack of the currently read parameters, it's increased and decreased by
+    // "Stack" of the currently read parameters, it's increased and decreased by
     // the read... methods. When a string is read, we try to match it with one
-    // of these parameters *from top to bottom*.
-    // i.e. we can "overwrite" parameters by just pushing them to this stack.
-    private Stack<Parameter> parameters;
+    // of these parameters *from left to right*.
+    // i.e. we can "overwrite" parameters by just adding them on the left to this list.
+    private LinkedList<Parameter> parameters;
 
     // a Map of all constants that are defined in the current program
     private Map<String, ConstantValue> constants;
@@ -118,7 +118,7 @@ public class CCSParser implements Parser {
     // synchronized to make sure that this method is only called once at a time
     public synchronized Program parse(List<Token> tokens) throws ParseException {
         final ArrayList<ProcessVariable> processVariables = new ArrayList<ProcessVariable>();
-        parameters = new Stack<Parameter>();
+        parameters = new LinkedList<Parameter>();
         constants = new HashMap<String, ConstantValue>();
         ranges = new HashMap<String, Range>();
 
@@ -233,12 +233,8 @@ public class CCSParser implements Parser {
      * @return <code>null</code>, if there are no more declarations
      */
     protected ProcessVariable readProcessDeclaration(ExtendedIterator<Token> tokens) throws ParseException {
-        Token token1 = null;
-        Token token2 = null;
-        if (tokens.hasNext())
-            token1 = tokens.next();
-        if (tokens.hasNext())
-            token2 = tokens.next();
+        final Token token1 = tokens.hasNext() ? tokens.next() : null;
+        final Token token2 = tokens.hasNext() ? tokens.next() : null;
         if (token1 == null || token2 == null)
             // there is no declaration
             return null;
@@ -261,13 +257,15 @@ public class CCSParser implements Parser {
                     || !(tokens.next() instanceof Assign))
                 return null;
             // save old parameters
-            final Stack<Parameter> oldParameters = parameters;
-            // set new parameters
-            parameters = new Stack<Parameter>();
-            parameters.addAll(myParameters);
-            expr = readExpression(tokens);
-            // restore old parameters
-            parameters = oldParameters;
+            final LinkedList<Parameter> oldParameters = parameters;
+            try {
+                // set new parameters
+                parameters = new LinkedList<Parameter>(myParameters);
+                expr = readExpression(tokens);
+            } finally {
+                // restore old parameters
+                parameters = oldParameters;
+            }
         } else
             return null;
 
@@ -685,13 +683,13 @@ public class CCSParser implements Parser {
                 if (action instanceof InputAction) {
                     newParam = ((InputAction)action).getParameter();
                     if (newParam != null) {
-                        // push the new parameter on the stack
-                        parameters.push(newParam);
+                        // add the new parameter in front of the list
+                        parameters.addFirst(newParam);
                     }
                 }
                 final Expression target = readPrefixExpression(tokens);
                 if (newParam != null) {
-                    final Parameter removedParam = parameters.pop();
+                    final Parameter removedParam = parameters.removeFirst();
                     assert removedParam == newParam;
                 }
                 return ExpressionRepository.getExpression(new PrefixExpression(action, target));
