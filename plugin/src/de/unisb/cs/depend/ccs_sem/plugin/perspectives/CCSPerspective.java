@@ -16,25 +16,25 @@ import de.unisb.cs.depend.ccs_sem.plugin.Global;
  */
 public class CCSPerspective implements IPerspectiveFactory {
 
-	private IPageLayout factory;
+    private IPageLayout factory;
 
-	public CCSPerspective() {
-		super();
-	}
+    public CCSPerspective() {
+        super();
+    }
 
-	public void createInitialLayout(IPageLayout factory) {
-		this.factory = factory;
+    public void createInitialLayout(IPageLayout factory) {
+        this.factory = factory;
         factory.setFixed(false);
-		addViews();
-		addActionSets();
-		addNewWizardShortcuts();
-		addPerspectiveShortcuts();
-		addViewShortcuts();
-	}
+        addViews();
+        addActionSets();
+        addNewWizardShortcuts();
+        addPerspectiveShortcuts();
+        addViewShortcuts();
+    }
 
-	private void addViews() {
-		// Creates the overall folder layout.
-		// Note that each new Folder uses a percentage of the remaining EditorArea.
+    private void addViews() {
+        // Creates the overall folder layout.
+        // Note that each new Folder uses a percentage of the remaining EditorArea.
 
         final IFolderLayout bottom =
             factory.createFolder(
@@ -59,23 +59,23 @@ public class CCSPerspective implements IPerspectiveFactory {
         //topLeft.addView(IPageLayout.ID_RES_NAV);
         topLeft.addView(IPageLayout.ID_OUTLINE);
 
-	}
+    }
 
-	private void addActionSets() {
-		//factory.addActionSet(IPageLayout.ID_NAVIGATE_ACTION_SET); //NON-NLS-1
-	    factory.addActionSet(Global.getActionSetId());
-	}
+    private void addActionSets() {
+        //factory.addActionSet(IPageLayout.ID_NAVIGATE_ACTION_SET); //NON-NLS-1
+        factory.addActionSet(Global.getActionSetId());
+    }
 
-	private void addPerspectiveShortcuts() {
+    private void addPerspectiveShortcuts() {
         // nothing
-	}
+    }
 
-	private void addNewWizardShortcuts() {
+    private void addNewWizardShortcuts() {
         // nothing
-	}
+    }
 
-	private void addViewShortcuts() {
-		factory.addShowViewShortcut(IConsoleConstants.ID_CONSOLE_VIEW);
-	}
+    private void addViewShortcuts() {
+        factory.addShowViewShortcut(IConsoleConstants.ID_CONSOLE_VIEW);
+    }
 
 }

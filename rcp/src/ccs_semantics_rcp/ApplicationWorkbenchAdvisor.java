@@ -7,22 +7,22 @@ import org.eclipse.ui.application.WorkbenchWindowAdvisor;
 
 public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
 
-	private static final String PERSPECTIVE_ID = "de.unisb.cs.depend.ccs_sem.plugin.perspectives.CCSPerspective";
+    private static final String PERSPECTIVE_ID = "de.unisb.cs.depend.ccs_sem.plugin.perspectives.CCSPerspective";
 
-	@Override
+    @Override
     public WorkbenchWindowAdvisor createWorkbenchWindowAdvisor(
-			IWorkbenchWindowConfigurer configurer) {
-		return new ApplicationWorkbenchWindowAdvisor(configurer);
-	}
+            IWorkbenchWindowConfigurer configurer) {
+        return new ApplicationWorkbenchWindowAdvisor(configurer);
+    }
 
-	@Override
+    @Override
     public String getInitialWindowPerspectiveId() {
-		return PERSPECTIVE_ID;
-	}
+        return PERSPECTIVE_ID;
+    }
 
-	@Override
-	public void initialize(IWorkbenchConfigurer configurer) {
-	    configurer.setSaveAndRestore(true);
-	}
+    @Override
+    public void initialize(IWorkbenchConfigurer configurer) {
+        configurer.setSaveAndRestore(true);
+    }
 
 }

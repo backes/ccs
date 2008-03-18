@@ -20,29 +20,28 @@ import de.unisb.cs.depend.ccs_sem.plugin.views.StepByStepTraverseView;
 
 
 public class StepByStepTraverse implements IWorkbenchWindowActionDelegate,
-		IEditorActionDelegate, IViewActionDelegate {
+        IEditorActionDelegate, IViewActionDelegate {
 
     public static final ISafeRunnable safeRunnable = new SafeRunnable() {
 
-		@Override
-		public void run() throws Exception {
+        public void run() throws Exception {
             final IWorkbench workbench = PlatformUI.getWorkbench();
             final IWorkbenchWindow activeWorkbenchWindow = workbench == null ? null
                 : workbench.getActiveWorkbenchWindow();
             final IWorkbenchPage activePage = activeWorkbenchWindow == null ? null
                 : activeWorkbenchWindow.getActivePage();
             if (activePage == null)
-            	throw new RuntimeException("No active page found.");
+                throw new RuntimeException("No active page found.");
             final IViewPart view = activePage.showView(Global.getStepByStepTraverseViewId());
             final IEditorPart activeEditor = activePage.getActiveEditor();
             if (activeEditor != null && view instanceof StepByStepTraverseView) {
                 ((StepByStepTraverseView)view).changeEditor(activeEditor);
             }
-		}
+        }
 
-	};
+    };
 
-	public void dispose() {
+    public void dispose() {
         // nothing to do
     }
 
@@ -51,7 +50,7 @@ public class StepByStepTraverse implements IWorkbenchWindowActionDelegate,
     }
 
     public void run(IAction action) {
-    	SafeRunner.run(safeRunnable);
+        SafeRunner.run(safeRunnable);
     }
 
     public void selectionChanged(IAction action, ISelection selection) {
@@ -62,8 +61,8 @@ public class StepByStepTraverse implements IWorkbenchWindowActionDelegate,
         // nothing to do
     }
 
-	public void init(IViewPart view) {
-		// nothing to do
-	}
+    public void init(IViewPart view) {
+        // nothing to do
+    }
 
 }

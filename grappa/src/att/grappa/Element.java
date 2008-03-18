@@ -997,10 +997,10 @@ public abstract class Element implements att.grappa.GrappaConstants {
                 strbuf.append('\\');
                 has_special = true;
             } else if (array[isub] == '\r') {
-            	continue;
+                continue;
             } else if (array[isub] == '\n') {
-            	strbuf.append("\\n");
-            	continue;
+                strbuf.append("\\n");
+                continue;
             } else if (!has_special) {
                 if (!Lexer.id_char(array[isub])) {
                     has_special = true;

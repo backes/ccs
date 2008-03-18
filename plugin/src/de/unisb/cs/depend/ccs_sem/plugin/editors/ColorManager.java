@@ -9,22 +9,22 @@ import org.eclipse.swt.widgets.Display;
 
 public class ColorManager {
 
-	protected Map<RGB, Color> fColorTable = new HashMap<RGB, Color>();
+    protected Map<RGB, Color> fColorTable = new HashMap<RGB, Color>();
 
-	public void dispose() {
-	    for (final Color c: fColorTable.values())
-	        c.dispose();
-	}
+    public void dispose() {
+        for (final Color c: fColorTable.values())
+            c.dispose();
+    }
 
-	public Color getColor(RGB rgb) {
-		if (rgb == null)
-			return null;
+    public Color getColor(RGB rgb) {
+        if (rgb == null)
+            return null;
 
-		Color color = fColorTable.get(rgb);
-		if (color == null) {
-			color = new Color(Display.getCurrent(), rgb);
-			fColorTable.put(rgb, color);
-		}
-		return color;
-	}
+        Color color = fColorTable.get(rgb);
+        if (color == null) {
+            color = new Color(Display.getCurrent(), rgb);
+            fColorTable.put(rgb, color);
+        }
+        return color;
+    }
 }

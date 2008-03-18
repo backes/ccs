@@ -114,6 +114,8 @@ public class InformationTab extends CTabItem implements SelectionListener {
             }
             getDisplay().asyncExec(new Runnable() {
                 public void run() {
+                    if (isDisposed())
+                        return;
                     noStates.setText(newStatesText);
                     noTransitions.setText(newTransitionsText);
                     fanOut.setText(newFanOutText);
@@ -188,6 +190,8 @@ public class InformationTab extends CTabItem implements SelectionListener {
         upToDate = false;
         getDisplay().asyncExec(new Runnable() {
             public void run() {
+                if (isDisposed())
+                    return;
                 noStates.setText("... updating ...");
                 noTransitions.setText("... updating ...");
                 if (getParent().getSelection() == InformationTab.this)

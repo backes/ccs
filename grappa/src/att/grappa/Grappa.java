@@ -267,7 +267,7 @@ public abstract class Grappa implements att.grappa.GrappaConstants {
     public static boolean autoPositionNodeLabel = true;
 
     // not used
-    //public static boolean graphAutoUpdate		= false;
+    //public static boolean graphAutoUpdate     = false;
 
     /**
      * Indicates if the <TT>bb</TT> attribute of a subgraph should

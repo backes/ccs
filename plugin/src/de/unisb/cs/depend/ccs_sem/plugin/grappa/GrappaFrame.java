@@ -71,7 +71,7 @@ public class GrappaFrame extends Composite {
             graph = createGraph();
             final Node node = new Node(graph, "warn_node");
             node.setAttribute(GrappaConstants.LABEL_ATTR,
-            		"Click the \"Show Graph\" button to create the LTS.");
+                    "Click the \"Show Graph\" button to create the LTS.");
             node.setAttribute(GrappaConstants.STYLE_ATTR, "filled");
             node.setAttribute(GrappaConstants.COLOR_ATTR, GraphHelper.WARN_NODE_COLOR);
             node.setAttribute(GrappaConstants.TIP_ATTR, "In the CCS Editor, click the \"Show Graph\" button to generate the graph.");
@@ -203,18 +203,18 @@ public class GrappaFrame extends Composite {
         }
     }
 
-	public void setScaleToFit(boolean scaleToFit) {
+    public void setScaleToFit(boolean scaleToFit) {
         graphLock.lock();
         try {
-        	this.scaleToFit = scaleToFit;
+            this.scaleToFit = scaleToFit;
             grappaPanel.setScaleToFit(scaleToFit);
             grappaPanel.repaint();
         } finally {
             graphLock.unlock();
         }
-	}
+    }
 
-	public void zoomIn() {
+    public void zoomIn() {
         graphLock.lock();
         try {
             grappaPanel.multiplyScaleFactor(1.25);
@@ -222,9 +222,9 @@ public class GrappaFrame extends Composite {
         } finally {
             graphLock.unlock();
         }
-	}
+    }
 
-	public void zoomOut() {
+    public void zoomOut() {
         graphLock.lock();
         try {
             grappaPanel.multiplyScaleFactor(0.8);
@@ -232,51 +232,51 @@ public class GrappaFrame extends Composite {
         } finally {
             graphLock.unlock();
         }
-	}
+    }
 
-	public void setShowNodes(boolean showNodeLabels, boolean updateGraph) {
+    public void setShowNodes(boolean showNodeLabels, boolean updateGraph) {
         graphLock.lock();
         try {
             this.showNodeLabels = showNodeLabels;
             if (updateGraph)
-            	updateGraph();
+                updateGraph();
         } finally {
             graphLock.unlock();
         }
-	}
+    }
 
-	public void setShowEdges(boolean showEdgeLabels, boolean updateGraph) {
+    public void setShowEdges(boolean showEdgeLabels, boolean updateGraph) {
         graphLock.lock();
         try {
             this.showEdgeLabels = showEdgeLabels;
             if (updateGraph)
-            	updateGraph();
+                updateGraph();
         } finally {
             graphLock.unlock();
         }
-	}
+    }
 
-	public void setMinimize(boolean minimize, boolean updateGraph) {
+    public void setMinimize(boolean minimize, boolean updateGraph) {
         graphLock.lock();
         try {
             minimizeGraph  = minimize;
             if (updateGraph)
-            	updateGraph();
+                updateGraph();
         } finally {
             graphLock.unlock();
         }
-	}
+    }
 
-	public void setLayoutLeftToRight(boolean layoutLeftToRight, boolean updateGraph) {
+    public void setLayoutLeftToRight(boolean layoutLeftToRight, boolean updateGraph) {
         graphLock.lock();
         try {
             this.layoutLeftToRight = layoutLeftToRight;
             if (updateGraph)
-            	updateGraph();
+                updateGraph();
         } finally {
             graphLock.unlock();
         }
-	}
+    }
 
     public void update(EvaluationStatus evalStatus) {
         if (graphUpdateJob != null)
@@ -304,8 +304,9 @@ public class GrappaFrame extends Composite {
         if (lastEvalStatus == null) {
             final IDocument doc = ccsEditor.getDocument();
             if (doc instanceof CCSDocument) {
+                ((CCSDocument)doc).reparseNow();
                 try {
-                    ((CCSDocument)doc).reparseNow(true);
+                    ((CCSDocument)doc).waitForReparsingDone();
                     assert lastEvalStatus != null;
                 } catch (final InterruptedException e) {
                     Thread.currentThread().interrupt();

@@ -7,7 +7,6 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Tree;
@@ -28,18 +27,18 @@ public class StepByStepTraverseFrame extends Composite {
     private final IParsingListener parsingListener = new IParsingListener() {
 
         public void parsingDone(final IDocument document, final ParseStatus result) {
-            Display myDisplay = isDisposed() ? null : getDisplay();
-            if (myDisplay == null) {
+            if (isDisposed()) {
                 // oops, we are disposed...
                 if (document instanceof CCSDocument) {
                     ((CCSDocument)document).removeParsingListener(this);
                 }
                 return;
             }
-            myDisplay.asyncExec(new Runnable() {
+            Runnable runnable = new Runnable() {
                 public void run() {
                     synchronized (StepByStepTraverseFrame.this) {
-                        if (activeEditor == null || activeEditor.getDocument() != document)
+                        if (activeEditor == null || activeEditor.getDocument() != document
+                                || isDisposed())
                             return;
 
                         if (result.getSeverity() != IStatus.OK) {
@@ -63,7 +62,11 @@ public class StepByStepTraverseFrame extends Composite {
                         }
                     }
                 }
-            });
+            };
+            if (result.isSyncExec())
+                getDisplay().syncExec(runnable);
+            else
+                getDisplay().asyncExec(runnable);
         }
 
     };
@@ -126,7 +129,7 @@ public class StepByStepTraverseFrame extends Composite {
 
         int parentWidth = getParent().getClientArea().width;
         parentWidth = Math.max(600, parentWidth);
-        tree = new Tree(this, SWT.H_SCROLL | SWT.V_SCROLL | SWT.VIRTUAL);
+        tree = new Tree(this, SWT.H_SCROLL | SWT.V_SCROLL | SWT.VIRTUAL | SWT.FULL_SELECTION);
         final TreeColumn col1 = new TreeColumn(tree, SWT.LEFT);
         col1.setText("Action");
         col1.setWidth(parentWidth*3/9);
@@ -134,7 +137,7 @@ public class StepByStepTraverseFrame extends Composite {
         col2.setText("Target");
         col2.setWidth(parentWidth*5/9);
         tree.setHeaderVisible(true);
-        //tree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
         tree.addListener(SWT.SetData, treeListener);
     }
 
@@ -151,9 +154,9 @@ public class StepByStepTraverseFrame extends Composite {
             final IDocument doc = activeEditor.getDocument();
             if (doc instanceof CCSDocument) {
                 ((CCSDocument)doc).addParsingListener(parsingListener);
-                ParseStatus result = ((CCSDocument)doc).reparseIfNecessary();
+                final ParseStatus result = ((CCSDocument)doc).reparseIfNecessary();
                 if (result != null) {
-                	parsingListener.parsingDone(doc, result);
+                    parsingListener.parsingDone(doc, result);
                 }
             }
         }

@@ -19,41 +19,41 @@ import de.unisb.cs.depend.ccs_sem.plugin.actions.OpenCCSFile;
  */
 public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
-	// Actions - important to allocate these only in makeActions, and then use
-	// them
-	// in the fill methods. This ensures that the actions aren't recreated
-	// when fillActionBars is called with FILL_PROXY.
-	private IWorkbenchAction exitAction;
+    // Actions - important to allocate these only in makeActions, and then use
+    // them
+    // in the fill methods. This ensures that the actions aren't recreated
+    // when fillActionBars is called with FILL_PROXY.
+    private IWorkbenchAction exitAction;
 
-	public ApplicationActionBarAdvisor(IActionBarConfigurer configurer) {
-		super(configurer);
-	}
+    public ApplicationActionBarAdvisor(IActionBarConfigurer configurer) {
+        super(configurer);
+    }
 
-	@Override
+    @Override
     protected void makeActions(final IWorkbenchWindow window) {
-		// Creates the actions and registers them.
-		// Registering is needed to ensure that key bindings work.
-		// The corresponding commands keybindings are defined in the plugin.xml
-		// file.
-		// Registering also provides automatic disposal of the actions when
-		// the window is closed.
+        // Creates the actions and registers them.
+        // Registering is needed to ensure that key bindings work.
+        // The corresponding commands keybindings are defined in the plugin.xml
+        // file.
+        // Registering also provides automatic disposal of the actions when
+        // the window is closed.
 
-		exitAction = ActionFactory.QUIT.create(window);
-		register(exitAction);
-	}
+        exitAction = ActionFactory.QUIT.create(window);
+        register(exitAction);
+    }
 
-	@Override
+    @Override
     protected void fillMenuBar(IMenuManager menuBar) {
-		final MenuManager fileMenu = new MenuManager("&File",
-				IWorkbenchActionConstants.M_FILE);
-		menuBar.add(fileMenu);
-		fileMenu.add(exitAction);
-	}
+        final MenuManager fileMenu = new MenuManager("&File",
+                IWorkbenchActionConstants.M_FILE);
+        menuBar.add(fileMenu);
+        fileMenu.add(exitAction);
+    }
 
-	@Override
-	protected void fillCoolBar(ICoolBarManager coolBar) {
-	    super.fillCoolBar(coolBar);
+    @Override
+    protected void fillCoolBar(ICoolBarManager coolBar) {
+        super.fillCoolBar(coolBar);
         coolBar.add(new OpenCCSFile());
-	}
+    }
 
 }

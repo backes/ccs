@@ -12,15 +12,27 @@ import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.jface.text.presentation.IPresentationDamager;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.IPresentationRepairer;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
 
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Identifier;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.KeywordToken;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.OperatorToken;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token;
 import de.unisb.cs.depend.ccs_sem.parser.ParsingResult;
 import de.unisb.cs.depend.ccs_sem.parser.ParsingResult.ReadComment;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.ParseCCSProgramJob.ParseStatus;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.UnknownRecursiveExpression;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.Range;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstString;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterReference;
 
 
 public class CCSPresentationReconciler implements IPresentationReconciler,
@@ -80,8 +92,9 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
 
         final IDocument doc = textViewer.getDocument();
         if (doc instanceof CCSDocument) {
+            ((CCSDocument)doc).reparseNow();
             try {
-                ((CCSDocument)doc).reparseNow(true);
+                ((CCSDocument)doc).waitForReparsingDone();
             } catch (final InterruptedException e) {
                 // ignore and reset interruption flag
                 Thread.currentThread().interrupt();
@@ -91,78 +104,112 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
 
     public void parsingDone(IDocument document, final ParseStatus result) {
         final TextPresentation presentation =
-        	createPresentationAfterParsing(document, result);
+            createPresentationAfterParsing(document, result);
 
         final StyledText textWidget = textViewer.getTextWidget();
         final Display display = textWidget == null ? null : textWidget.getDisplay();
         if (display != null) {
-            display.asyncExec(new Runnable() {
+            final Runnable runnable = new Runnable() {
                 public void run() {
-                    if (getDocModCount(textViewer) == result.getDocModCount()) {
+                    if (getDocModCount(textViewer) == result.getDocModCount()
+                            && textViewer.getTextWidget() != null
+                            && !textViewer.getTextWidget().isDisposed()) {
                         textViewer.changeTextPresentation(presentation, true);
                     }
                 }
-            });
+            };
+            if (result.isSyncExec())
+                display.syncExec(runnable);
+            else
+                display.asyncExec(runnable);
         }
     }
 
-	private TextPresentation createPresentationAfterParsing(IDocument document, ParseStatus status) {
-		ParsingResult result = status.getParsingResult();
+    private TextPresentation createPresentationAfterParsing(IDocument document, ParseStatus status) {
+        final ParsingResult result = status.getParsingResult();
 
-		final TextPresentation presentation = new TextPresentation();
+        final TextPresentation presentation = new TextPresentation();
         presentation.setDefaultStyleRange(new StyleRange(0, document.getLength(), null, null));
 
-        for (ReadComment comment: result.comments) {
-        	presentation.addStyleRange(new StyleRange(comment.startPosition,
-        			comment.endPosition - comment.startPosition + 1,
-        			colorManager.getColor(Constants.getCommentForegroundRGB()),
-        			colorManager.getColor(Constants.getCommentBackgroundRGB()),
-        			Constants.getCommentFontStyle()));
+        for (final ReadComment comment: result.comments) {
+            presentation.addStyleRange(new StyleRange(comment.startPosition,
+                    comment.endPosition - comment.startPosition + 1,
+                    colorManager.getColor(Constants.getCommentForegroundRGB()),
+                    colorManager.getColor(Constants.getCommentBackgroundRGB()),
+                    Constants.getCommentFontStyle()));
         }
 
-        // TODO parameter references
+        for (final Token tok: result.tokens) {
+            RGB foregroundRGB = null;
+            RGB backgroundRGB = null;
+            int fontStyle = SWT.NORMAL;
 
-        for (de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token tok: result.tokens) {
-        	StyleRange style = null;
-        	if (tok instanceof KeywordToken) {
-        		style = new StyleRange(0, 0,
-        				colorManager.getColor(Constants.getKeywordForegroundRGB()),
-        				colorManager.getColor(Constants.getKeywordBackgroudRGB()),
-        				Constants.getKeywordFontStyle());
-        	} else if (tok instanceof OperatorToken) {
-        		style = new StyleRange(0, 0,
-        				colorManager.getColor(Constants.getOperatorForegroundRGB()),
-        				colorManager.getColor(Constants.getOperatorBackgroudRGB()),
-        				Constants.getOperatorFontStyle());
-        	}
-
-        	if (style != null) {
-        		style.start = tok.getStartPosition();
-        		style.length = tok.getLength();
-            	presentation.addStyleRange(style);
-        	}
-        }
-
-		return presentation;
-	}
-
-	@Override
-	public void inputDocumentAboutToBeChanged(IDocument oldInput, IDocument newInput) {
-		// not very interesting...
-	}
-
-	@Override
-	public void inputDocumentChanged(IDocument oldInput, IDocument newInput) {
-		if (oldInput instanceof CCSDocument) {
-			((CCSDocument)oldInput).removeParsingListener(this);
-		}
-		if (newInput instanceof CCSDocument) {
-			((CCSDocument)newInput).addParsingListener(this);
-            ParseStatus result = ((CCSDocument)newInput).reparseIfNecessary();
-            if (result != null) {
-            	parsingDone(newInput, result);
+            if (tok instanceof KeywordToken) {
+                foregroundRGB = Constants.getKeywordForegroundRGB();
+                backgroundRGB = Constants.getKeywordBackgroundRGB();
+                fontStyle = Constants.getKeywordFontStyle();
+            } else if (tok instanceof OperatorToken) {
+                foregroundRGB = Constants.getOperatorForegroundRGB();
+                backgroundRGB = Constants.getOperatorBackgroundRGB();
+                fontStyle = Constants.getOperatorFontStyle();
+            } else if (tok instanceof Identifier) {
+                final Object o = result.identifiers.get(tok);
+                if (o instanceof Parameter) {
+                    // no style so far... (parameter on input action or process
+                    // variable)
+                } else if (o instanceof ParameterReference) {
+                    // can be channel or value, is not distinguished here
+                    foregroundRGB = Constants.getParameterReferenceForegroundRGB();
+                    backgroundRGB = Constants.getParameterReferenceBackgroundRGB();
+                    fontStyle = Constants.getParameterReferenceFontStyle();
+                } else if (o instanceof ConstantValue) {
+                    // no style so far...
+                } else if (o instanceof ConstString) {
+                    // no style so far...
+                } else if (o instanceof Range) {
+                    // no style so far...
+                } else if (o instanceof UnknownRecursiveExpression) {
+                    foregroundRGB = Constants.getProcessReferenceForegroundRGB();
+                    backgroundRGB = Constants.getProcessReferenceBackgroundRGB();
+                    fontStyle = Constants.getProcessReferenceFontStyle();
+                } else if (o instanceof Channel) {
+                    // no style so far...
+                } else if (o instanceof ProcessVariable) {
+                    // no style so far... (process variable definition)
+                } else {
+                    // we should not get here
+                    assert false;
+                }
             }
-		}
-	}
+
+            if (foregroundRGB != null || backgroundRGB != null || fontStyle != SWT.NORMAL) {
+                final StyleRange style = new StyleRange(tok.getStartPosition(),
+                    tok.getLength(),
+                    colorManager.getColor(foregroundRGB),
+                    colorManager.getColor(backgroundRGB),
+                    fontStyle);
+                presentation.addStyleRange(style);
+            }
+        }
+
+        return presentation;
+    }
+
+    public void inputDocumentAboutToBeChanged(IDocument oldInput, IDocument newInput) {
+        // not very interesting...
+    }
+
+    public void inputDocumentChanged(IDocument oldInput, IDocument newInput) {
+        if (oldInput instanceof CCSDocument) {
+            ((CCSDocument)oldInput).removeParsingListener(this);
+        }
+        if (newInput instanceof CCSDocument) {
+            ((CCSDocument)newInput).addParsingListener(this);
+            final ParseStatus result = ((CCSDocument)newInput).reparseIfNecessary();
+            if (result != null) {
+                parsingDone(newInput, result);
+            }
+        }
+    }
 
 }

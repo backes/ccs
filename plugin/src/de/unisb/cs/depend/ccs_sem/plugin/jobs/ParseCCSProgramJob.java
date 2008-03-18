@@ -23,7 +23,8 @@ public class ParseCCSProgramJob extends Job {
 
     private final CCSDocument ccsDocument;
 
-    public boolean shouldRunImmediately = false;
+    public volatile boolean shouldRunImmediately = false;
+    public volatile boolean syncExec = false;
 
     // the mod count of the text to parse.
     // is used when parsing is done to check if the text is still up-to-date
@@ -121,6 +122,10 @@ public class ParseCCSProgramJob extends Job {
 
         public ParsingResult getParsingResult() {
             return parsingResult;
+        }
+
+        public boolean isSyncExec() {
+            return syncExec;
         }
     }
 

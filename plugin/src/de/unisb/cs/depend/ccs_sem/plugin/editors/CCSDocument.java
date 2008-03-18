@@ -39,7 +39,7 @@ public class CCSDocument extends Document implements IDocumentListener {
     private final ListenerList parsingListeners = new ListenerList();
     private ParseCCSProgramJob reparsingJob;
     private final Lock lock = new ReentrantLock(true);
-	private ParseStatus lastResult;
+    private ParseStatus lastResult;
 
     public CCSDocument() {
         super();
@@ -67,29 +67,37 @@ public class CCSDocument extends Document implements IDocumentListener {
     }
 
     public void documentAboutToBeChanged(DocumentEvent event) {
-        if (reparsingJob != null) {
-            if (!reparsingJob.shouldRunImmediately)
+        if (reparsingJob != null && !reparsingJob.shouldRunImmediately)
                 reparsingJob.cancel();
-        }
-        lock();
+        lock(); // unlocked in documentChanged
     }
 
     public synchronized void documentChanged(DocumentEvent event) {
-        unlock();
+        unlock(); // locked in documentAboutToBeChanged
         reparsingJob = new ParseCCSProgramJob(this);
         reparsingJob.addJobChangeListener(jobDoneListener);
         reparsingJob.schedule(500);
     }
 
-    public synchronized void reparseNow(boolean waitForFinish) throws InterruptedException {
+    public void reparseNow() {
+        reparseNow(false);
+    }
+
+    public synchronized void reparseNow(boolean syncExec) {
         if (reparsingJob == null || reparsingJob.getState() != Job.WAITING) {
             reparsingJob = new ParseCCSProgramJob(this);
             reparsingJob.addJobChangeListener(jobDoneListener);
         }
         reparsingJob.shouldRunImmediately = true;
+        if (syncExec)
+            reparsingJob.syncExec = true;
         reparsingJob.schedule();
-        if (waitForFinish)
-            reparsingJob.join();
+    }
+
+    public void waitForReparsingDone() throws InterruptedException {
+        if (reparsingJob != null)
+            reparsingJob.shouldRunImmediately = true;
+        reparsingJob.join();
     }
 
     /**
@@ -99,15 +107,11 @@ public class CCSDocument extends Document implements IDocumentListener {
      * @return the cached result, or <code>null</code> if a reparse was triggered.
      */
     public synchronized ParseStatus reparseIfNecessary() {
-    	if (modStampOfCachedResult == getModificationStamp())
-    		return lastResult;
+        if (modStampOfCachedResult == getModificationStamp())
+            return lastResult;
 
-        if (reparsingJob == null || reparsingJob.getState() != Job.WAITING) {
-            reparsingJob = new ParseCCSProgramJob(this);
-            reparsingJob.addJobChangeListener(jobDoneListener);
-        }
-        reparsingJob.shouldRunImmediately = true;
-        reparsingJob.schedule();
+        reparseNow();
+
         return null;
     }
 
@@ -117,6 +121,10 @@ public class CCSDocument extends Document implements IDocumentListener {
 
     public void unlock() {
         lock.unlock();
+    }
+
+    public ParseStatus getLastParseResult() {
+        return lastResult;
     }
 
 }

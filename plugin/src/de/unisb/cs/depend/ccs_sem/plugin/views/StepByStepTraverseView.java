@@ -25,7 +25,7 @@ public class StepByStepTraverseView extends ViewPart implements ISelectionListen
 
     private PageBook myPages;
 
-	private Composite defaultComp;
+    private Composite defaultComp;
 
     private final Map<CCSEditor, StepByStepTraverseFrame> frames =
         new HashMap<CCSEditor, StepByStepTraverseFrame>();

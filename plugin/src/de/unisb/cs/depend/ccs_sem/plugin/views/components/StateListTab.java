@@ -56,6 +56,8 @@ public class StateListTab extends CTabItem implements SelectionListener {
             final String[] finalItems = items;
             getDisplay().asyncExec(new Runnable() {
                 public void run() {
+                    if (isDisposed())
+                        return;
                     if (error) {
                         stateList.setItems(new String[] { "-- error --" });
                     } else {
@@ -108,6 +110,8 @@ public class StateListTab extends CTabItem implements SelectionListener {
         upToDate = false;
         getDisplay().asyncExec(new Runnable() {
             public void run() {
+                if (isDisposed())
+                    return;
                 stateList.setItems(new String[] { "... updating ..." });
                 stateList.setEnabled(false);
                 stateList.setCursor(getDisplay().getSystemCursor(SWT.CURSOR_WAIT));

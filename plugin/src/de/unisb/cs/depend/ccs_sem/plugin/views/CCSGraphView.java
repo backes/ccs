@@ -26,7 +26,7 @@ public class CCSGraphView extends ViewPart implements ISelectionListener {
 
     private PageBook myPages;
 
-	private Composite defaultComp;
+    private Composite defaultComp;
 
     private Control currentPage;
 

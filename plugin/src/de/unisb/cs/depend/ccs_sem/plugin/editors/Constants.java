@@ -11,63 +11,79 @@ public class Constants {
     private static final int commentFontStyle = SWT.ITALIC;
 
     private static final RGB keywordForegroundRGB = new RGB(127, 0, 85);
-    private static final RGB keywordBackgroudRGB = null;
+    private static final RGB keywordBackgroundRGB = null;
     private static final int keywordFontStyle = SWT.BOLD;
 
     private static final RGB operatorForegroundRGB = new RGB(42, 42, 67);
-    private static final RGB operatorBackgroudRGB = null;
+    private static final RGB operatorBackgroundRGB = null;
     private static final int operatorFontStyle = SWT.NORMAL;
 
     private static final RGB parameterReferenceForegroundRGB = new RGB(0, 0, 192);
-    private static final RGB parameterReferenceBackgroudRGB = null;
+    private static final RGB parameterReferenceBackgroundRGB = null;
     private static final int parameterReferenceFontStyle = SWT.ITALIC;
 
-	public static RGB getCommentForegroundRGB() {
-		return commentForegroundRGB;
-	}
+    private static final RGB processReferenceForegroundRGB = new RGB(10, 36, 106);
+    private static final RGB processReferenceBackgroundRGB = null;
+    private static final int processReferenceFontStyle = SWT.BOLD;
 
-	public static RGB getCommentBackgroundRGB() {
-		return commentBackgroundRGB;
-	}
+    public static RGB getCommentForegroundRGB() {
+        return commentForegroundRGB;
+    }
 
-	public static int getCommentFontStyle() {
-		return commentFontStyle;
-	}
+    public static RGB getCommentBackgroundRGB() {
+        return commentBackgroundRGB;
+    }
 
-	public static RGB getKeywordForegroundRGB() {
-		return keywordForegroundRGB;
-	}
+    public static int getCommentFontStyle() {
+        return commentFontStyle;
+    }
 
-	public static RGB getKeywordBackgroudRGB() {
-		return keywordBackgroudRGB;
-	}
+    public static RGB getKeywordForegroundRGB() {
+        return keywordForegroundRGB;
+    }
 
-	public static int getKeywordFontStyle() {
-		return keywordFontStyle;
-	}
+    public static RGB getKeywordBackgroundRGB() {
+        return keywordBackgroundRGB;
+    }
 
-	public static RGB getOperatorForegroundRGB() {
-		return operatorForegroundRGB;
-	}
+    public static int getKeywordFontStyle() {
+        return keywordFontStyle;
+    }
 
-	public static RGB getOperatorBackgroudRGB() {
-		return operatorBackgroudRGB;
-	}
+    public static RGB getOperatorForegroundRGB() {
+        return operatorForegroundRGB;
+    }
 
-	public static int getOperatorFontStyle() {
-		return operatorFontStyle;
-	}
+    public static RGB getOperatorBackgroundRGB() {
+        return operatorBackgroundRGB;
+    }
 
-	public static RGB getParameterReferenceForegroundRGB() {
-		return parameterReferenceForegroundRGB;
-	}
+    public static int getOperatorFontStyle() {
+        return operatorFontStyle;
+    }
 
-	public static RGB getParameterReferenceBackgroudRGB() {
-		return parameterReferenceBackgroudRGB;
-	}
+    public static RGB getParameterReferenceForegroundRGB() {
+        return parameterReferenceForegroundRGB;
+    }
 
-	public static int getParameterReferenceFontStyle() {
-		return parameterReferenceFontStyle;
-	}
+    public static RGB getParameterReferenceBackgroundRGB() {
+        return parameterReferenceBackgroundRGB;
+    }
+
+    public static int getParameterReferenceFontStyle() {
+        return parameterReferenceFontStyle;
+    }
+
+    public static RGB getProcessReferenceForegroundRGB() {
+        return processReferenceForegroundRGB;
+    }
+
+    public static RGB getProcessReferenceBackgroundRGB() {
+        return processReferenceBackgroundRGB;
+    }
+
+    public static int getProcessReferenceFontStyle() {
+        return processReferenceFontStyle;
+    }
 
 }

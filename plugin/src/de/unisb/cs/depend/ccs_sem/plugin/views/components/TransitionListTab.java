@@ -57,6 +57,8 @@ public class TransitionListTab extends CTabItem implements SelectionListener {
             final String[] finalItems = items;
             getDisplay().asyncExec(new Runnable() {
                 public void run() {
+                    if (isDisposed())
+                        return;
                     if (error) {
                         transitionList.setItems(new String[] { "-- error --" });
                     } else {
@@ -109,6 +111,8 @@ public class TransitionListTab extends CTabItem implements SelectionListener {
         upToDate = false;
         getDisplay().asyncExec(new Runnable() {
             public void run() {
+                if (isDisposed())
+                    return;
                 transitionList.setItems(new String[] { "... updating ..." });
                 transitionList.setEnabled(false);
                 transitionList.setCursor(getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
