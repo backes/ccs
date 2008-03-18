@@ -11,23 +11,23 @@ import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
 
 /**
- * This class represents a whole program, containing all Declarations and
+ * This class represents a whole program, containing all declarations and
  * the main expression that describes the program.
  *
  * @author Clemens Hammacher
  */
 public class Program {
 
-    private final List<Declaration> declarations;
+    private final List<ProcessVariable> processVariables;
     private boolean isMinimized = false;
     private Expression mainExpression = null;
     private Expression minimizedExpression = null;
 
-    public Program(List<Declaration> declarations, Expression expr) throws ParseException {
-        this.mainExpression = expr.replaceRecursion(declarations);
-        this.declarations = declarations;
-        for (final Declaration decl: declarations)
-            decl.replaceRecursion(declarations);
+    public Program(List<ProcessVariable> processVariables, Expression expr) throws ParseException {
+        this.mainExpression = expr.replaceRecursion(processVariables);
+        this.processVariables = processVariables;
+        for (final ProcessVariable proc: processVariables)
+            proc.replaceRecursion(processVariables);
     }
 
     @Override
@@ -39,10 +39,10 @@ public class Program {
         final String newLine = Globals.getNewline();
 
         final StringBuilder sb = new StringBuilder();
-        for (final Declaration decl: declarations) {
-            sb.append(decl).append(';').append(newLine);
+        for (final ProcessVariable proc: processVariables) {
+            sb.append(proc).append(';').append(newLine);
         }
-        if (declarations.size() > 0)
+        if (processVariables.size() > 0)
             sb.append(newLine);
 
         sb.append(isMinimized && !useUnminimizedExpression
@@ -65,11 +65,11 @@ public class Program {
 
     /**
      * A program is regular iff every recursive definition is regular.
-     * See {@link Declaration#isRegular(List)}.
+     * See {@link ProcessVariable#isRegular(List)}.
      */
     public boolean isRegular() {
-        for (final Declaration decl: declarations)
-            if (!decl.isRegular())
+        for (final ProcessVariable proc: processVariables)
+            if (!proc.isRegular())
                 return false;
 
         return true;
@@ -77,11 +77,11 @@ public class Program {
 
     /**
      * A program is guarded iff every recursive definition is guarded.
-     * See {@link Declaration#isGuarded(List)}.
+     * See {@link ProcessVariable#isGuarded(List)}.
      */
     public boolean isGuarded() {
-        for (final Declaration decl: declarations)
-            if (!decl.isGuarded())
+        for (final ProcessVariable proc: processVariables)
+            if (!proc.isGuarded())
                 return false;
 
         return true;

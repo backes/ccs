@@ -6,8 +6,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.Range;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
@@ -16,13 +16,13 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 public class RecursiveExpression extends Expression {
 
-    private final Declaration referencedDeclaration;
+    private final ProcessVariable referencedProcessVariable;
     private final List<Value> parameterValues;
     private Expression instantiatedExpression = null;
 
-    public RecursiveExpression(Declaration referencedDeclaration, List<Value> parameters) {
+    public RecursiveExpression(ProcessVariable referencedProcessVariable, List<Value> parameters) {
         super();
-        this.referencedDeclaration = referencedDeclaration;
+        this.referencedProcessVariable = referencedProcessVariable;
         this.parameterValues = parameters;
     }
 
@@ -33,16 +33,16 @@ public class RecursiveExpression extends Expression {
         return parameterValues;
     }
 
-    public Declaration getReferencedDeclaration() {
-        return referencedDeclaration;
+    public ProcessVariable getReferencedProcessVariable() {
+        return referencedProcessVariable;
     }
 
     /**
      * Creates the instantiated {@link Expression} of this {@link RecursiveExpression},
-     * i.e. the {@link Expression} of the referenced {@link Declaration},
+     * i.e. the {@link Expression} of the referenced {@link ProcessVariable},
      * instantiated by the parameters of this {@link RecursiveExpression}.
      * If the parameters are not in the valid {@link Range} of the
-     * {@link Declaration}'s {@link Parameter}s, an {@link ErrorExpression} is
+     * {@link ProcessVariable}'s {@link Parameter}s, an {@link ErrorExpression} is
      * generated.
      *
      * @return the generated {@link Expression}
@@ -60,9 +60,9 @@ public class RecursiveExpression extends Expression {
                 }
 
             final boolean rangesOK = readyForCheck
-                ? referencedDeclaration.checkRanges(parameterValues) : true;
+                ? referencedProcessVariable.checkRanges(parameterValues) : true;
             instantiatedExpression = rangesOK
-                ? referencedDeclaration.instantiate(parameterValues)
+                ? referencedProcessVariable.instantiate(parameterValues)
                 : ErrorExpression.get();
         }
 
@@ -76,7 +76,7 @@ public class RecursiveExpression extends Expression {
 
     @Override
     public Collection<Expression> getSubTerms() {
-        return Collections.singleton(referencedDeclaration.getValue());
+        return Collections.singleton(referencedProcessVariable.getValue());
     }
 
     @Override
@@ -85,7 +85,7 @@ public class RecursiveExpression extends Expression {
     }
 
     @Override
-    public Expression replaceRecursion(List<Declaration> declarations) {
+    public Expression replaceRecursion(List<ProcessVariable> processVariables) {
         // nothing to do here
         return this;
     }
@@ -104,7 +104,7 @@ public class RecursiveExpression extends Expression {
         if (!changed)
             return this;
 
-        return ExpressionRepository.getExpression(new RecursiveExpression(referencedDeclaration, newParameters));
+        return ExpressionRepository.getExpression(new RecursiveExpression(referencedProcessVariable, newParameters));
     }
 
     @Override
@@ -115,16 +115,16 @@ public class RecursiveExpression extends Expression {
     @Override
     public String toString() {
         if (parameterValues.size() == 0)
-            return referencedDeclaration.getName();
+            return referencedProcessVariable.getName();
 
-        return referencedDeclaration.getName() + parameterValues;
+        return referencedProcessVariable.getName() + parameterValues;
     }
 
     @Override
     protected int hashCode0() {
         final int PRIME = 31;
         int result = 1;
-        result = PRIME * result + referencedDeclaration.hashCode();
+        result = PRIME * result + referencedProcessVariable.hashCode();
         result = PRIME * result + parameterValues.hashCode();
         return result;
     }
@@ -141,7 +141,7 @@ public class RecursiveExpression extends Expression {
         // hashCode is cached, so we compare it first (it's cheap)
         if (hashCode() != other.hashCode())
             return false;
-        if (!referencedDeclaration.equals(other.referencedDeclaration))
+        if (!referencedProcessVariable.equals(other.referencedProcessVariable))
             return false;
         if (!parameterValues.equals(other.parameterValues))
             return false;

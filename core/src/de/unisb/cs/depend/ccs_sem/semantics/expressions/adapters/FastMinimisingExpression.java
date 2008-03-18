@@ -12,8 +12,8 @@ import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.ExpressionRepository;
-import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.TauAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
@@ -123,7 +123,7 @@ public class FastMinimisingExpression extends Expression {
     }
 
     @Override
-    public Expression replaceRecursion(List<Declaration> declarations) {
+    public Expression replaceRecursion(List<ProcessVariable> processVariables) {
         throw new UnsupportedOperationException();
     }
 

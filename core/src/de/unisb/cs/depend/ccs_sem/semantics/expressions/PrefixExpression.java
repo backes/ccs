@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
-import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.InputAction;
@@ -45,14 +45,14 @@ public class PrefixExpression extends Expression {
     }
 
     @Override
-    public Expression replaceRecursion(List<Declaration> declarations) throws ParseException {
+    public Expression replaceRecursion(List<ProcessVariable> processVariables) throws ParseException {
         if (prefix instanceof SimpleAction) {
             final String prefixLabel = ((SimpleAction) prefix).getLabel();
-            for (final Declaration decl: declarations)
-                if (decl.getName().equals(prefixLabel))
+            for (final ProcessVariable proc: processVariables)
+                if (proc.getName().equals(prefixLabel))
                     throw new ParseException("Illegal use of recursion variable");
         }
-        final Expression newTarget = target.replaceRecursion(declarations);
+        final Expression newTarget = target.replaceRecursion(processVariables);
         if (newTarget.equals(target))
             return this;
         return ExpressionRepository.getExpression(new PrefixExpression(prefix, newTarget));

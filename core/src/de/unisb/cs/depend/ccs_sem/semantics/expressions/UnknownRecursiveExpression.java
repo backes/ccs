@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
-import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
@@ -51,30 +51,30 @@ public class UnknownRecursiveExpression extends Expression {
      * throws a {@link ParseException}.
      */
     @Override
-    public Expression replaceRecursion(List<Declaration> declarations) throws ParseException {
-        for (final Declaration decl: declarations) {
-            if (decl.getName().equals(name) && decl.getParamCount() == parameters.size()) {
+    public Expression replaceRecursion(List<ProcessVariable> processVariables) throws ParseException {
+        for (final ProcessVariable proc: processVariables) {
+            if (proc.getName().equals(name) && proc.getParamCount() == parameters.size()) {
                 // check if parameters match
                 // this possibly throws a ParseException
-                decl.checkMatch(parameters);
-                final RecursiveExpression newExpr = new RecursiveExpression(decl, parameters);
+                proc.checkMatch(parameters);
+                final RecursiveExpression newExpr = new RecursiveExpression(proc, parameters);
                 return ExpressionRepository.getExpression(newExpr);
             }
         }
 
         // search for possible matches
-        final List<Declaration> proposals = new ArrayList<Declaration>();
-        for (final Declaration decl: declarations)
-            if (decl.getName().equalsIgnoreCase(name))
-                proposals.add(decl);
+        final List<ProcessVariable> proposals = new ArrayList<ProcessVariable>();
+        for (final ProcessVariable proc: processVariables)
+            if (proc.getName().equalsIgnoreCase(name))
+                proposals.add(proc);
         final StringBuilder sb = new StringBuilder("Unknown recursion identifier ");
         sb.append(this);
         if (proposals.size() > 1) {
             sb.append(". Did you mean");
             if (proposals.size() == 1)
-            	sb.append(' ').append(proposals.get(0).getFullName()).append('?');
+                sb.append(' ').append(proposals.get(0).getFullName()).append('?');
             else
-                for (final Declaration prop: proposals)
+                for (final ProcessVariable prop: proposals)
                     sb.append(Globals.getNewline()).append("  - ").append(prop.getFullName());
         }
 

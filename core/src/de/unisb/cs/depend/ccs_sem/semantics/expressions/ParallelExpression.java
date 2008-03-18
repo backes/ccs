@@ -11,8 +11,8 @@ import java.util.Random;
 import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
-import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.TauAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
@@ -194,10 +194,10 @@ public class ParallelExpression extends Expression {
     }
 
     @Override
-    public Expression replaceRecursion(List<Declaration> declarations)
+    public Expression replaceRecursion(List<ProcessVariable> processVariables)
             throws ParseException {
-        final Expression newLeft = left.replaceRecursion(declarations);
-        final Expression newRight = right.replaceRecursion(declarations);
+        final Expression newLeft = left.replaceRecursion(processVariables);
+        final Expression newRight = right.replaceRecursion(processVariables);
 
         if (newLeft.equals(left) && newRight.equals(right))
             return this;

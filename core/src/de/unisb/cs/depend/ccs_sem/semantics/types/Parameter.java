@@ -24,9 +24,25 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
  */
 public class Parameter {
 
-    // STRING is either a string value or a string channel
     public static enum Type {
-        UNKNOWN, CHANNEL, VALUE, STRINGVALUE, BOOLEANVALUE, INTEGERVALUE, STRING
+        UNKNOWN("Unknown / unused parameter"),
+        CHANNEL("Channel parameter"),
+        VALUE("Value parameter"),
+        STRINGVALUE("String value parameter"),
+        BOOLEANVALUE("Boolean value parameter"),
+        INTEGERVALUE("Integer value parameter"),
+        STRING("String (value/channel) parameter");
+
+        private String desc;
+
+        private Type(String desc) {
+            this.desc = desc;
+        }
+
+        @Override
+        public String toString() {
+            return desc;
+        }
     }
 
     // the type is determined while parsing, Value.insertParameters() and
@@ -132,7 +148,7 @@ public class Parameter {
             if (newType == Type.STRING)
                 // do not change
                 return;
-            throw new ParseException("Parameter already has type " + type + ", cannot be instantiated with " + newType);
+            throw new ParseException("Parameter already has type \"" + type + "\", cannot be instantiated with \"" + newType + "\"");
         case VALUE:
             switch (newType) {
             case STRING:
@@ -145,7 +161,7 @@ public class Parameter {
                 break;
 
             default:
-                throw new ParseException("Parameter already has type " + type + ", cannot be instantiated with " + newType);
+                throw new ParseException("Parameter already has type \"" + type + "\", cannot be instantiated with \"" + newType + "\"");
             }
 
         case STRINGVALUE:
@@ -155,12 +171,12 @@ public class Parameter {
         case BOOLEANVALUE:
         case INTEGERVALUE:
             if (newType != Type.VALUE)
-                throw new ParseException("Parameter already has type " + type + ", cannot be instantiated with " + newType);
+                throw new ParseException("Parameter already has type \"" + type + "\", cannot be instantiated with \"" + newType + "\"");
         case STRING:
             if (newType == Type.CHANNEL || newType == Type.STRINGVALUE)
                 // accept
                 break;
-            throw new ParseException("Parameter already has type " + type + ", cannot be instantiated with " + newType);
+            throw new ParseException("Parameter already has type \"" + type + "\", cannot be instantiated with \"" + newType + "\"");
         default:
             assert false;
         }
@@ -189,6 +205,10 @@ public class Parameter {
         if (range.equals(newRange))
             return this;
         return new Parameter(name, newRange);
+    }
+
+    public Type getType() {
+        return type;
     }
 
     // hashCode and equals are not overridden (only identical Parameters are equal)

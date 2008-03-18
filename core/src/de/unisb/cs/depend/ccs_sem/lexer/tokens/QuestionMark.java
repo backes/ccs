@@ -6,7 +6,7 @@ import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.AbstractToken;
 public class QuestionMark extends AbstractToken {
 
     public QuestionMark(int startPosition) {
-        super(startPosition, startPosition+1);
+        super(startPosition, startPosition);
     }
 
     @Override

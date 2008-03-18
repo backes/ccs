@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
-import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterReference;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
@@ -93,12 +93,12 @@ public abstract class Expression {
 
     /**
      * Replaces every {@link UnknownRecursiveExpression} by a
-     * {@link RecursiveExpression}, if a corresponding Declaration has been
-     * found.
+     * {@link RecursiveExpression}, if a corresponding {@link ProcessVariable}
+     * has been found.
      * Typically delegates to its subterms.
      * @return either itself or a new created Expression, if something changed
      */
-    public abstract Expression replaceRecursion(List<Declaration> declarations) throws ParseException;
+    public abstract Expression replaceRecursion(List<ProcessVariable> processVariables) throws ParseException;
 
     /**
      * Is called in the constructor of a {@link RecursiveExpression}.

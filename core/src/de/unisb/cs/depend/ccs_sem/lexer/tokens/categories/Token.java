@@ -9,10 +9,10 @@ package de.unisb.cs.depend.ccs_sem.lexer.tokens.categories;
  */
 public interface Token {
 
-	int getStartPosition();
+    int getStartPosition();
 
-	int getEndPosition();
+    int getEndPosition();
 
-	int getLength();
+    int getLength();
 
 }

@@ -4,26 +4,26 @@ import de.unisb.cs.depend.ccs_sem.parser.ParsingResult;
 
 public class LoggingCCSLexer extends CCSLexer {
 
-	private final ParsingResult result;
+    private final ParsingResult result;
 
-	public LoggingCCSLexer() {
-		this.result = new ParsingResult();
-	}
+    public LoggingCCSLexer() {
+        this.result = new ParsingResult();
+    }
 
-	public LoggingCCSLexer(ParsingResult result) {
+    public LoggingCCSLexer(ParsingResult result) {
         if (result == null)
             throw new NullPointerException();
-		this.result = result;
-	}
+        this.result = result;
+    }
 
-	public ParsingResult getResult() {
-		return result;
-	}
+    public ParsingResult getResult() {
+        return result;
+    }
 
-	@Override
-	protected void commentRead(int startPosition, int endPosition) {
-		result.newComment(startPosition, endPosition);
-		super.commentRead(startPosition, endPosition);
-	}
+    @Override
+    protected void commentRead(int startPosition, int endPosition) {
+        result.newComment(startPosition, endPosition);
+        super.commentRead(startPosition, endPosition);
+    }
 
 }

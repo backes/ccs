@@ -11,8 +11,8 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
-import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
@@ -104,8 +104,8 @@ public class RestrictExpression extends Expression {
     }
 
     @Override
-    public Expression replaceRecursion(List<Declaration> declarations) throws ParseException {
-        final Expression newInnerExpr = innerExpr.replaceRecursion(declarations);
+    public Expression replaceRecursion(List<ProcessVariable> processVariables) throws ParseException {
+        final Expression newInnerExpr = innerExpr.replaceRecursion(processVariables);
         if (innerExpr.equals(newInnerExpr))
             return this;
         return new RestrictExpression(newInnerExpr, restricted);

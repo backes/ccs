@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
-import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstBooleanValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
@@ -65,9 +65,9 @@ public class ConditionalExpression extends Expression {
     }
 
     @Override
-    public Expression replaceRecursion(List<Declaration> declarations)
+    public Expression replaceRecursion(List<ProcessVariable> processVariables)
             throws ParseException {
-        final Expression newConsequence = consequence.replaceRecursion(declarations);
+        final Expression newConsequence = consequence.replaceRecursion(processVariables);
         if (consequence.equals(newConsequence))
             return this;
         return create(condition, newConsequence);

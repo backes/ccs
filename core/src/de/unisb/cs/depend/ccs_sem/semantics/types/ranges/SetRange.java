@@ -29,13 +29,13 @@ public class SetRange extends AbstractRange {
      * @return all values within this range
      */
     public Collection<ConstantValue> getPossibleValues() {
-    	final List<ConstantValue> possValues = new ArrayList<ConstantValue>(values.size());
-    	for (final Value val: values) {
-    		if (val instanceof ConstantValue)
-    			possValues.add((ConstantValue)val);
-    		else
-    			throw new InternalSystemException("range still contains non-constant values");
-    	}
+        final List<ConstantValue> possValues = new ArrayList<ConstantValue>(values.size());
+        for (final Value val: values) {
+            if (val instanceof ConstantValue)
+                possValues.add((ConstantValue)val);
+            else
+                throw new InternalSystemException("range still contains non-constant values");
+        }
         return possValues;
     }
 

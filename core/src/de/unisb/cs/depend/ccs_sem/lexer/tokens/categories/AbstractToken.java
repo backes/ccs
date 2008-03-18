@@ -20,7 +20,7 @@ public abstract class AbstractToken implements Token {
     }
 
     public int getLength() {
-    	return endPosition - startPosition + 1;
+        return endPosition - startPosition + 1;
     }
 
 }

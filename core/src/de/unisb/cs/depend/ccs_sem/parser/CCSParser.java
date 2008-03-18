@@ -18,8 +18,8 @@ import de.unisb.cs.depend.ccs_sem.lexer.tokens.*;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.*;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.adapters.TopMostExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.InputAction;
@@ -117,7 +117,7 @@ public class CCSParser implements Parser {
 
     // synchronized to make sure that this method is only called once at a time
     public synchronized Program parse(List<Token> tokens) throws ParseException {
-        final ArrayList<Declaration> declarations = new ArrayList<Declaration>();
+        final ArrayList<ProcessVariable> processVariables = new ArrayList<ProcessVariable>();
         parameters = new Stack<Parameter>();
         constants = new HashMap<String, ConstantValue>();
         ranges = new HashMap<String, Range>();
@@ -125,7 +125,7 @@ public class CCSParser implements Parser {
         final ExtendedIterator<Token> it = new ExtendedIterator<Token>(tokens);
 
         try {
-            readDeclarations(it, declarations);
+            readDeclarations(it, processVariables);
 
             // then, read the ccs expression
             Expression expr = readMainExpression(it);
@@ -136,7 +136,7 @@ public class CCSParser implements Parser {
             if (it.hasNext())
                 throw new ParseException("Syntax error: Unexpected '" + it.next() + "'");
 
-            final Program program = new Program(declarations, expr);
+            final Program program = new Program(processVariables, expr);
 
             return program;
         } catch (final ParseException e) {
@@ -146,7 +146,7 @@ public class CCSParser implements Parser {
     }
 
     private void readDeclarations(final ExtendedIterator<Token> it,
-            final ArrayList<Declaration> declarations) throws ParseException {
+            final ArrayList<ProcessVariable> processVariables) throws ParseException {
 
          while (it.hasNext()) {
             if (it.peek() instanceof ConstToken) {
@@ -170,7 +170,7 @@ public class CCSParser implements Parser {
                     throw new ParseException("Expected ';' after constant declaration.");
 
                 if (!(constValue instanceof ConstantValue))
-                    throw new ParseException("Expecting constant value here.");
+                    throw new ParseException("Expected constant value.");
 
                 constants.put(constName, (ConstantValue)constValue);
             } else if (it.peek() instanceof RangeToken) {
@@ -196,23 +196,23 @@ public class CCSParser implements Parser {
                 ranges.put(rangeName, range);
             } else {
                 final int oldPosition = it.nextIndex();
-                final Declaration nextDeclaration = readDeclaration(it);
-                if (nextDeclaration == null) {
+                final ProcessVariable nextProcessVariable = readProcessDeclaration(it);
+                if (nextProcessVariable == null) {
                     it.setPosition(oldPosition);
                     break;
                 }
 
-                // check if a declaration with the same name and number of parameters is already known
-                for (final Declaration decl: declarations)
-                    if (decl.getName().equals(nextDeclaration.getName())
-                            && decl.getParamCount() == nextDeclaration.getParamCount())
-                        throw new ParseException("Duplicate recursion variable definition ("
-                            + nextDeclaration.getName() + "[" + nextDeclaration.getParamCount() + "]");
+                // check if a process variable with the same name and number of parameters is already known
+                for (final ProcessVariable proc: processVariables)
+                    if (proc.getName().equals(nextProcessVariable.getName())
+                            && proc.getParamCount() == nextProcessVariable.getParamCount())
+                        throw new ParseException("Duplicate process variable definition ("
+                            + nextProcessVariable.getName() + "[" + nextProcessVariable.getParamCount() + "]");
 
-                declarations.add(nextDeclaration);
+                processVariables.add(nextProcessVariable);
             }
         }
-        declarations.trimToSize();
+        processVariables.trimToSize();
     }
 
     private String getEnvironment(List<Token> tokens, int position, int width) {
@@ -232,7 +232,7 @@ public class CCSParser implements Parser {
     /**
      * @return <code>null</code>, if there are no more declarations
      */
-    protected Declaration readDeclaration(ExtendedIterator<Token> tokens) throws ParseException {
+    protected ProcessVariable readProcessDeclaration(ExtendedIterator<Token> tokens) throws ParseException {
         Token token1 = null;
         Token token2 = null;
         if (tokens.hasNext())
@@ -274,7 +274,10 @@ public class CCSParser implements Parser {
         if (!tokens.hasNext() || !(tokens.next() instanceof Semicolon))
             throw new ParseException("Expected ';' after this declaration");
 
-        return new Declaration(identifier.getName(), myParameters, expr);
+        final ProcessVariable proc = new ProcessVariable(identifier.getName(), myParameters, expr);
+        // hook for logging:
+        identifierParsed(identifier, proc);
+        return proc;
     }
 
     private Range readRange(ExtendedIterator<Token> tokens) throws ParseException {
@@ -327,8 +330,11 @@ public class CCSParser implements Parser {
             // or another range (if the value was a string value)
             if (startValue instanceof ConstString) {
                 final Range referencedRange = ranges.get(((ConstString)startValue).getValue());
-                if (referencedRange != null)
+                if (referencedRange != null) {
+                    // hook for logging:
+                    changedIdentifierMeaning((ConstString)startValue, referencedRange);
                     return referencedRange;
+                }
             }
 
             // otherwise, there is an error
@@ -406,7 +412,8 @@ public class CCSParser implements Parser {
                     range = readRange(tokens);
                 }
                 final Parameter nextParameter = new Parameter(name, range);
-
+                // hook for logging:
+                identifierParsed(identifier, nextParameter);
                 parameters.add(nextParameter);
             } else
                 return null;
@@ -550,12 +557,15 @@ public class CCSParser implements Parser {
                             if (identifier.isQuoted())
                                 tokens.previous();
                             else {
-	                            Range range = null;
-	                            if (tokens.hasNext() && tokens.peek() instanceof Colon) {
-	                                tokens.next();
-	                                range = readRangeDef(tokens);
-	                            }
-	                            return new InputAction(channel, new Parameter(identifier.getName(), range));
+                                Range range = null;
+                                if (tokens.hasNext() && tokens.peek() instanceof Colon) {
+                                    tokens.next();
+                                    range = readRangeDef(tokens);
+                                }
+                                final Parameter parameter = new Parameter(identifier.getName(), range);
+                                // hook for logging:
+                                identifierParsed(identifier, parameter);
+                                return new InputAction(channel, parameter);
                             }
                         }
 
@@ -605,19 +615,27 @@ public class CCSParser implements Parser {
     private Channel readChannel(ExtendedIterator<Token> tokens) throws ParseException {
         if (tokens.hasNext() && tokens.peek() instanceof Identifier) {
             final Identifier identifier = (Identifier)tokens.next();
+            Channel channel = null;
             if ("i".equals(identifier.getName()))
-                return TauChannel.get();
-            if (!identifier.isQuoted()) {
+                channel = TauChannel.get();
+            else if (!identifier.isQuoted()) {
                 for (final Parameter param: parameters) {
                     if (param.getName().equals(identifier.getName())) {
                         param.setType(Parameter.Type.CHANNEL);
-                        return new ParameterRefChannel(param);
+                        channel = new ParameterRefChannel(param);
+                        break;
                     }
                 }
             }
-            if (Character.isLowerCase(identifier.getName().charAt(0)))
-                return new ConstStringChannel(identifier.getName());
-            tokens.previous();
+            if (channel == null && Character.isLowerCase(identifier.getName().charAt(0)))
+                channel = new ConstStringChannel(identifier.getName());
+            if (channel == null)
+                tokens.previous();
+            else {
+                // hook for logging:
+                identifierParsed(identifier, channel);
+                return channel;
+            }
         }
         return null;
     }
@@ -742,7 +760,10 @@ public class CCSParser implements Parser {
                         tokens.next();
                         myParameters = readParameterValues(tokens);
                     }
-                    return ExpressionRepository.getExpression(new UnknownRecursiveExpression(id.getName(), myParameters));
+                    final Expression expression = ExpressionRepository.getExpression(new UnknownRecursiveExpression(id.getName(), myParameters));
+                    // hook for logging:
+                    identifierParsed(id, expression);
+                    return expression;
                 }
             }
 
@@ -931,14 +952,25 @@ public class CCSParser implements Parser {
             if (!id.isQuoted()) {
                 // search if this identifier is a parameter
                 for (final Parameter param: parameters)
-                    if (param.getName().equals(name))
-                        return new ParameterReference(param);
+                    if (param.getName().equals(name)) {
+                        param.setType(Parameter.Type.VALUE);
+                        final ParameterReference parameterReference = new ParameterReference(param);
+                        // hook for logging:
+                        identifierParsed(id, parameterReference);
+                        return parameterReference;
+                    }
                 // search if it is a constant
                 final ConstantValue constant = constants.get(name);
-                if (constant != null)
+                if (constant != null) {
+                    // hook for logging:
+                    identifierParsed(id, constant);
                     return constant;
+                }
             }
-            return new ConstString(name);
+            final ConstString constString = new ConstString(name);
+            // hook for logging:
+            identifierParsed(id, constString);
+            return constString;
         }
         if (nextToken instanceof LParenthesis) {
             final Value value = readArithmeticExpression(tokens);
@@ -1011,6 +1043,15 @@ public class CCSParser implements Parser {
         }
         assert false;
         throw new ParseException(message);
+    }
+
+    protected void identifierParsed(Identifier identifier, Object semantic) {
+        // ignore in this implementation
+    }
+
+    protected void changedIdentifierMeaning(ConstString constString,
+            Range range) {
+        // ignore in this implementation
     }
 
 }

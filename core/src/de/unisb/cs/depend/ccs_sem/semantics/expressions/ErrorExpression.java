@@ -5,8 +5,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
@@ -30,7 +30,7 @@ public class ErrorExpression extends Expression {
     }
 
     @Override
-    public Expression replaceRecursion(List<Declaration> declarations) {
+    public Expression replaceRecursion(List<ProcessVariable> processVariables) {
         return this;
     }
 

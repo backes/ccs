@@ -18,13 +18,13 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 import de.unisb.cs.depend.ccs_sem.utils.UniqueQueue;
 
 
-public class Declaration {
+public class ProcessVariable {
 
     private final String name;
     private final List<Parameter> parameters;
     private Expression value;
 
-    public Declaration(String name, List<Parameter> parameters,
+    public ProcessVariable(String name, List<Parameter> parameters,
             Expression value) {
         super();
         this.name = name;
@@ -33,8 +33,8 @@ public class Declaration {
     }
 
     /**
-     * A Declaration is guarded if there is at least one prefix before all
-     * occurences of the Declaration itself in the related expression.
+     * A ProcessVariable is guarded if there is at least one prefix before all
+     * occurences of the ProcessVariable itself in the related expression.
      */
     public boolean isGuarded() {
         // a queue of expressions to check
@@ -48,7 +48,7 @@ public class Declaration {
                 continue;
             // every RecursiveExpr has to be checked only once
             if (expr instanceof RecursiveExpression &&
-                    ((RecursiveExpression)expr).getReferencedDeclaration().equals(this))
+                    ((RecursiveExpression)expr).getReferencedProcessVariable().equals(this))
                 return false;
 
             queue.addAll(expr.getSubTerms());
@@ -59,7 +59,7 @@ public class Declaration {
     }
 
     /**
-     * A Declaration is regular if it does not contain a cycle of recursions
+     * A ProcessVariable is regular if it does not contain a cycle of recursions
      * back to itself that contains parallel or restriction operators (so called
      * "static" operators).
      */
@@ -79,10 +79,11 @@ public class Declaration {
                 queue.addAll(expr.getSubTerms());
         }
 
-        // then, check these expressions for occurences of the current declaration (recursive loop)
+        // then, check these expressions for occurences of the current process
+        // variable (recursive loop)
         while ((expr = afterStaticQueue.poll()) != null) {
             if (expr instanceof RecursiveExpression &&
-                    ((RecursiveExpression) expr).getReferencedDeclaration().equals(this))
+                    ((RecursiveExpression) expr).getReferencedProcessVariable().equals(this))
                 return false;
             afterStaticQueue.addAll(expr.getSubTerms());
         }
@@ -112,12 +113,12 @@ public class Declaration {
         return value;
     }
 
-    public void replaceRecursion(List<Declaration> declarations) throws ParseException {
-        value = value.replaceRecursion(declarations);
+    public void replaceRecursion(List<ProcessVariable> processVariables) throws ParseException {
+        value = value.replaceRecursion(processVariables);
     }
 
     /**
-     * Checks if the value list matches the parameters of this declaration.
+     * Checks if the value list matches the parameters of this process variable.
      *
      * @param values the list of values to check the parameters against
      * @throws ParseException if the values does not suit the parameters
@@ -180,7 +181,7 @@ public class Declaration {
 
     /**
      * Checks whether the given parameter values fit into the parameter ranges
-     * of this declaration's parameters.
+     * of this process variable's parameters.
      *
      * @param parameterValues the values to check
      * @return <code>true</code> if the values fit into the parameter ranges,

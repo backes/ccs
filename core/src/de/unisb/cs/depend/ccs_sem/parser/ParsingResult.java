@@ -1,41 +1,44 @@
 package de.unisb.cs.depend.ccs_sem.parser;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Identifier;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token;
-import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 
 
 public class ParsingResult {
 
     public class ReadComment {
 
-		public int startPosition;
-		public int endPosition;
+        public int startPosition;
+        public int endPosition;
 
-		public ReadComment(int startPosition, int endPosition) {
-			this.startPosition = startPosition;
-			this.endPosition = endPosition;
-		}
+        public ReadComment(int startPosition, int endPosition) {
+            this.startPosition = startPosition;
+            this.endPosition = endPosition;
+        }
 
-	}
+    }
 
-	public class ReadDeclaration {
-        public Declaration declaration;
+    public class ReadProcessVariable {
+        public ProcessVariable processVariable;
         public int tokenIndexStart;
         public int tokenIndexEnd;
 
-        public ReadDeclaration(Declaration declaration, int tokenIndexStart,
-                int tokenIndexEnd) {
-            this.declaration = declaration;
+        public ReadProcessVariable(ProcessVariable processVariable,
+                int tokenIndexStart, int tokenIndexEnd) {
+            this.processVariable = processVariable;
             this.tokenIndexStart = tokenIndexStart;
             this.tokenIndexEnd = tokenIndexEnd;
         }
 
         @Override
         public String toString() {
-            return declaration.getFullName();
+            return processVariable.getFullName();
         }
 
         public int getPositionStart() {
@@ -48,18 +51,23 @@ public class ParsingResult {
     }
 
     public List<Token> tokens;
-    public final List<ReadDeclaration> declarations = new ArrayList<ReadDeclaration>();
+    public final List<ReadProcessVariable> processVariables = new ArrayList<ReadProcessVariable>();
     public int mainExpressionTokenIndexStart;
     public int mainExpressionTokenIndexEnd;
-	public final List<ReadComment> comments = new ArrayList<ReadComment>();
+    public final List<ReadComment> comments = new ArrayList<ReadComment>();
+    public final Map<Identifier, Object> identifiers = new HashMap<Identifier, Object>();
 
-    public void addDeclaration(Declaration readDeclaration,
+    public void addProcessVariable(ProcessVariable processVariable,
             int tokenIndexStart, int tokenIndexEnd) {
-        declarations.add(new ReadDeclaration(readDeclaration, tokenIndexStart, tokenIndexEnd));
+        processVariables.add(new ReadProcessVariable(processVariable, tokenIndexStart, tokenIndexEnd));
     }
 
-	public void newComment(int startPosition, int endPosition) {
-		comments.add(new ReadComment(startPosition, endPosition));
-	}
+    public void newComment(int startPosition, int endPosition) {
+        comments.add(new ReadComment(startPosition, endPosition));
+    }
+
+    public void addIdentifierMapping(Identifier identifier, Object semantic) {
+        identifiers.put(identifier, semantic);
+    }
 
 }

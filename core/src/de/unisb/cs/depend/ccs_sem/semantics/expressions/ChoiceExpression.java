@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
-import de.unisb.cs.depend.ccs_sem.semantics.types.Declaration;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
@@ -73,9 +73,9 @@ public class ChoiceExpression extends Expression {
     }
 
     @Override
-    public Expression replaceRecursion(List<Declaration> declarations) throws ParseException {
-        final Expression newLeft = left.replaceRecursion(declarations);
-        final Expression newRight = right.replaceRecursion(declarations);
+    public Expression replaceRecursion(List<ProcessVariable> processVariables) throws ParseException {
+        final Expression newLeft = left.replaceRecursion(processVariables);
+        final Expression newRight = right.replaceRecursion(processVariables);
 
         if (newLeft.equals(left) && newRight.equals(right))
             return this;
