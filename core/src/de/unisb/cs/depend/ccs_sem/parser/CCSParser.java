@@ -603,7 +603,10 @@ public class CCSParser implements Parser {
         // TODO make nicer
         final int oldPosition = tokens.nextIndex();
         try {
-            return readArithmeticBaseExpression(tokens);
+            final Value value = readArithmeticBaseExpression(tokens);
+            if (value instanceof ParameterReference)
+                ((ParameterReference)value).getParam().setType(Parameter.Type.VALUE);
+            return value;
         } catch (final ParseException e) {
             tokens.setPosition(oldPosition);
             return null;
@@ -951,7 +954,6 @@ public class CCSParser implements Parser {
                 // search if this identifier is a parameter
                 for (final Parameter param: parameters)
                     if (param.getName().equals(name)) {
-                        param.setType(Parameter.Type.VALUE);
                         final ParameterReference parameterReference = new ParameterReference(param);
                         // hook for logging:
                         identifierParsed(id, parameterReference);
@@ -1032,7 +1034,11 @@ public class CCSParser implements Parser {
         if (value instanceof ConstString)
             throw new ParseException(message + " The value \"" + value + "\" has type string.");
         if (value instanceof ParameterReference) {
-            ((ParameterReference)value).getParam().setType(Parameter.Type.INTEGERVALUE);
+            try {
+                ((ParameterReference)value).getParam().setType(Parameter.Type.INTEGERVALUE);
+            } catch (final ParseException e) {
+                throw new ParseException(message + e.getMessage(), e);
+            }
             return;
         }
         if (value instanceof ConditionalValue) {

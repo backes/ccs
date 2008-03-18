@@ -153,16 +153,17 @@ public class Parameter {
             switch (newType) {
             case STRING:
                 newType = Type.STRINGVALUE;
-                break;
+                break; // inner switch!
             case BOOLEANVALUE:
             case INTEGERVALUE:
             case STRINGVALUE:
                 // accept
-                break;
+                break; // inner switch!
 
             default:
                 throw new ParseException("Parameter already has type \"" + type + "\", cannot be instantiated with \"" + newType + "\"");
             }
+            break;
 
         case STRINGVALUE:
             if (newType == Type.STRING)
@@ -172,6 +173,8 @@ public class Parameter {
         case INTEGERVALUE:
             if (newType != Type.VALUE)
                 throw new ParseException("Parameter already has type \"" + type + "\", cannot be instantiated with \"" + newType + "\"");
+            // accept otherwise:
+            break;
         case STRING:
             if (newType == Type.CHANNEL || newType == Type.STRINGVALUE)
                 // accept
