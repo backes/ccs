@@ -16,16 +16,7 @@ import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.lexer.CCSLexer;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.*;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.ChoiceExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.ConditionalExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.ErrorExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.ExpressionRepository;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.ParallelExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.PrefixExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.RestrictExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.StopExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.UnknownRecursiveExpression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.*;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.adapters.TopMostExpression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
@@ -142,7 +133,7 @@ public class CCSParser implements Parser {
             // now make it a "top most expression"
             expr = ExpressionRepository.getExpression(new TopMostExpression(expr));
 
-            Token eof = it.next();
+            final Token eof = it.next();
             if (!(eof instanceof EOFToken)) {
                 throw new ParseException("Syntax error: Unexpected '" + eof + "'");
             }
@@ -592,18 +583,11 @@ public class CCSParser implements Parser {
     }
 
     // returns null if there is no output value
-    private Value readOutputValue(ExtendedIterator<Token> tokens) {
-        // TODO make nicer
-        final int oldPosition = tokens.nextIndex();
-        try {
-            final Value value = readArithmeticBaseExpression(tokens);
-            if (value instanceof ParameterReference)
-                ((ParameterReference)value).getParam().setType(Parameter.Type.VALUE);
-            return value;
-        } catch (final ParseException e) {
-            tokens.setPosition(oldPosition);
-            return null;
-        }
+    private Value readOutputValue(ExtendedIterator<Token> tokens) throws ParseException {
+        final Value value = readArithmeticBaseExpression(tokens); // may return null
+        if (value instanceof ParameterReference)
+            ((ParameterReference)value).getParam().setType(Parameter.Type.VALUE);
+        return value;
     }
 
     private Channel readChannel(ExtendedIterator<Token> tokens) throws ParseException {
@@ -966,6 +950,7 @@ public class CCSParser implements Parser {
                 throw new ParseException("Expected ')'.");
             return value;
         }
+        tokens.previous();
         return null;
     }
 

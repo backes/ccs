@@ -10,17 +10,14 @@ public class EOFToken implements Token {
         this.position = position;
     }
 
-    @Override
     public int getEndPosition() {
         return position;
     }
 
-    @Override
     public int getLength() {
         return 1;
     }
 
-    @Override
     public int getStartPosition() {
         return position;
     }

@@ -7,6 +7,7 @@ public class SynchronizationTest1 extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
+        // "x?x" is only instantiated for "x?1" and a warning is produced
         return "x!1 | x?x.out!x";
     }
 

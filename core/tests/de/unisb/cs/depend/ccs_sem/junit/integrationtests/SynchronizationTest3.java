@@ -7,6 +7,7 @@ public class SynchronizationTest3 extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
+        // no synchronization (the two processes are interleaved)
         return "x!1 | x?";
     }
 

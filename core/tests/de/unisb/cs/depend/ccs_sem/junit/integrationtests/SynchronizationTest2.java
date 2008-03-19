@@ -7,6 +7,8 @@ public class SynchronizationTest2 extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
+        // no synchronization here, "x?x" is discarded with a warning (no
+        // range restriction)
         return "x! | x?x";
     }
 

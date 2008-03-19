@@ -49,7 +49,7 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
 
     protected ITextViewer textViewer;
     private final ColorManager colorManager;
-    private final CCSEditor editor;
+    protected final CCSEditor editor;
 
 
     public CCSPresentationReconciler(ColorManager colorManager, CCSEditor editor) {
@@ -135,7 +135,6 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
                             final IResource res = path == null ? null : ResourcesPlugin.getWorkspace().getRoot().getFile(path);
                             if (res != null && res.exists()) {
                                 SafeRunner.run(new SafeRunnable() {
-                                    @Override
                                     public void run() throws CoreException {
                                         res.deleteMarkers(Constants.MARKER_PROBLEM, true, IResource.DEPTH_INFINITE);
 
@@ -155,10 +154,10 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
         }
     }
 
-    private void addMarkers(IResource res,
+    protected void addMarkers(IResource res,
             ParseStatus result) throws CoreException {
 
-        IMarker marker = res.createMarker(Constants.MARKER_PROBLEM);
+        final IMarker marker = res.createMarker(Constants.MARKER_PROBLEM);
         marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO);
         marker.setAttribute(IMarker.CHAR_START, 3);
         marker.setAttribute(IMarker.CHAR_END, 7);
