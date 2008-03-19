@@ -6,84 +6,26 @@ import org.eclipse.swt.graphics.RGB;
 
 public class Constants {
 
-    private static final RGB commentForegroundRGB = new RGB(63, 127, 95);
-    private static final RGB commentBackgroundRGB = null;
-    private static final int commentFontStyle = SWT.ITALIC;
+    public static final RGB COMMENT_FOREGROUND_RGB = new RGB(63, 127, 95);
+    public static final RGB COMMENT_BACKGROUND_RGB = null;
+    public static final int COMMENT_FONTSTYLE = SWT.ITALIC;
 
-    private static final RGB keywordForegroundRGB = new RGB(127, 0, 85);
-    private static final RGB keywordBackgroundRGB = null;
-    private static final int keywordFontStyle = SWT.BOLD;
+    public static final RGB KEYWORD_FOREGROUND_RGB = new RGB(127, 0, 85);
+    public static final RGB KEYWORD_BACKGROUND_RGB = null;
+    public static final int KEYWORD_FONTSTYLE = SWT.BOLD;
 
-    private static final RGB operatorForegroundRGB = new RGB(42, 42, 67);
-    private static final RGB operatorBackgroundRGB = null;
-    private static final int operatorFontStyle = SWT.NORMAL;
+    public static final RGB OPERATOR_FOREGROUND_RGB = new RGB(42, 42, 67);
+    public static final RGB OPERATOR_BACKGROUND_RGB = null;
+    public static final int OPERATOR_FONTSTYLE = SWT.NORMAL;
 
-    private static final RGB parameterReferenceForegroundRGB = new RGB(0, 0, 192);
-    private static final RGB parameterReferenceBackgroundRGB = null;
-    private static final int parameterReferenceFontStyle = SWT.ITALIC;
+    public static final RGB PARAMETER_REFERENCE_FOREGROUND_RGB = new RGB(0, 0, 192);
+    public static final RGB PARAMETER_REFERENCE_BACKGROUND_RGB = null;
+    public static final int PARAMETER_REFERENCE_FONTSTYLE = SWT.ITALIC;
 
-    private static final RGB processReferenceForegroundRGB = new RGB(10, 36, 106);
-    private static final RGB processReferenceBackgroundRGB = null;
-    private static final int processReferenceFontStyle = SWT.BOLD;
+    public static final RGB PROCESS_REFERENCE_FOREGROUND_RGB = new RGB(10, 36, 106);
+    public static final RGB PROCESS_REFERENCE_BACKGROUND_RGB = null;
+    public static final int PROCESS_REFERENCE_FONTSTYLE = SWT.BOLD;
 
-    public static RGB getCommentForegroundRGB() {
-        return commentForegroundRGB;
-    }
-
-    public static RGB getCommentBackgroundRGB() {
-        return commentBackgroundRGB;
-    }
-
-    public static int getCommentFontStyle() {
-        return commentFontStyle;
-    }
-
-    public static RGB getKeywordForegroundRGB() {
-        return keywordForegroundRGB;
-    }
-
-    public static RGB getKeywordBackgroundRGB() {
-        return keywordBackgroundRGB;
-    }
-
-    public static int getKeywordFontStyle() {
-        return keywordFontStyle;
-    }
-
-    public static RGB getOperatorForegroundRGB() {
-        return operatorForegroundRGB;
-    }
-
-    public static RGB getOperatorBackgroundRGB() {
-        return operatorBackgroundRGB;
-    }
-
-    public static int getOperatorFontStyle() {
-        return operatorFontStyle;
-    }
-
-    public static RGB getParameterReferenceForegroundRGB() {
-        return parameterReferenceForegroundRGB;
-    }
-
-    public static RGB getParameterReferenceBackgroundRGB() {
-        return parameterReferenceBackgroundRGB;
-    }
-
-    public static int getParameterReferenceFontStyle() {
-        return parameterReferenceFontStyle;
-    }
-
-    public static RGB getProcessReferenceForegroundRGB() {
-        return processReferenceForegroundRGB;
-    }
-
-    public static RGB getProcessReferenceBackgroundRGB() {
-        return processReferenceBackgroundRGB;
-    }
-
-    public static int getProcessReferenceFontStyle() {
-        return processReferenceFontStyle;
-    }
+    public static final String MARKER_PROBLEM = "de.unisb.cs.depend.ccs_sem.ccsproblemmarker";
 
 }

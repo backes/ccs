@@ -291,6 +291,7 @@ public class CCSLexer extends AbstractLexer {
             }
             ++position;
         }
+        tokens.add(new EOFToken(position));
     }
 
     protected void commentRead(int startPosition, int endPosition) {

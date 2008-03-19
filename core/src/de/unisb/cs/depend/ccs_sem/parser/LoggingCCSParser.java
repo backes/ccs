@@ -48,7 +48,7 @@ public class LoggingCCSParser extends CCSParser {
     }
 
     @Override
-    public synchronized Program parse(List<Token> tokens) throws ParseException {
+    public Program parse(List<Token> tokens) throws ParseException {
         result.tokens = tokens;
         return super.parse(tokens);
     }

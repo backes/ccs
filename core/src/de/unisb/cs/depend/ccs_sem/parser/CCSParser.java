@@ -16,7 +16,16 @@ import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.lexer.CCSLexer;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.*;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.*;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.ChoiceExpression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.ConditionalExpression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.ErrorExpression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.ExpressionRepository;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.ParallelExpression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.PrefixExpression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.RestrictExpression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.StopExpression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.UnknownRecursiveExpression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.adapters.TopMostExpression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
@@ -133,8 +142,10 @@ public class CCSParser implements Parser {
             // now make it a "top most expression"
             expr = ExpressionRepository.getExpression(new TopMostExpression(expr));
 
-            if (it.hasNext())
-                throw new ParseException("Syntax error: Unexpected '" + it.next() + "'");
+            Token eof = it.next();
+            if (!(eof instanceof EOFToken)) {
+                throw new ParseException("Syntax error: Unexpected '" + eof + "'");
+            }
 
             final Program program = new Program(processVariables, expr);
 
@@ -269,7 +280,7 @@ public class CCSParser implements Parser {
         } else
             return null;
 
-        if (!tokens.hasNext() || !(tokens.next() instanceof Semicolon))
+        if (!(tokens.next() instanceof Semicolon))
             throw new ParseException("Expected ';' after this declaration");
 
         final ProcessVariable proc = new ProcessVariable(identifier.getName(), myParameters, expr);
@@ -284,7 +295,7 @@ public class CCSParser implements Parser {
 
     private Range readRangeAdd(ExtendedIterator<Token> tokens) throws ParseException {
         Range range = readRangeDef(tokens);
-        while (tokens.hasNext() && (tokens.peek() instanceof Plus || tokens.peek() instanceof Minus)) {
+        while (tokens.peek() instanceof Plus || tokens.peek() instanceof Minus) {
             final boolean isSub = tokens.next() instanceof Minus;
             final Range secondRange = readRangeDef(tokens);
             range = isSub ? range.subtract(secondRange) : range.add(secondRange);
@@ -293,65 +304,61 @@ public class CCSParser implements Parser {
         return range;
     }
 
-    private Range readRangeDef(ExtendedIterator<Token> tokens) throws ParseException {
-        if (tokens.hasNext()) {
-            // just a range definition in parenthesis?
-            if (tokens.peek() instanceof LParenthesis) {
-                tokens.next();
-                final Range range = readRange(tokens);
-                if (!tokens.hasNext() || !(tokens.next() instanceof RParenthesis))
-                    throw new ParseException("Expected ')'.");
-                return range;
-            }
-
-            // or a set of independant values
-            if (tokens.peek() instanceof LBrace) {
-                tokens.next();
-                final Set<Value> rangeValues = readRangeValues(tokens);
-                return new SetRange(rangeValues);
-            }
-
-            // or a range of integer values
-            final Value startValue = readArithmeticExpression(tokens);
-            // are there '..'?
-            if (tokens.hasNext() && tokens.peek() instanceof IntervalDots) {
-                ensureInteger(startValue, "Expected constant integer expression before '..'.");
-
-                tokens.next();
-
-                final Value endValue = readArithmeticExpression(tokens);
-                ensureInteger(endValue, "Expected constant integer expression after '..'.");
-
-                return new IntervalRange(startValue, endValue);
-            }
-
-            // or another range (if the value was a string value)
-            if (startValue instanceof ConstString) {
-                final Range referencedRange = ranges.get(((ConstString)startValue).getValue());
-                if (referencedRange != null) {
-                    // hook for logging:
-                    changedIdentifierMeaning((ConstString)startValue, referencedRange);
-                    return referencedRange;
-                }
-            }
-
-            // otherwise, there is an error
-            throw new ParseException("No valid range definition.");
+    private Range readRangeDef(ExtendedIterator<Token> it) throws ParseException {
+        // just a range definition in parenthesis?
+        if (it.peek() instanceof LParenthesis) {
+            it.next();
+            final Range range = readRange(it);
+            if (!it.hasNext() || !(it.next() instanceof RParenthesis))
+                throw new ParseException("Expected ')'.");
+            return range;
         }
 
-        throw new ParseException("Unexpected EOF.");
+        // or a set of independant values
+        if (it.peek() instanceof LBrace) {
+            it.next();
+            final Set<Value> rangeValues = readRangeValues(it);
+            return new SetRange(rangeValues);
+        }
+
+        // or a range of integer values
+        final Value startValue = readArithmeticExpression(it);
+        // are there '..'?
+        if (it.peek() instanceof IntervalDots) {
+            ensureInteger(startValue, "Expected constant integer expression before '..'.");
+
+            it.next();
+
+            final Value endValue = readArithmeticExpression(it);
+            ensureInteger(endValue, "Expected constant integer expression after '..'.");
+
+            return new IntervalRange(startValue, endValue);
+        }
+
+        // or another range (if the value was a string value)
+        if (startValue instanceof ConstString) {
+            final Range referencedRange = ranges.get(((ConstString)startValue).getValue());
+            if (referencedRange != null) {
+                // hook for logging:
+                changedIdentifierMeaning((ConstString)startValue, referencedRange);
+                return referencedRange;
+            }
+        }
+
+        // otherwise, there is an error
+        throw new ParseException("No valid range definition.");
     }
 
-    private Set<Value> readRangeValues(ExtendedIterator<Token> tokens) throws ParseException {
-        if (tokens.hasNext() && tokens.peek() instanceof RBrace) {
-            tokens.next();
+    private Set<Value> readRangeValues(ExtendedIterator<Token> it) throws ParseException {
+        if (it.peek() instanceof RBrace) {
+            it.next();
             return Collections.emptySet();
         }
 
         final Set<Value> values = new TreeSet<Value>();
 
-        while (tokens.hasNext()) {
-            final Value value = readArithmeticExpression(tokens);
+        while (it.hasNext()) {
+            final Value value = readArithmeticExpression(it);
 
             /*
             if (!(value instanceof ConstantValue))
@@ -360,9 +367,9 @@ public class CCSParser implements Parser {
 
             values.add(value);
 
-            if (!tokens.hasNext())
+            if (!it.hasNext())
                 throw new ParseException("Expected '}'");
-            final Token nextToken = tokens.next();
+            final Token nextToken = it.next();
 
             if (nextToken instanceof RBrace)
                 return values;
@@ -384,12 +391,12 @@ public class CCSParser implements Parser {
         final ArrayList<Parameter> parameters = new ArrayList<Parameter>();
         final Set<String> readParameters = new HashSet<String>();
 
-        if (tokens.hasNext() && tokens.peek() instanceof RBracket) {
+        if (tokens.peek() instanceof RBracket) {
             tokens.next();
             return Collections.emptyList();
         }
 
-        while (tokens.hasNext()) {
+        while (true) {
             // read one parameter
             Token nextToken = tokens.next();
             if (nextToken instanceof Identifier) {
@@ -428,7 +435,6 @@ public class CCSParser implements Parser {
             if (!(nextToken instanceof Comma))
                 return null;
         }
-        return null;
     }
 
     /**
@@ -490,9 +496,9 @@ public class CCSParser implements Parser {
      */
     private Expression readRestrictExpression(ExtendedIterator<Token> tokens) throws ParseException {
         Expression expr = readParallelExpression(tokens);
-        while (tokens.hasNext() && tokens.peek() instanceof Restrict) {
+        while (tokens.peek() instanceof Restrict) {
             tokens.next();
-            if (!tokens.hasNext() || !(tokens.next() instanceof LBrace))
+            if (!(tokens.next() instanceof LBrace))
                 throw new ParseException("Expected '{'");
             final Set<Action> restricted = readRestrictionActionSet(tokens);
             expr = ExpressionRepository.getExpression(new RestrictExpression(expr, restricted));
@@ -535,67 +541,54 @@ public class CCSParser implements Parser {
     }
 
     private Action readAction(ExtendedIterator<Token> tokens, boolean tauAllowed) throws ParseException {
-        if (tokens.hasNext()) {
-            final Channel channel = readChannel(tokens);
-            if (channel == null)
-                return null;
-            if (channel instanceof TauChannel) {
-                if (!tauAllowed)
-                    throw new ParseException("Tau action not allowed here");
-                return TauAction.get();
-            }
-            if (tokens.hasNext()) {
-                final Token nextToken = tokens.next();
-                if (nextToken instanceof QuestionMark) {
-                    // read the input value
-                    if (tokens.hasNext()) {
-                        // either a parameter
-                        if (tokens.peek() instanceof Identifier) {
-                            final Identifier identifier = (Identifier)tokens.next();
-                            if (identifier.isQuoted())
-                                tokens.previous();
-                            else {
-                                Range range = null;
-                                if (tokens.hasNext() && tokens.peek() instanceof Colon) {
-                                    tokens.next();
-                                    range = readRangeDef(tokens);
-                                }
-                                final Parameter parameter = new Parameter(identifier.getName(), range);
-                                // hook for logging:
-                                identifierParsed(identifier, parameter);
-                                return new InputAction(channel, parameter);
-                            }
-                        }
-
-                        // ELSE:
-                        // an arithmetic expression (if it is more complex,
-                        // it must have parenthesis around it)
-
-                        // save the old position
-                        // TODO make this nicer
-                        final int oldPosition = tokens.nextIndex();
-                        try {
-                            final Value value = readArithmeticBaseExpression(tokens);
-                            if (value instanceof ParameterReference)
-                                ((ParameterReference)value).getParam().setType(Parameter.Type.VALUE);
-                            return new InputAction(channel, value);
-                        } catch (final ParseException e) {
-                            // ok, there was no arithmetic expression
-                            tokens.setPosition(oldPosition);
-                        }
-                    }
-                    return new InputAction(channel, (Value)null);
-                } else if (nextToken instanceof Exclamation) {
-                    // we have an output value
-                    final Value value = readOutputValue(tokens);
-                    return new OutputAction(channel, value);
-                }
-                tokens.previous();
-            }
-            // no tau, no input, no output ==> it's a simple action
-            return new SimpleAction(channel);
+        final Channel channel = readChannel(tokens);
+        if (channel == null)
+            return null;
+        if (channel instanceof TauChannel) {
+            if (!tauAllowed)
+                throw new ParseException("Tau action not allowed here");
+            return TauAction.get();
         }
-        throw new ParseException("Expected action identifier.");
+
+        if (tokens.peek() instanceof QuestionMark) {
+            tokens.next();
+            // read the input value
+
+            // either a parameter
+            if (tokens.peek() instanceof Identifier) {
+                final Identifier identifier = (Identifier)tokens.next();
+                if (identifier.isQuoted())
+                    tokens.previous();
+                else {
+                    Range range = null;
+                    if (tokens.peek() instanceof Colon) {
+                        tokens.next();
+                        range = readRangeDef(tokens);
+                    }
+                    final Parameter parameter = new Parameter(identifier.getName(), range);
+                    // hook for logging:
+                    identifierParsed(identifier, parameter);
+                    return new InputAction(channel, parameter);
+                }
+            }
+
+            // ELSE:
+            // an arithmetic expression (if it is more complex,
+            // it must have parenthesis around it)
+
+            final Value value = readArithmeticBaseExpression(tokens); // may return null
+            if (value instanceof ParameterReference)
+                ((ParameterReference)value).getParam().setType(Parameter.Type.VALUE);
+            return new InputAction(channel, value);
+        } else if (tokens.peek() instanceof Exclamation) {
+            tokens.next();
+            // we have an output value
+            final Value value = readOutputValue(tokens);
+            return new OutputAction(channel, value);
+        }
+
+        // no tau, no input, no output ==> it's a simple action
+        return new SimpleAction(channel);
     }
 
     // returns null if there is no output value
@@ -614,31 +607,32 @@ public class CCSParser implements Parser {
     }
 
     private Channel readChannel(ExtendedIterator<Token> tokens) throws ParseException {
-        if (tokens.hasNext() && tokens.peek() instanceof Identifier) {
-            final Identifier identifier = (Identifier)tokens.next();
-            Channel channel = null;
-            if ("i".equals(identifier.getName()))
-                channel = TauChannel.get();
-            else if (!identifier.isQuoted()) {
-                for (final Parameter param: parameters) {
-                    if (param.getName().equals(identifier.getName())) {
-                        param.setType(Parameter.Type.CHANNEL);
-                        channel = new ParameterRefChannel(param);
-                        break;
-                    }
+        if (!(tokens.peek() instanceof Identifier))
+            return null;
+
+        final Identifier identifier = (Identifier)tokens.next();
+        Channel channel = null;
+        if ("i".equals(identifier.getName()))
+            channel = TauChannel.get();
+        else if (!identifier.isQuoted()) {
+            for (final Parameter param: parameters) {
+                if (param.getName().equals(identifier.getName())) {
+                    param.setType(Parameter.Type.CHANNEL);
+                    channel = new ParameterRefChannel(param);
+                    break;
                 }
             }
-            if (channel == null && Character.isLowerCase(identifier.getName().charAt(0)))
-                channel = new ConstStringChannel(identifier.getName());
-            if (channel == null)
-                tokens.previous();
-            else {
-                // hook for logging:
-                identifierParsed(identifier, channel);
-                return channel;
-            }
         }
-        return null;
+        if (channel == null && Character.isLowerCase(identifier.getName().charAt(0)))
+            channel = new ConstStringChannel(identifier.getName());
+        if (channel == null) {
+            tokens.previous();
+            return null;
+        }
+
+        // hook for logging:
+        identifierParsed(identifier, channel);
+        return channel;
     }
 
     /**
@@ -646,7 +640,7 @@ public class CCSParser implements Parser {
      */
     private Expression readParallelExpression(ExtendedIterator<Token> tokens) throws ParseException {
         Expression expr = readChoiceExpression(tokens);
-        while (tokens.hasNext() && tokens.peek() instanceof Parallel) {
+        while (tokens.peek() instanceof Parallel) {
             tokens.next();
             final Expression newExpr = readChoiceExpression(tokens);
             expr = ParallelExpression.create(expr, newExpr);
@@ -660,7 +654,7 @@ public class CCSParser implements Parser {
      */
     private Expression readChoiceExpression(ExtendedIterator<Token> tokens) throws ParseException {
         Expression expr = readPrefixExpression(tokens);
-        while (tokens.hasNext() && tokens.peek() instanceof Plus) {
+        while (tokens.peek() instanceof Plus) {
             tokens.next();
             final Expression newExpr = readPrefixExpression(tokens);
             expr = ChoiceExpression.create(expr, newExpr);
@@ -673,34 +667,31 @@ public class CCSParser implements Parser {
      * Read one prefix expression.
      */
     private Expression readPrefixExpression(ExtendedIterator<Token> tokens) throws ParseException {
-        if (tokens.hasNext()) {
-            final Action action = readAction(tokens, true);
-            if (action == null)
-                return readWhenExpression(tokens);
+        final Action action = readAction(tokens, true);
+        if (action == null)
+            return readWhenExpression(tokens);
 
-            if (tokens.hasNext() && tokens.peek() instanceof Dot) {
-                tokens.next();
-                // if the read action is an InputAction with a parameter, we
-                // have to add this parameter to the list of parameters
-                Parameter newParam = null;
-                if (action instanceof InputAction) {
-                    newParam = ((InputAction)action).getParameter();
-                    if (newParam != null) {
-                        // add the new parameter in front of the list
-                        parameters.addFirst(newParam);
-                    }
-                }
-                final Expression target = readPrefixExpression(tokens);
+        if (tokens.peek() instanceof Dot) {
+            tokens.next();
+            // if the read action is an InputAction with a parameter, we
+            // have to add this parameter to the list of parameters
+            Parameter newParam = null;
+            if (action instanceof InputAction) {
+                newParam = ((InputAction)action).getParameter();
                 if (newParam != null) {
-                    final Parameter removedParam = parameters.removeFirst();
-                    assert removedParam == newParam;
+                    // add the new parameter in front of the list
+                    parameters.addFirst(newParam);
                 }
-                return ExpressionRepository.getExpression(new PrefixExpression(action, target));
             }
-            // otherwise, we append ".0" (i.e. we make a PrefixExpression with target = STOP
-            return ExpressionRepository.getExpression(new PrefixExpression(action, StopExpression.get()));
+            final Expression target = readPrefixExpression(tokens);
+            if (newParam != null) {
+                final Parameter removedParam = parameters.removeFirst();
+                assert removedParam == newParam;
+            }
+            return ExpressionRepository.getExpression(new PrefixExpression(action, target));
         }
-        return readWhenExpression(tokens);
+        // otherwise, we append ".0" (i.e. we make a PrefixExpression with target = STOP
+        return ExpressionRepository.getExpression(new PrefixExpression(action, StopExpression.get()));
     }
 
     private Expression readWhenExpression(ExtendedIterator<Token> tokens) throws ParseException {
@@ -780,11 +771,11 @@ public class CCSParser implements Parser {
 
     private Value readArithmeticConditionalExpression(ExtendedIterator<Token> tokens) throws ParseException {
         final Value orValue = readArithmeticOrExpression(tokens);
-        if (tokens.hasNext() && tokens.peek() instanceof QuestionMark) {
+        if (tokens.peek() instanceof QuestionMark) {
             tokens.next();
             ensureBoolean(orValue, "Boolean expression required before '?:' construct.");
             final Value thenValue = readArithmeticConditionalExpression(tokens);
-            if (!tokens.hasNext() || !(tokens.next() instanceof Colon))
+            if (!(tokens.next() instanceof Colon))
                 throw new ParseException("Expected ':'");
             final Value elseValue = readArithmeticConditionalExpression(tokens);
             ensureEqualTypes(thenValue, elseValue, "Expression in '?:' construct must have the same type.");
@@ -796,7 +787,7 @@ public class CCSParser implements Parser {
 
     private Value readArithmeticOrExpression(ExtendedIterator<Token> tokens) throws ParseException {
         Value value = readArithmeticAndExpression(tokens);
-        while (tokens.hasNext() && tokens.peek() instanceof Or) {
+        while (tokens.peek() instanceof Or) {
             tokens.next();
             ensureBoolean(value, "Boolean expression required before '||'.");
             final Value secondValue = readArithmeticAndExpression(tokens);
@@ -822,8 +813,8 @@ public class CCSParser implements Parser {
 
     private Value readArithmeticEqExpression(ExtendedIterator<Token> tokens) throws ParseException {
         Value value = readArithmeticCompExpression(tokens);
-        while (tokens.hasNext() && (tokens.peek() instanceof Equals
-                || tokens.peek() instanceof Neq)) {
+        while (tokens.peek() instanceof Equals
+                || tokens.peek() instanceof Neq) {
             final boolean isNeq = tokens.next() instanceof Neq;
             final Value secondValue = readArithmeticCompExpression(tokens);
             ensureEqualTypes(value, secondValue, "Values to compare must have the same type.");
@@ -833,39 +824,38 @@ public class CCSParser implements Parser {
         return value;
     }
 
-    private Value readArithmeticCompExpression(ExtendedIterator<Token> tokens) throws ParseException {
-        final Value value = readArithmeticShiftExpression(tokens);
-        if (tokens.hasNext()) {
-            final Token nextToken = tokens.peek();
-            CompValue.Type type = null;
-            if (nextToken instanceof Less)
-                type = CompValue.Type.LESS;
-            else if (nextToken instanceof Leq)
-                type = CompValue.Type.LEQ;
-            else if (nextToken instanceof Geq)
-                type = CompValue.Type.GEQ;
-            else if (nextToken instanceof Greater)
-                type = CompValue.Type.GREATER;
+    private Value readArithmeticCompExpression(ExtendedIterator<Token> it) throws ParseException {
+        final Value value = readArithmeticShiftExpression(it);
 
-            if (type != null) {
-                tokens.next();
-                ensureInteger(value, "Only integer values can be compared.");
-                final Value secondValue = readArithmeticShiftExpression(tokens);
-                ensureInteger(secondValue, "Only integer values can be compared.");
-                return CompValue.create(value, secondValue, type);
-            }
+        final Token nextToken = it.peek();
+        CompValue.Type type = null;
+        if (nextToken instanceof Less)
+            type = CompValue.Type.LESS;
+        else if (nextToken instanceof Leq)
+            type = CompValue.Type.LEQ;
+        else if (nextToken instanceof Geq)
+            type = CompValue.Type.GEQ;
+        else if (nextToken instanceof Greater)
+            type = CompValue.Type.GREATER;
+
+        if (type != null) {
+            it.next();
+            ensureInteger(value, "Only integer values can be compared.");
+            final Value secondValue = readArithmeticShiftExpression(it);
+            ensureInteger(secondValue, "Only integer values can be compared.");
+            return CompValue.create(value, secondValue, type);
         }
 
         return value;
     }
 
-    private Value readArithmeticShiftExpression(ExtendedIterator<Token> tokens) throws ParseException {
-        Value value = readArithmeticAddExpression(tokens);
-        while (tokens.hasNext() && (tokens.peek() instanceof LeftShift
-                || tokens.peek() instanceof RightShift)) {
+    private Value readArithmeticShiftExpression(ExtendedIterator<Token> it) throws ParseException {
+        Value value = readArithmeticAddExpression(it);
+        while (it.peek() instanceof LeftShift
+                || it.peek() instanceof RightShift) {
             ensureInteger(value, "Only integer values can be shifted.");
-            final boolean shiftRight = tokens.next() instanceof RightShift;
-            final Value secondValue = readArithmeticAddExpression(tokens);
+            final boolean shiftRight = it.next() instanceof RightShift;
+            final Value secondValue = readArithmeticAddExpression(it);
             ensureInteger(secondValue, "Shifting width must be an integer.");
             value = ShiftValue.create(value, secondValue, shiftRight);
         }
@@ -873,13 +863,13 @@ public class CCSParser implements Parser {
         return value;
     }
 
-    private Value readArithmeticAddExpression(ExtendedIterator<Token> tokens) throws ParseException {
-        Value value = readArithmeticMultExpression(tokens);
-        while (tokens.hasNext() && (tokens.peek() instanceof Plus
-                || tokens.peek() instanceof Minus)) {
+    private Value readArithmeticAddExpression(ExtendedIterator<Token> it) throws ParseException {
+        Value value = readArithmeticMultExpression(it);
+        while (it.peek() instanceof Plus
+                || it.peek() instanceof Minus) {
             ensureInteger(value, "Both sides of an addition must be integers.");
-            final boolean isSubtraction = tokens.next() instanceof Minus;
-            final Value secondValue = readArithmeticMultExpression(tokens);
+            final boolean isSubtraction = it.next() instanceof Minus;
+            final Value secondValue = readArithmeticMultExpression(it);
             ensureInteger(secondValue, "Both sides of an addition must be integers.");
             value = AddValue.create(value, secondValue, isSubtraction);
         }
@@ -887,10 +877,10 @@ public class CCSParser implements Parser {
         return value;
     }
 
-    private Value readArithmeticMultExpression(ExtendedIterator<Token> tokens) throws ParseException {
-        Value value = readArithmeticUnaryExpression(tokens);
-        while (tokens.hasNext()) {
-            final Token nextToken = tokens.peek();
+    private Value readArithmeticMultExpression(ExtendedIterator<Token> it) throws ParseException {
+        Value value = readArithmeticUnaryExpression(it);
+        while (true) {
+            final Token nextToken = it.peek();
             MultValue.Type type = null;
             if (nextToken instanceof Multiplication)
                 type = MultValue.Type.MULT;
@@ -902,10 +892,10 @@ public class CCSParser implements Parser {
             if (type == null)
                 break;
 
-            tokens.next();
+            it.next();
 
             ensureInteger(value, "Both sides of a multiplication/division must be integer expressions.");
-            final Value secondValue = readArithmeticUnaryExpression(tokens);
+            final Value secondValue = readArithmeticUnaryExpression(it);
             ensureInteger(secondValue, "Both sides of a multiplication/division must be integer expressions.");
             value = MultValue.create(value, secondValue, type);
         }
@@ -913,30 +903,28 @@ public class CCSParser implements Parser {
         return value;
     }
 
-    private Value readArithmeticUnaryExpression(ExtendedIterator<Token> tokens) throws ParseException {
-        if (tokens.hasNext()) {
-            final Token nextToken = tokens.peek();
-            if (nextToken instanceof Exclamation) {
-                tokens.next();
-                final Value negatedValue = readArithmeticUnaryExpression(tokens);
-                ensureBoolean(negatedValue, "The negated value must be a boolean expression.");
-                return NotValue.create(negatedValue);
-            } else if (nextToken instanceof Plus) {
-                tokens.next();
-                return readArithmeticUnaryExpression(tokens);
-            } else if (nextToken instanceof Minus) {
-                tokens.next();
-                final Value negativeValue = readArithmeticUnaryExpression(tokens);
-                ensureInteger(negativeValue, "The negated value must be an integer expression.");
-                return NegativeValue.create(negativeValue);
-            }
+    private Value readArithmeticUnaryExpression(ExtendedIterator<Token> it) throws ParseException {
+        final Token nextToken = it.peek();
+        if (nextToken instanceof Exclamation) {
+            it.next();
+            final Value negatedValue = readArithmeticUnaryExpression(it);
+            ensureBoolean(negatedValue, "The negated value must be a boolean expression.");
+            return NotValue.create(negatedValue);
+        } else if (nextToken instanceof Plus) {
+            it.next();
+            return readArithmeticUnaryExpression(it);
+        } else if (nextToken instanceof Minus) {
+            it.next();
+            final Value negativeValue = readArithmeticUnaryExpression(it);
+            ensureInteger(negativeValue, "The negated value must be an integer expression.");
+            return NegativeValue.create(negativeValue);
         }
-        return readArithmeticBaseExpression(tokens);
+
+        // else:
+        return readArithmeticBaseExpression(it);
     }
 
     private Value readArithmeticBaseExpression(ExtendedIterator<Token> tokens) throws ParseException {
-        if (!tokens.hasNext())
-            throw new ParseException("Unexpected EOF.");
         final Token nextToken = tokens.next();
         if (nextToken instanceof IntegerToken)
             return new ConstIntegerValue(((IntegerToken)nextToken).getValue());
@@ -974,12 +962,11 @@ public class CCSParser implements Parser {
         }
         if (nextToken instanceof LParenthesis) {
             final Value value = readArithmeticExpression(tokens);
-            if (!tokens.hasNext() || !(tokens.next() instanceof RParenthesis))
+            if (!(tokens.next() instanceof RParenthesis))
                 throw new ParseException("Expected ')'.");
             return value;
         }
-
-        throw new ParseException("Expected some expression here.");
+        return null;
     }
 
     private void ensureEqualTypes(Value value1, Value value2, String message) throws ParseException {

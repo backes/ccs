@@ -135,6 +135,7 @@ public class Parameter {
      * @param newType the new type to set this parameter to
      * @throws ParseException if the old type and the new type don't fit together
      */
+    @SuppressWarnings("fallthrough")
     public void setType(Type newType) throws ParseException {
         assert newType != Type.UNKNOWN;
         if (type == newType)

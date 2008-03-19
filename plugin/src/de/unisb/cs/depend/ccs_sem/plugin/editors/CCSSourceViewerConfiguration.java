@@ -15,8 +15,11 @@ public class CCSSourceViewerConfiguration extends SourceViewerConfiguration {
 
     private final ColorManager colorManager;
 
-    public CCSSourceViewerConfiguration(ColorManager colorManager) {
+    private final CCSEditor editor;
+
+    public CCSSourceViewerConfiguration(ColorManager colorManager, CCSEditor editor) {
         this.colorManager = colorManager;
+        this.editor = editor;
     }
 
     @Override
@@ -35,7 +38,7 @@ public class CCSSourceViewerConfiguration extends SourceViewerConfiguration {
 
     @Override
     public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
-        return new CCSPresentationReconciler(colorManager);
+        return new CCSPresentationReconciler(colorManager, editor);
     }
 
     @Override

@@ -8,5 +8,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 
 
 public interface Parser {
+
     Program parse(List<Token> tokens) throws ParseException;
+
 }

@@ -14,7 +14,7 @@ public class CCSEditor extends TextEditor {
     public CCSEditor() {
         super();
         colorManager = new ColorManager();
-        setSourceViewerConfiguration(new CCSSourceViewerConfiguration(colorManager));
+        setSourceViewerConfiguration(new CCSSourceViewerConfiguration(colorManager, this));
         setDocumentProvider(new CCSDocumentProvider());
     }
 

@@ -1093,6 +1093,7 @@ public class GrappaNexus implements GrappaConstants, Cloneable, ImageObserver,
                 switch (gline.getArrowType()) {
                 case GrappaLine.HEAD_ARROW_EDGE:
                     line_dir = GrappaLine.TAIL_ARROW_EDGE;
+                    break;
                 case GrappaLine.TAIL_ARROW_EDGE:
                     line_dir = GrappaLine.HEAD_ARROW_EDGE;
                     break;
@@ -1108,6 +1109,7 @@ public class GrappaNexus implements GrappaConstants, Cloneable, ImageObserver,
                     switch (dir) {
                     case GrappaLine.HEAD_ARROW_EDGE:
                         line_dir = GrappaLine.TAIL_ARROW_EDGE;
+                        break;
                     case GrappaLine.TAIL_ARROW_EDGE:
                         line_dir = GrappaLine.HEAD_ARROW_EDGE;
                         break;

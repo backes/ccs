@@ -179,6 +179,7 @@ public class GrappaSupportRects implements GrappaConstants {
         return (retval);
     }
 
+    @SuppressWarnings("fallthrough")
     private static TableField doParse(Node node, boolean LR, boolean topLevel) {
         int maxf = 1;
         int cnt = 0;

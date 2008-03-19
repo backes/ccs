@@ -1,5 +1,11 @@
 package de.unisb.cs.depend.ccs_sem.plugin.editors;
 
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.jface.text.AbstractDocument;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
@@ -12,11 +18,14 @@ import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.jface.text.presentation.IPresentationDamager;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.IPresentationRepairer;
+import org.eclipse.jface.util.SafeRunnable;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IFileEditorInput;
 
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Identifier;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.KeywordToken;
@@ -40,10 +49,12 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
 
     protected ITextViewer textViewer;
     private final ColorManager colorManager;
+    private final CCSEditor editor;
 
 
-    public CCSPresentationReconciler(ColorManager colorManager) {
+    public CCSPresentationReconciler(ColorManager colorManager, CCSEditor editor) {
         this.colorManager = colorManager;
+        this.editor = editor;
     }
 
     public IPresentationDamager getDamager(String contentType) {
@@ -115,6 +126,25 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
                             && textViewer.getTextWidget() != null
                             && !textViewer.getTextWidget().isDisposed()) {
                         textViewer.changeTextPresentation(presentation, true);
+
+                        if (editor != null) {
+                            IEditorInput input = editor.getEditorInput();
+                            IPath path = input instanceof IFileEditorInput
+                                ? ((IFileEditorInput)input).getFile().getFullPath()
+                                : null;
+                            final IResource res = path == null ? null : ResourcesPlugin.getWorkspace().getRoot().getFile(path);
+                            if (res != null && res.exists()) {
+                                SafeRunner.run(new SafeRunnable() {
+                                    @Override
+                                    public void run() throws CoreException {
+                                        res.deleteMarkers(Constants.MARKER_PROBLEM, true, IResource.DEPTH_INFINITE);
+
+                                        addMarkers(res, result);
+                                    }
+
+                                });
+                            }
+                        }
                     }
                 }
             };
@@ -123,6 +153,16 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
             else
                 display.asyncExec(runnable);
         }
+    }
+
+    private void addMarkers(IResource res,
+            ParseStatus result) throws CoreException {
+
+        IMarker marker = res.createMarker(Constants.MARKER_PROBLEM);
+        marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO);
+        marker.setAttribute(IMarker.CHAR_START, 3);
+        marker.setAttribute(IMarker.CHAR_END, 7);
+        marker.setAttribute(IMarker.MESSAGE, "Example error");
     }
 
     private TextPresentation createPresentationAfterParsing(IDocument document, ParseStatus status) {
@@ -134,9 +174,9 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
         for (final ReadComment comment: result.comments) {
             presentation.addStyleRange(new StyleRange(comment.startPosition,
                     comment.endPosition - comment.startPosition + 1,
-                    colorManager.getColor(Constants.getCommentForegroundRGB()),
-                    colorManager.getColor(Constants.getCommentBackgroundRGB()),
-                    Constants.getCommentFontStyle()));
+                    colorManager.getColor(Constants.COMMENT_FOREGROUND_RGB),
+                    colorManager.getColor(Constants.COMMENT_BACKGROUND_RGB),
+                    Constants.COMMENT_FONTSTYLE));
         }
 
         for (final Token tok: result.tokens) {
@@ -145,13 +185,13 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
             int fontStyle = SWT.NORMAL;
 
             if (tok instanceof KeywordToken) {
-                foregroundRGB = Constants.getKeywordForegroundRGB();
-                backgroundRGB = Constants.getKeywordBackgroundRGB();
-                fontStyle = Constants.getKeywordFontStyle();
+                foregroundRGB = Constants.KEYWORD_FOREGROUND_RGB;
+                backgroundRGB = Constants.KEYWORD_BACKGROUND_RGB;
+                fontStyle = Constants.KEYWORD_FONTSTYLE;
             } else if (tok instanceof OperatorToken) {
-                foregroundRGB = Constants.getOperatorForegroundRGB();
-                backgroundRGB = Constants.getOperatorBackgroundRGB();
-                fontStyle = Constants.getOperatorFontStyle();
+                foregroundRGB = Constants.OPERATOR_FOREGROUND_RGB;
+                backgroundRGB = Constants.OPERATOR_BACKGROUND_RGB;
+                fontStyle = Constants.OPERATOR_FONTSTYLE;
             } else if (tok instanceof Identifier) {
                 final Object o = result.identifiers.get(tok);
                 if (o instanceof Parameter) {
@@ -159,9 +199,9 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
                     // variable)
                 } else if (o instanceof ParameterReference) {
                     // can be channel or value, is not distinguished here
-                    foregroundRGB = Constants.getParameterReferenceForegroundRGB();
-                    backgroundRGB = Constants.getParameterReferenceBackgroundRGB();
-                    fontStyle = Constants.getParameterReferenceFontStyle();
+                    foregroundRGB = Constants.PARAMETER_REFERENCE_FOREGROUND_RGB;
+                    backgroundRGB = Constants.PARAMETER_REFERENCE_BACKGROUND_RGB;
+                    fontStyle = Constants.PARAMETER_REFERENCE_FONTSTYLE;
                 } else if (o instanceof ConstantValue) {
                     // no style so far...
                 } else if (o instanceof ConstString) {
@@ -169,9 +209,9 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
                 } else if (o instanceof Range) {
                     // no style so far...
                 } else if (o instanceof UnknownRecursiveExpression) {
-                    foregroundRGB = Constants.getProcessReferenceForegroundRGB();
-                    backgroundRGB = Constants.getProcessReferenceBackgroundRGB();
-                    fontStyle = Constants.getProcessReferenceFontStyle();
+                    foregroundRGB = Constants.PROCESS_REFERENCE_FOREGROUND_RGB;
+                    backgroundRGB = Constants.PROCESS_REFERENCE_BACKGROUND_RGB;
+                    fontStyle = Constants.PROCESS_REFERENCE_FONTSTYLE;
                 } else if (o instanceof Channel) {
                     // no style so far...
                 } else if (o instanceof ProcessVariable) {

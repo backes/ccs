@@ -139,6 +139,16 @@
             name="CCS">
       </page>
    </extension>
+   <extension
+         id="de.unisb.cs.depend.ccs_sem.ccsproblemmarker"
+         point="org.eclipse.core.resources.markers">
+      <persistent
+            value="true">
+      </persistent>
+      <super
+            type="org.eclipse.core.resources.problemmarker">
+      </super>
+   </extension>
 
 
 </plugin>

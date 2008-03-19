@@ -71,6 +71,7 @@ public class GrappaShape implements GrappaConstants, Cloneable, Shape {
      *            provides a string of tuples giving interior partition
      *            information.
      */
+    @SuppressWarnings("fallthrough")
     public GrappaShape(int type, double x, double y, double width,
             double height, int sidesArg, int peripheriesArg,
             double distortionArg, double skewArg, double orientationArg,
