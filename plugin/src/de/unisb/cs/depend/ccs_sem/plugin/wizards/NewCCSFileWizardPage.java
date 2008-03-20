@@ -35,11 +35,6 @@ public class NewCCSFileWizardPage extends WizardPage {
 
     private final ISelection selection;
 
-    /**
-     * Constructor for SampleNewWizardPage.
-     *
-     * @param pageName
-     */
     public NewCCSFileWizardPage(ISelection selection) {
         super("wizardPage");
         setTitle("New CCS File");

@@ -99,10 +99,8 @@ public class CCSTextHover implements ITextHover {
     private Token binarySearchTokenOnOffset(List<Token> tokens, int offset) {
         int left = 0;
         int right = tokens.size();
-        while (true) {
-            if (left >= right)
-                return null;
-            final int index = left + (right-left)/2;
+        while (left < right) {
+            final int index = (left + right)/2;
             final Token cur = tokens.get(index);
             if (cur.getStartPosition() > offset) {
                 right = index;
@@ -112,6 +110,7 @@ public class CCSTextHover implements ITextHover {
                 return cur;
             }
         }
+        return null;
     }
 
 }

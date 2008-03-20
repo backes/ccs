@@ -12,7 +12,6 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.InputAction;
-import de.unisb.cs.depend.ccs_sem.semantics.types.actions.SimpleAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterReference;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
@@ -46,12 +45,6 @@ public class PrefixExpression extends Expression {
 
     @Override
     public Expression replaceRecursion(List<ProcessVariable> processVariables) throws ParseException {
-        if (prefix instanceof SimpleAction) {
-            final String prefixLabel = ((SimpleAction) prefix).getLabel();
-            for (final ProcessVariable proc: processVariables)
-                if (proc.getName().equals(prefixLabel))
-                    throw new ParseException("Illegal use of recursion variable");
-        }
         final Expression newTarget = target.replaceRecursion(processVariables);
         if (newTarget.equals(target))
             return this;

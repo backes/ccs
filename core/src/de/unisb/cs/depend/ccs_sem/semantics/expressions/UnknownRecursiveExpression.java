@@ -23,11 +23,15 @@ public class UnknownRecursiveExpression extends Expression {
 
     private final String name;
     private final List<Value> parameters;
+    private int startPos;
+    private int endPos;
 
-    public UnknownRecursiveExpression(String name, List<Value> parameters) {
+    public UnknownRecursiveExpression(String name, List<Value> parameters, int startPos, int endPos) {
         super();
         this.name = name;
         this.parameters = parameters;
+        this.startPos = startPos;
+        this.endPos = endPos;
     }
 
     public UnknownRecursiveExpression(String name) {
@@ -56,7 +60,11 @@ public class UnknownRecursiveExpression extends Expression {
             if (proc.getName().equals(name) && proc.getParamCount() == parameters.size()) {
                 // check if parameters match
                 // this possibly throws a ParseException
-                proc.checkMatch(parameters);
+                try {
+                    proc.checkMatch(parameters);
+                } catch (ParseException e) {
+                    throw new ParseException(e.getMessage(), startPos, endPos);
+                }
                 final RecursiveExpression newExpr = new RecursiveExpression(proc, parameters);
                 return ExpressionRepository.getExpression(newExpr);
             }
@@ -78,7 +86,7 @@ public class UnknownRecursiveExpression extends Expression {
                     sb.append(Globals.getNewline()).append("  - ").append(prop.getFullName());
         }
 
-        throw new ParseException(sb.toString());
+        throw new ParseException(sb.toString(), startPos, endPos);
     }
 
     @Override
@@ -99,7 +107,7 @@ public class UnknownRecursiveExpression extends Expression {
         if (!changed)
             return this;
 
-        return ExpressionRepository.getExpression(new UnknownRecursiveExpression(name, newParameters));
+        return ExpressionRepository.getExpression(new UnknownRecursiveExpression(name, newParameters, startPos, endPos));
     }
 
     @Override

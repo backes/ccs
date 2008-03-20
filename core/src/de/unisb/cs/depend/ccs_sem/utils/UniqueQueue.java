@@ -62,7 +62,6 @@ public class UniqueQueue<E> extends ArrayQueue<E> {
         return true;
     }
 
-    @Override
     public boolean offerFirst(E e) {
         if (!seen.add(e))
             return false;
@@ -70,11 +69,10 @@ public class UniqueQueue<E> extends ArrayQueue<E> {
         return true;
     }
 
-    @Override
     public boolean offerLast(E e) {
         if (!seen.add(e))
             return false;
-        super.offerLast(e);
+        super.addLast(e);
         return true;
     }
 

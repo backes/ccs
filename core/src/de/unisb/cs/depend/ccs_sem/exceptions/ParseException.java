@@ -1,38 +1,40 @@
 package de.unisb.cs.depend.ccs_sem.exceptions;
 
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token;
+
 
 public class ParseException extends Exception {
 
     private static final long serialVersionUID = 279050231911730217L;
-    private String environment = null;
+    private final int startPosition;
+    private final int endPosition;
+    private final Token token;
 
-    public ParseException() {
-        super();
-    }
-
-    public ParseException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public ParseException(String message) {
+    public ParseException(String message, Token token) {
         super(message);
+        this.startPosition = token.getStartPosition();
+        this.endPosition = token.getEndPosition();
+        this.token = token;
     }
 
-    public ParseException(Throwable cause) {
-        super(cause);
-    }
-
-    public ParseException(String message, String environment) {
+    public ParseException(String message, int startPosition,
+            int endPosition) {
         super(message);
-        this.environment = environment;
+        this.startPosition = startPosition;
+        this.endPosition = endPosition;
+        this.token = null;
     }
 
-    public void setEnvironment(String environment) {
-        this.environment  = environment;
+    public int getStartPosition() {
+        return startPosition;
     }
 
-    public String getEnvironment() {
-        return environment;
+    public int getEndPosition() {
+        return endPosition;
+    }
+
+    public Token getToken() {
+        return token;
     }
 
 }

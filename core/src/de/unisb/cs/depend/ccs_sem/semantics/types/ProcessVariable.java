@@ -131,7 +131,7 @@ public class ProcessVariable {
             try {
                 parameters.get(i).match(values.get(i));
             } catch (final ParseException e) {
-                throw new ParseException("The type of parameter " + i + " does not fit: " + e.getMessage());
+                throw new ParseException("The type of parameter " + i + " does not fit: " + e.getMessage(), -1, -1);
             }
         }
     }
@@ -147,6 +147,7 @@ public class ProcessVariable {
 
     public Expression instantiate(List<Value> values) {
         // first, assert that the values fit into the parameters
+        // (should have been checked before, so just an assertion here)
         assert checkMatch0(values);
         assert parameters.size() == values.size();
 

@@ -13,13 +13,14 @@ import java.util.Map;
 import java.util.Queue;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import de.unisb.cs.depend.ccs_sem.evaluators.Evaluator;
-import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
-import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.parser.CCSParser;
+import de.unisb.cs.depend.ccs_sem.parser.IParsingProblemListener;
+import de.unisb.cs.depend.ccs_sem.parser.ParsingProblem;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.ExpressionRepository;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
@@ -49,7 +50,7 @@ import de.unisb.cs.depend.ccs_sem.utils.Bisimulation.Partition;
  *
  * @author Clemens Hammacher
  */
-public abstract class IntegrationTest {
+public abstract class IntegrationTest implements IParsingProblemListener {
 
     private static class SimpleTrans {
         public String label;
@@ -64,6 +65,11 @@ public abstract class IntegrationTest {
     private List<String> states;
     private List<List<SimpleTrans>> transitions;
     private Program program;
+    private List<ParsingProblem> parsingWarnings;
+    private List<ParsingProblem> parsingErrors;
+    private List<ParsingProblem> evaluationWarnings;
+    private List<ParsingProblem> evaluationErrors;
+    private boolean evaluating;
 
     // may be overridden to use another evaluator
     protected Evaluator getEvaluator() {
@@ -71,7 +77,7 @@ public abstract class IntegrationTest {
     }
 
     @Before
-    public void initialize() throws ParseException, LexException, InterruptedException {
+    public void initialize() throws InterruptedException {
         ExpressionRepository.reset();
         states = new ArrayList<String>();
         transitions = new ArrayList<List<SimpleTrans>>();
@@ -81,7 +87,17 @@ public abstract class IntegrationTest {
 
         // evaluate the expression
         final String expressionString = getExpressionString();
-        program = new CCSParser().parse(expressionString);
+        CCSParser parser = new CCSParser();
+        parsingWarnings = new ArrayList<ParsingProblem>();
+        parsingErrors = new ArrayList<ParsingProblem>();
+        evaluationWarnings = new ArrayList<ParsingProblem>();
+        evaluationErrors = new ArrayList<ParsingProblem>();
+        evaluating = false;
+        parser.addProblemListener(this);
+        program = parser.parse(expressionString);
+        if (program == null)
+            Assert.fail("Program could not be parsed");
+        evaluating = true;
         program.evaluate(getEvaluator());
 
         if (isMinimize())
@@ -97,6 +113,47 @@ public abstract class IntegrationTest {
         program = null;
         states = null;
         transitions = null;
+    }
+
+    @Test
+    public void checkErrorsAndWarnings() {
+        StringBuilder sb = new StringBuilder();
+        String newLine = Globals.getNewline();
+        if (parsingWarnings.size() != getExpectedParsingWarnings()) {
+            sb.append("Number of expected parsing warnings does not fit.").append(newLine);
+            sb.append("Expected ").append(getExpectedParsingWarnings());
+            sb.append(", got ").append(parsingWarnings.size()).append(newLine);
+            for (ParsingProblem problem: parsingWarnings) {
+                sb.append("    --> ").append(problem).append(newLine);
+            }
+        }
+        if (parsingErrors.size() != getExpectedParsingErrors()) {
+            sb.append("Number of expected parsing errors does not fit.").append(newLine);
+            sb.append("Expected ").append(getExpectedParsingErrors());
+            sb.append(", got ").append(parsingErrors.size()).append(newLine);
+            for (ParsingProblem problem: parsingErrors) {
+                sb.append("    --> ").append(problem).append(newLine);
+            }
+        }
+        if (evaluationWarnings.size() != getExpectedEvaluationWarnings()) {
+            sb.append("Number of expected evaluation warnings does not fit.").append(newLine);
+            sb.append("Expected ").append(getExpectedEvaluationWarnings());
+            sb.append(", got ").append(evaluationWarnings.size()).append(newLine);
+            for (ParsingProblem problem: evaluationWarnings) {
+                sb.append("    --> ").append(problem).append(newLine);
+            }
+        }
+        if (evaluationErrors.size() != getExpectedEvaluationErrors()) {
+            sb.append("Number of expected evaluation errors does not fit.").append(newLine);
+            sb.append("Expected ").append(getExpectedEvaluationErrors());
+            sb.append(", got ").append(evaluationErrors.size()).append(newLine);
+            for (ParsingProblem problem: evaluationErrors) {
+                sb.append("    --> ").append(problem).append(newLine);
+            }
+        }
+        if (sb.length() > 0) {
+            fail(sb.toString());
+        }
     }
 
     @Test
@@ -239,6 +296,22 @@ public abstract class IntegrationTest {
         return false;
     }
 
+    protected int getExpectedParsingWarnings() {
+        return 0;
+    }
+
+    protected int getExpectedParsingErrors() {
+        return 0;
+    }
+
+    protected int getExpectedEvaluationWarnings() {
+        return 0;
+    }
+
+    protected int getExpectedEvaluationErrors() {
+        return 0;
+    }
+
     protected String decode(String str) {
         final StringBuilder sb = new StringBuilder(str.length() * 3 / 2);
 
@@ -272,6 +345,17 @@ public abstract class IntegrationTest {
             fail("Error in the testcase itself. Node " + endNodeNo
                 + " is greater/equal to the number of nodes (" + states.size() + ")");
         transitions.get(startNodeNo).add(new SimpleTrans(label, endNodeNo));
+    }
+
+    public void reportParsingProblem(ParsingProblem problem) {
+        if (evaluating && problem.getType() == ParsingProblem.ERROR)
+            evaluationErrors.add(problem);
+        if (!evaluating && problem.getType() == ParsingProblem.ERROR)
+            parsingErrors.add(problem);
+        if (evaluating && problem.getType() == ParsingProblem.WARNING)
+            evaluationWarnings.add(problem);
+        if (evaluating && problem.getType() == ParsingProblem.WARNING)
+            parsingWarnings.add(problem);
     }
 
 

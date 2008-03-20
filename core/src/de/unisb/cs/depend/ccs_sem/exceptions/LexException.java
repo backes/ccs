@@ -4,31 +4,30 @@ package de.unisb.cs.depend.ccs_sem.exceptions;
 public class LexException extends Exception {
 
     private static final long serialVersionUID = -4281534601860612563L;
-    private String environment;
+    int position;
 
-    public LexException() {
+    public LexException(int position) {
         super();
+        this.position = position;
     }
 
-    public LexException(String message) {
+    public LexException(String message, int position) {
         super(message);
+        this.position = position;
     }
 
-    public LexException(Throwable cause) {
+    public LexException(Throwable cause, int position) {
         super(cause);
+        this.position = position;
     }
 
-    public LexException(String message, Throwable cause) {
+    public LexException(String message, Throwable cause, int position) {
         super(message, cause);
+        this.position = position;
     }
 
-    public LexException(String message, String environment) {
-        super(message);
-        this.environment = environment;
-    }
-
-    public String getEnvironment() {
-        return environment;
+    public int getPosition() {
+        return position;
     }
 
 }

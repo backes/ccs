@@ -65,7 +65,7 @@ public class Program {
 
     /**
      * A program is regular iff every recursive definition is regular.
-     * See {@link ProcessVariable#isRegular(List)}.
+     * See {@link ProcessVariable#isRegular()}.
      */
     public boolean isRegular() {
         for (final ProcessVariable proc: processVariables)
@@ -77,7 +77,7 @@ public class Program {
 
     /**
      * A program is guarded iff every recursive definition is guarded.
-     * See {@link ProcessVariable#isGuarded(List)}.
+     * See {@link ProcessVariable#isGuarded()}.
      */
     public boolean isGuarded() {
         for (final ProcessVariable proc: processVariables)

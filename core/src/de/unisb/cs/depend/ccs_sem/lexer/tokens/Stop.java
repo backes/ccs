@@ -1,10 +1,10 @@
 package de.unisb.cs.depend.ccs_sem.lexer.tokens;
 
-import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.AbstractToken;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.KeywordToken;
 
 
-public class Stop extends AbstractToken {
-    
+public class Stop extends KeywordToken {
+
     public Stop(int startPosition) {
         super(startPosition, startPosition);
     }
@@ -13,5 +13,5 @@ public class Stop extends AbstractToken {
     public String toString() {
         return "0";
     }
-    
+
 }

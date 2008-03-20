@@ -56,6 +56,9 @@ public class ParsingResult {
     public int mainExpressionTokenIndexEnd;
     public final List<ReadComment> comments = new ArrayList<ReadComment>();
     public final Map<Identifier, Object> identifiers = new HashMap<Identifier, Object>();
+    public final List<Integer> lineStarts = new ArrayList<Integer>();
+    public int inputLength;
+    public final List<ParsingProblem> parsingProblems = new ArrayList<ParsingProblem>();
 
     public void addProcessVariable(ProcessVariable processVariable,
             int tokenIndexStart, int tokenIndexEnd) {
@@ -68,6 +71,25 @@ public class ParsingResult {
 
     public void addIdentifierMapping(Identifier identifier, Object semantic) {
         identifiers.put(identifier, semantic);
+    }
+
+    public int getLineOfOffset(int offset) {
+        // binary search
+        int left = 0;
+        int right = lineStarts.size();
+        if (offset < 0 || offset >= inputLength)
+            return -1;
+        while (left < right) {
+            int mid = (left + right)/2;
+            if (offset < lineStarts.get(mid))
+                right = mid;
+            else if (mid+1 < lineStarts.size() && offset >= lineStarts.get(mid+1))
+                left = mid+1;
+            else
+                return mid;
+        }
+        assert false;
+        return -1;
     }
 
 }

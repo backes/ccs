@@ -61,14 +61,14 @@ public class Transition {
     }
 
     /**
-     * Called on input transitions to check whether they match to the given
-     * otherTrans, that has to be an output action (getAction().isOutputAction()
+     * Called on input transitions to check whether they can synchronize with
+     * the given Action, that has to be an output action (getAction().isOutputAction()
      * has to yield true).
      *
-     * @param otherTrans the Transition to check against
+     * @param otherAction the Action to check against
      * @return the new Expression that is reached by this Transition if one matches
-     *         with the otherTrans (may be just the target of this trans, but
-     *         doesn't have to); or <code>null</code> if the Transitions can't synchronize
+     *         with the otherAction (may be just the target of this trans, but
+     *         doesn't have to); or <code>null</code> if no synchronization is possible
      */
     public Expression synchronizeWith(Action otherAction) {
         // this method should only be called on input actions

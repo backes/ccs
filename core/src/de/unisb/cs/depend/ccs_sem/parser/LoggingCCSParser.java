@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
+import de.unisb.cs.depend.ccs_sem.lexer.CCSLexer;
 import de.unisb.cs.depend.ccs_sem.lexer.LoggingCCSLexer;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Identifier;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token;
@@ -19,7 +19,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstString;
 
 
 
-public class LoggingCCSParser extends CCSParser {
+public class LoggingCCSParser extends CCSParser implements IParsingProblemListener {
 
     private final ParsingResult result;
 
@@ -34,13 +34,24 @@ public class LoggingCCSParser extends CCSParser {
     }
 
     @Override
-    public Program parse(Reader input) throws ParseException, LexException {
-        return parse(new LoggingCCSLexer(result).lex(input));
+    public Program parse(Reader input) {
+        addProblemListener(this);
+        Program program = super.parse(input);
+        removeProblemListener(this);
+        return program;
     }
 
     @Override
-    public Program parse(String input) throws ParseException, LexException {
-        return parse(new LoggingCCSLexer(result).lex(input));
+    public Program parse(String input) {
+        addProblemListener(this);
+        Program program = super.parse(input);
+        removeProblemListener(this);
+        return program;
+    }
+
+    @Override
+    protected CCSLexer getDefaultLexer() {
+        return new LoggingCCSLexer(result);
     }
 
     public ParsingResult getResult() {
@@ -48,13 +59,13 @@ public class LoggingCCSParser extends CCSParser {
     }
 
     @Override
-    public Program parse(List<Token> tokens) throws ParseException {
+    public Program parse(List<Token> tokens) {
         result.tokens = tokens;
         return super.parse(tokens);
     }
 
     @Override
-    protected ProcessVariable readProcessDeclaration(ExtendedIterator<Token> tokens)
+    protected ProcessVariable readProcessDeclaration(ExtendedListIterator<Token> tokens)
             throws ParseException {
         final int tokenPositionBefore = tokens.nextIndex();
         final ProcessVariable readProcessVariable = super.readProcessDeclaration(tokens);
@@ -66,7 +77,7 @@ public class LoggingCCSParser extends CCSParser {
     }
 
     @Override
-    protected Expression readMainExpression(ExtendedIterator<Token> tokens)
+    protected Expression readMainExpression(ExtendedListIterator<Token> tokens)
             throws ParseException {
         final int tokenPositionBefore = tokens.nextIndex();
         final Expression readExpression = super.readMainExpression(tokens);
@@ -89,6 +100,10 @@ public class LoggingCCSParser extends CCSParser {
                 newMappings.put(entry.getKey(), range);
         }
         result.identifiers.putAll(newMappings);
+    }
+
+    public void reportParsingProblem(ParsingProblem problem) {
+        result.parsingProblems.add(problem);
     }
 
 }

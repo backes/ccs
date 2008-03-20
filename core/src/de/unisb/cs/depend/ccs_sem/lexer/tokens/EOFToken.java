@@ -22,4 +22,9 @@ public class EOFToken implements Token {
         return position;
     }
 
+    @Override
+    public String toString() {
+        return "EOF";
+    }
+
 }

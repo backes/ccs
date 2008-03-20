@@ -1,6 +1,7 @@
 package de.unisb.cs.depend.ccs_sem.lexer;
 
 import java.io.IOException;
+import java.io.PushbackReader;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,19 +13,17 @@ import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token;
 
 public class CCSLexer extends AbstractLexer {
 
-    private static final int ENVIRONMENT_SIZE = 15;
-
-    private int position;
+    protected int position;
 
     public List<Token> lex(Reader input) throws LexException {
         final List<Token> tokens = new ArrayList<Token>();
 
-        final HistoryPushbackReader pr = new HistoryPushbackReader(input, 1, ENVIRONMENT_SIZE);
+        final PushbackReader pr = new PushbackReader(input, 1);
 
         try {
             lex0(pr, tokens);
         } catch (final IOException e) {
-            throw new LexException("Error reading input stream", e);
+            throw new LexException("Error reading input stream", -1);
         }
 
         assert !tokens.contains(null);
@@ -32,7 +31,8 @@ public class CCSLexer extends AbstractLexer {
         return tokens;
     }
 
-    private void lex0(HistoryPushbackReader input, List<Token> tokens) throws IOException, LexException {
+    @SuppressWarnings("fallthrough")
+    private void lex0(PushbackReader input, List<Token> tokens) throws IOException, LexException {
         int nextChar;
 
         // temporaryly needed variables
@@ -46,8 +46,19 @@ public class CCSLexer extends AbstractLexer {
             switch (nextChar) {
             case ' ':
             case '\t':
-            case '\n':
+                break;
+
             case '\r':
+                // read the next "\n" too
+                nextChar = input.read();
+                if (nextChar == '\n')
+                    ++position;
+                else if (nextChar != -1)
+                    input.unread(nextChar);
+
+                // fallthrough
+            case '\n':
+                completeLine();
                 break;
 
             case '0':
@@ -117,7 +128,7 @@ public class CCSLexer extends AbstractLexer {
                 if (nextChar == '&')
                     tokens.add(new And(position, ++position));
                 else
-                    throw new LexException("Syntaxerror: Expected a second '&'", readEnvironment(input, ENVIRONMENT_SIZE));
+                    throw new LexException("Syntaxerror: Expected a second '&'", ++position);
                 break;
 
             case '\\':
@@ -140,7 +151,7 @@ public class CCSLexer extends AbstractLexer {
                         }
                     }
                     if (nextChar == -1)
-                        throw new LexException("Comment is not closed");
+                        throw new LexException("Comment is not closed", position);
                     final int commentEndPosition = position;
                     commentRead(commentStartPosition, commentEndPosition);
                 } else {
@@ -261,7 +272,7 @@ public class CCSLexer extends AbstractLexer {
             default:
                 str = readString(nextChar, input);
                 if (str.length() == 0)
-                    throw new LexException("Syntaxerror on position " + position, readEnvironment(input, ENVIRONMENT_SIZE));
+                    throw new LexException("Syntaxerror (illegal character)", position);
                 if ("when".equals(str) || "if".equals(str))
                     tokens.add(new When(position, position += str.length() - 1));
                 else if ("then".equals(str))
@@ -294,35 +305,15 @@ public class CCSLexer extends AbstractLexer {
         tokens.add(new EOFToken(position));
     }
 
+    protected void completeLine() {
+        // ignore in the default implementation
+    }
+
     protected void commentRead(int startPosition, int endPosition) {
         // ignore in the default implementation
     }
 
-    private String readEnvironment(HistoryPushbackReader input, int envSize) {
-        final StringBuilder sb = new StringBuilder(envSize);
-        // append the last "envSize" read chars
-        sb.append(input.getHistory(envSize));
-        // append the next "envSize" chars
-        int c;
-        try {
-            while (envSize-- > 0 && (c = input.read()) != -1) {
-                if (c == '\n' || c == '\r')
-                    sb.append(' ');
-                else
-                    sb.append((char)c);
-            }
-            if ((c = input.read()) != -1) {
-                input.unread(c);
-                sb.append("...");
-            }
-        } catch (final IOException e) {
-            // hm, ok, then lets just abort here
-        }
-
-        return sb.toString();
-    }
-
-    private String readString(int nextChar, HistoryPushbackReader input) throws IOException {
+    private String readString(int nextChar, PushbackReader input) throws IOException {
         boolean first = true;
         final StringBuilder name = new StringBuilder();
         while ((nextChar >= 'a' && nextChar <= 'z') || (nextChar >= 'A' && nextChar <= 'Z')
@@ -340,7 +331,7 @@ public class CCSLexer extends AbstractLexer {
         return name.toString();
     }
 
-    private String readQuotedString(HistoryPushbackReader input) throws LexException, IOException {
+    private String readQuotedString(PushbackReader input) throws LexException, IOException {
         int nextChar;
         final StringBuilder sb = new StringBuilder();
         while ((nextChar = input.read()) != -1) {
@@ -358,10 +349,10 @@ public class CCSLexer extends AbstractLexer {
                 sb.append((char)nextChar);
         }
 
-        throw new LexException("Expected '\"'", readEnvironment(input, ENVIRONMENT_SIZE));
+        throw new LexException("Quoted string not closed (expected '\"')", position);
     }
 
-    private IntegerToken readInteger(int nextChar, HistoryPushbackReader input, List<Token> tokens) throws IOException {
+    private IntegerToken readInteger(int nextChar, PushbackReader input, List<Token> tokens) throws IOException {
         assert '0' <= nextChar && nextChar <= '9';
 
         final int startPosition = position--;

@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.PushbackReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -16,7 +17,6 @@ import de.unisb.cs.depend.ccs_sem.evaluators.SequentialEvaluator;
 import de.unisb.cs.depend.ccs_sem.evaluators.ThreadBasedEvaluator;
 import de.unisb.cs.depend.ccs_sem.exceptions.ExportException;
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
-import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.exporters.AiSeeGraphExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.ETMCCExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.Exporter;
@@ -26,11 +26,13 @@ import de.unisb.cs.depend.ccs_sem.exporters.bcg.BCGExporter;
 import de.unisb.cs.depend.ccs_sem.lexer.CCSLexer;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token;
 import de.unisb.cs.depend.ccs_sem.parser.CCSParser;
+import de.unisb.cs.depend.ccs_sem.parser.IParsingProblemListener;
+import de.unisb.cs.depend.ccs_sem.parser.ParsingProblem;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
 
-public class Main {
+public class Main implements IParsingProblemListener {
 
     private static long startTime;
     private File inputFile = null;
@@ -38,6 +40,9 @@ public class Main {
     private final List<Exporter> exporters = new ArrayList<Exporter>(2);
     private boolean minimizeWeak = false;
     private boolean minimizeStrong = false;
+    private int[] lineOffsets = null;
+
+    // TODO add parameter for controlling this
     private static final boolean allowUnguarded = true; //false;
     private static final boolean allowUnregular = true; //false;
 
@@ -78,14 +83,12 @@ public class Main {
                 }
             }
             log("Parsing...");
-            program = new CCSParser().parse(tokens);
+            CCSParser parser = new CCSParser();
+            parser.addProblemListener(this);
+            program = parser.parse(tokens);
         } catch (final LexException e) {
             System.err.println("Error lexing input file: " + e.getMessage());
-            System.err.println("around this context: \"" + e.getEnvironment() + "\"");
-            return false;
-        } catch (final ParseException e) {
-            System.err.println("Error parsing input file: " + e.getMessage());
-            System.err.println("around this context: \"" + e.getEnvironment() + "\"");
+            // TODO print environment
             return false;
         }
 
@@ -395,6 +398,112 @@ public class Main {
             newState();
         }
 
+    }
+
+    public void reportParsingProblem(ParsingProblem problem) {
+        System.out.println(problem.getType() == ParsingProblem.ERROR ? "Error: " : "Warning: ");
+        System.out.println(problem.getMessage());
+        System.out.println("At Location: ");
+        if (lineOffsets == null) {
+            lineOffsets = readLineOffsets(inputFile);
+        }
+        assert lineOffsets != null;
+        int startLine = getLineOfOffset(problem.getStartPosition());
+        int endLine = getLineOfOffset(problem.getEndPosition());
+        if (startLine == -1 || endLine == -1) {
+            System.out.println("(no information)");
+        } else {
+            int startOffset = problem.getStartPosition();
+            if (startLine > 1)
+                startOffset -= lineOffsets[startLine-2];
+            int endOffset = problem.getEndPosition();
+            if (endLine > 1)
+                endOffset -= lineOffsets[endLine-2];
+            if (startLine == endLine) {
+                System.out.println(" line " + startLine);
+                if (startOffset == endOffset)
+                    System.out.println(", character" + (startOffset+1));
+                else
+                    System.out.println(", characters " + (startOffset+1)
+                            + " to " + (endOffset+1));
+            } else {
+                System.out.println(" line " + startLine + ", character "
+                        + (startOffset+1) + " to line " + endLine
+                        + ", character " + (endOffset+1));
+            }
+        }
+    }
+
+    private int getLineOfOffset(int startPosition) {
+        if (lineOffsets.length == 0)
+            return 1;
+        if (startPosition >= lineOffsets[lineOffsets.length-1])
+            return lineOffsets.length+1;
+        if (startPosition < lineOffsets[0])
+            return 1;
+
+        // binary search
+        int left = 0;
+        int right = lineOffsets.length;
+        while (left < right) {
+            int mid = (left + right)/2;
+            if (lineOffsets[mid] > startPosition)
+                right = mid;
+            else if (lineOffsets[mid+1] <= startPosition)
+                left = mid+1;
+            else
+                return mid+2;
+        }
+        return -1;
+    }
+
+    @SuppressWarnings("fallthrough")
+    private int[] readLineOffsets(File file) {
+        PushbackReader reader = null;
+        int[] offsets = new int[16];
+        try {
+            reader = new PushbackReader(new FileReader(file));
+            int pos = 0;
+            int lineNumber = 0;
+            int ch;
+            while ((ch = reader.read()) != -1) {
+                ++pos;
+                switch (ch) {
+                case '\r':
+                    // ignore following '\n'
+                    if ((ch = reader.read()) == '\n')
+                        ++pos;
+                    else if (ch != -1)
+                        reader.unread(ch);
+                    // fallthrough
+                case '\n':
+                    if (lineNumber >= offsets.length) {
+                        int[] oldOffsets = offsets;
+                        offsets = new int[offsets.length * 2];
+                        System.arraycopy(oldOffsets, 0, offsets, 0, offsets.length);
+                    }
+                    offsets[lineNumber++] = pos;
+                    break;
+
+                default:
+                    break;
+                }
+            }
+            int[] realOffsets = new int[lineNumber];
+            System.arraycopy(offsets, 0, realOffsets, 0, lineNumber);
+            return offsets;
+        } catch (IOException e) {
+            e.printStackTrace();
+            if (reader != null)
+                try {
+                    reader.close();
+                } catch (IOException e1) {
+                    // ignore
+                }
+            System.err.println("Error reading input file " + file + ": " + e.getMessage());
+            System.exit(-1);
+        }
+        return null;
     }
 
 }

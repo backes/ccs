@@ -19,7 +19,8 @@ public abstract class Action implements Comparable<Action> {
 
     /**
      * Overwritten by all Actions that can act as input action.
-     * @return
+     * @return <code>true</code> if this action is an input action,
+     *         <code>false</code> otherwise
      */
     public boolean isInputAction() {
         return false;
@@ -27,7 +28,8 @@ public abstract class Action implements Comparable<Action> {
 
     /**
      * Overwritten by all Actions that can act as output action.
-     * @return
+     * @return <code>true</code> if this action is an output action,
+     *         <code>false</code> otherwise
      */
     public boolean isOutputAction() {
         return false;
@@ -43,7 +45,7 @@ public abstract class Action implements Comparable<Action> {
     /**
      * See {@link Transition#synchronizeWith(Action)}
      * @param otherAction the Action that we want to synchronize with
-     * @param our target Expression before synchronizing
+     * @param target Expression before synchronizing
      * @return <code>null</code> if we can't synchronize, otherwise either the
      *         Expression target or a new one that's instantiated using otherAction
      */

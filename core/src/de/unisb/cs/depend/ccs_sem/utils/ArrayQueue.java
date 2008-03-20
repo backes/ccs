@@ -187,34 +187,6 @@ public class ArrayQueue<E> extends AbstractCollection<E> implements Queue<E>,
     }
 
     /**
-     * Inserts the specified element at the front of this queue.
-     *
-     * @param e
-     *            the element to add
-     * @return <tt>true</tt> (as specified by {@link queue#offerFirst})
-     * @throws NullPointerException
-     *             if the specified element is null
-     */
-    public boolean offerFirst(E e) {
-        addFirst(e);
-        return true;
-    }
-
-    /**
-     * Inserts the specified element at the end of this queue.
-     *
-     * @param e
-     *            the element to add
-     * @return <tt>true</tt> (as specified by {@link queue#offerLast})
-     * @throws NullPointerException
-     *             if the specified element is null
-     */
-    public boolean offerLast(E e) {
-        addLast(e);
-        return true;
-    }
-
-    /**
      * @throws NoSuchElementException
      *             {@inheritDoc}
      */
@@ -296,7 +268,7 @@ public class ArrayQueue<E> extends AbstractCollection<E> implements Queue<E>,
      *
      * @param e
      *            the element to add
-     * @return <tt>true</tt> (as specified by {@link Collection#add})
+     * @return <code>true</code> (as specified by {@link Collection#add})
      * @throws NullPointerException
      *             if the specified element is null
      */
@@ -309,12 +281,9 @@ public class ArrayQueue<E> extends AbstractCollection<E> implements Queue<E>,
     /**
      * Inserts the specified element at the end of this queue.
      *
-     * <p>
-     * This method is equivalent to {@link #offerLast}.
-     *
      * @param e
      *            the element to add
-     * @return <tt>true</tt> (as specified by {@link Queue#offer})
+     * @return <code>true</code> (as specified by {@link Queue#offer})
      * @throws NullPointerException
      *             if the specified element is null
      */
@@ -342,13 +311,13 @@ public class ArrayQueue<E> extends AbstractCollection<E> implements Queue<E>,
 
     /**
      * Retrieves and removes the head of the queue represented by this queue (in
-     * other words, the first element of this queue), or returns <tt>null</tt>
+     * other words, the first element of this queue), or returns <code>null</code>
      * if this queue is empty.
      *
      * <p>
      * This method is equivalent to {@link #pollFirst}.
      *
-     * @return the head of the queue represented by this queue, or <tt>null</tt>
+     * @return the head of the queue represented by this queue, or <code>null</code>
      *         if this queue is empty
      */
     public E poll() {
@@ -373,12 +342,12 @@ public class ArrayQueue<E> extends AbstractCollection<E> implements Queue<E>,
 
     /**
      * Retrieves, but does not remove, the head of the queue represented by this
-     * queue, or returns <tt>null</tt> if this queue is empty.
+     * queue, or returns <code>null</code> if this queue is empty.
      *
      * <p>
      * This method is equivalent to {@link #peekFirst}.
      *
-     * @return the head of the queue represented by this queue, or <tt>null</tt>
+     * @return the head of the queue represented by this queue, or <code>null</code>
      *         if this queue is empty
      */
     public E peek() {
@@ -490,9 +459,9 @@ public class ArrayQueue<E> extends AbstractCollection<E> implements Queue<E>,
     }
 
     /**
-     * Returns <tt>true</tt> if this queue contains no elements.
+     * Returns <code>true</code> if this queue contains no elements.
      *
-     * @return <tt>true</tt> if this queue contains no elements
+     * @return <code>true</code> if this queue contains no elements
      */
     @Override
     public boolean isEmpty() {
@@ -502,8 +471,8 @@ public class ArrayQueue<E> extends AbstractCollection<E> implements Queue<E>,
     /**
      * Returns an iterator over the elements in this queue. The elements will be
      * ordered from first (head) to last (tail). This is the same order that
-     * elements would be queueued (via successive calls to {@link #remove} or
-     * popped (via successive calls to {@link #pop}).
+     * elements would be queued (via successive calls to {@link #remove()} or
+     * popped (via successive calls to {@link #pop()}).
      *
      * @return an iterator over the elements in this queue
      */
@@ -601,13 +570,13 @@ public class ArrayQueue<E> extends AbstractCollection<E> implements Queue<E>,
     }
 
     /**
-     * Returns <tt>true</tt> if this queue contains the specified element.
-     * More formally, returns <tt>true</tt> if and only if this queue contains
-     * at least one element <tt>e</tt> such that <tt>o.equals(e)</tt>.
+     * Returns <code>true</code> if this queue contains the specified element.
+     * More formally, returns <code>true</code> if and only if this queue contains
+     * at least one element <code>e</code> such that <code>o.equals(e)</code>.
      *
      * @param o
      *            object to be checked for containment in this queue
-     * @return <tt>true</tt> if this queue contains the specified element
+     * @return <code>true</code> if this queue contains the specified element
      */
     @Override
     public boolean contains(Object o) {
@@ -627,17 +596,14 @@ public class ArrayQueue<E> extends AbstractCollection<E> implements Queue<E>,
     /**
      * Removes a single instance of the specified element from this queue. If
      * the queue does not contain the element, it is unchanged. More formally,
-     * removes the first element <tt>e</tt> such that <tt>o.equals(e)</tt>
-     * (if such an element exists). Returns <tt>true</tt> if this queue
+     * removes the first element <code>e</code> such that <code>o.equals(e)</code>
+     * (if such an element exists). Returns <code>true</code> if this queue
      * contained the specified element (or equivalently, if this queue changed
      * as a result of the call).
      *
-     * <p>
-     * This method is equivalent to {@link #removeFirstOccurrence}.
-     *
      * @param o
      *            element to be removed from this queue, if present
-     * @return <tt>true</tt> if this queue contained the specified element
+     * @return <code>true</code> if this queue contained the specified element
      */
     @Override
     public boolean remove(Object o) {
@@ -704,7 +670,7 @@ public class ArrayQueue<E> extends AbstractCollection<E> implements Queue<E>,
      * <p>
      * If this queue fits in the specified array with room to spare (i.e., the
      * array has more elements than this queue), the element in the array
-     * immediately following the end of the queue is set to <tt>null</tt>.
+     * immediately following the end of the queue is set to <code>null</code>.
      *
      * <p>
      * Like the {@link #toArray()} method, this method acts as bridge between
@@ -713,16 +679,16 @@ public class ArrayQueue<E> extends AbstractCollection<E> implements Queue<E>,
      * certain circumstances, be used to save allocation costs.
      *
      * <p>
-     * Suppose <tt>x</tt> is a queue known to contain only strings. The
+     * Suppose <code>x</code> is a queue known to contain only strings. The
      * following code can be used to dump the queue into a newly allocated array
-     * of <tt>String</tt>:
+     * of <code>String</code>:
      *
      * <pre>
      * String[] y = x.toArray(new String[0]);
      * </pre>
      *
-     * Note that <tt>toArray(new Object[0])</tt> is identical in function to
-     * <tt>toArray()</tt>.
+     * Note that <code>toArray(new Object[0])</code> is identical in function to
+     * <code>toArray()</code>.
      *
      * @param a
      *            the array into which the elements of the queue are to be
