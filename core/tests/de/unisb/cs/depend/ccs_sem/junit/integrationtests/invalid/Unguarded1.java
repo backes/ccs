@@ -1,25 +1,26 @@
 package de.unisb.cs.depend.ccs_sem.junit.integrationtests.invalid;
 
 
-import org.junit.Assert;
-import org.junit.Test;
-
-import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
-import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
-import de.unisb.cs.depend.ccs_sem.parser.CCSParser;
-import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
+import de.unisb.cs.depend.ccs_sem.junit.FailingIntegrationTest;
 
 
-public class Unguarded1 {
+public class Unguarded1 extends FailingIntegrationTest {
 
-    private static final String term = "X[a] = out!a . X[a+1] | Y[a+1]; "
-        + "Y[n] = uepsilon!n . fertisch | X[2*n]; "
-        + "X[0]";
+    @Override
+    protected String getExpressionString() {
+        return "X[a] = out!a . X[a+1] | Y[a+1]; "
+            + "Y[n] = uepsilon!n . fertisch | X[2*n]; "
+            + "X[0]";
+    }
 
-    @Test
-    public void checkForError() throws ParseException, LexException {
-        final Program prog = new CCSParser().parse(term);
-        Assert.assertFalse("Expression is not guarded.", prog.isGuarded());
+    @Override
+    protected boolean expectGuardedness() {
+        return false;
+    }
+
+    @Override
+    protected boolean expectRegularity() {
+        return false;
     }
 
 }

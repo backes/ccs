@@ -50,10 +50,11 @@ public class StepByStepTraverseFrame extends Composite {
                             if (newExpr != currentExpression) {
                                 currentExpression = newExpr;
                                 try {
-                                    new SequentialEvaluator().evaluate(newExpr);
+                                    evaluator.evaluate(newExpr);
                                 } catch (InterruptedException e) {
-                                    // TODO Auto-generated catch block
-                                    e.printStackTrace();
+                                    // reset interruption flag
+                                    Thread.currentThread().interrupt();
+                                    return;
                                 }
                                 tree.setEnabled(true);
                                 tree.setItemCount(newExpr.getTransitions().size());
@@ -74,6 +75,7 @@ public class StepByStepTraverseFrame extends Composite {
 
     protected CCSEditor activeEditor;
     protected volatile Expression currentExpression;
+    protected SequentialEvaluator evaluator = new SequentialEvaluator();
 
     protected Tree tree;
 
@@ -84,12 +86,12 @@ public class StepByStepTraverseFrame extends Composite {
             TreeItem parentItem = item.getParentItem();
             Expression expr = parentItem == null ? currentExpression
                 : (Expression)parentItem.getData();
-            // TODO
             try {
-                new SequentialEvaluator().evaluate(expr);
+                evaluator.evaluate(expr);
             } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                // reset interruption flag
+                Thread.currentThread().interrupt();
+                return;
             }
             List<Transition> transitions = expr.getTransitions();
             int index = parentItem == null ? tree.indexOf(item) : parentItem.indexOf(item);
@@ -100,10 +102,11 @@ public class StepByStepTraverseFrame extends Composite {
                 Transition trans = transitions.get(index);
                 Expression target = trans.getTarget();
                 try {
-                    new SequentialEvaluator().evaluate(target);
+                    evaluator.evaluate(target);
                 } catch (InterruptedException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    // reset interruption flag
+                    Thread.currentThread().interrupt();
+                    return;
                 }
                 item.setText(new String[] { trans.getAction().getLabel(), target.toString() });
                 item.setData(target);
@@ -111,7 +114,6 @@ public class StepByStepTraverseFrame extends Composite {
             }
         }
     };
-
 
 
     public StepByStepTraverseFrame(Composite parent, int style) {

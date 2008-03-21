@@ -87,7 +87,7 @@ public abstract class IntegrationTest implements IParsingProblemListener {
 
         // evaluate the expression
         final String expressionString = getExpressionString();
-        CCSParser parser = new CCSParser();
+        final CCSParser parser = new CCSParser();
         parsingWarnings = new ArrayList<ParsingProblem>();
         parsingErrors = new ArrayList<ParsingProblem>();
         evaluationWarnings = new ArrayList<ParsingProblem>();
@@ -117,37 +117,43 @@ public abstract class IntegrationTest implements IParsingProblemListener {
 
     @Test
     public void checkErrorsAndWarnings() {
-        StringBuilder sb = new StringBuilder();
-        String newLine = Globals.getNewline();
-        if (parsingWarnings.size() != getExpectedParsingWarnings()) {
-            sb.append("Number of expected parsing warnings does not fit.").append(newLine);
-            sb.append("Expected ").append(getExpectedParsingWarnings());
-            sb.append(", got ").append(parsingWarnings.size()).append(newLine);
-            for (ParsingProblem problem: parsingWarnings) {
-                sb.append("    --> ").append(problem).append(newLine);
-            }
-        }
+        final StringBuilder sb = new StringBuilder();
+        final String newLine = Globals.getNewline();
         if (parsingErrors.size() != getExpectedParsingErrors()) {
-            sb.append("Number of expected parsing errors does not fit.").append(newLine);
+            sb.append("Number of parsing errors differs from expected number.").append(newLine);
             sb.append("Expected ").append(getExpectedParsingErrors());
             sb.append(", got ").append(parsingErrors.size()).append(newLine);
-            for (ParsingProblem problem: parsingErrors) {
+            for (final ParsingProblem problem: parsingErrors) {
                 sb.append("    --> ").append(problem).append(newLine);
             }
         }
-        if (evaluationWarnings.size() != getExpectedEvaluationWarnings()) {
-            sb.append("Number of expected evaluation warnings does not fit.").append(newLine);
-            sb.append("Expected ").append(getExpectedEvaluationWarnings());
-            sb.append(", got ").append(evaluationWarnings.size()).append(newLine);
-            for (ParsingProblem problem: evaluationWarnings) {
+        if (parsingWarnings.size() != getExpectedParsingWarnings()) {
+            if (sb.length() > 0)
+                sb.append(newLine);
+            sb.append("Number of parsing warnings differs from expected number.").append(newLine);
+            sb.append("Expected ").append(getExpectedParsingWarnings());
+            sb.append(", got ").append(parsingWarnings.size()).append(newLine);
+            for (final ParsingProblem problem: parsingWarnings) {
                 sb.append("    --> ").append(problem).append(newLine);
             }
         }
         if (evaluationErrors.size() != getExpectedEvaluationErrors()) {
-            sb.append("Number of expected evaluation errors does not fit.").append(newLine);
+            if (sb.length() > 0)
+                sb.append(newLine);
+            sb.append("Number of evaluation errors differs from expected number.").append(newLine);
             sb.append("Expected ").append(getExpectedEvaluationErrors());
             sb.append(", got ").append(evaluationErrors.size()).append(newLine);
-            for (ParsingProblem problem: evaluationErrors) {
+            for (final ParsingProblem problem: evaluationErrors) {
+                sb.append("    --> ").append(problem).append(newLine);
+            }
+        }
+        if (evaluationWarnings.size() != getExpectedEvaluationWarnings()) {
+            if (sb.length() > 0)
+                sb.append(newLine);
+            sb.append("Number of evaluation warnings differs from expected number.").append(newLine);
+            sb.append("Expected ").append(getExpectedEvaluationWarnings());
+            sb.append(", got ").append(evaluationWarnings.size()).append(newLine);
+            for (final ParsingProblem problem: evaluationWarnings) {
                 sb.append("    --> ").append(problem).append(newLine);
             }
         }
@@ -354,7 +360,7 @@ public abstract class IntegrationTest implements IParsingProblemListener {
             parsingErrors.add(problem);
         if (evaluating && problem.getType() == ParsingProblem.WARNING)
             evaluationWarnings.add(problem);
-        if (evaluating && problem.getType() == ParsingProblem.WARNING)
+        if (!evaluating && problem.getType() == ParsingProblem.WARNING)
             parsingWarnings.add(problem);
     }
 

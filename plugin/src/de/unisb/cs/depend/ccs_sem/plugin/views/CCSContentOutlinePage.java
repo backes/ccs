@@ -59,12 +59,13 @@ public class CCSContentOutlinePage extends ContentOutlinePage
                 if (getControl().isDisposed())
                     return;
                 final TreeViewer treeViewer2 = getTreeViewer();
-                final Object[] expanded = treeViewer2.getExpandedElements();
-                treeViewer2.setInput(result);
                 if (firstDisplay) {
                     firstDisplay = false;
+                    treeViewer2.setInput(result);
                     treeViewer2.expandAll();
                 } else {
+                    final Object[] expanded = treeViewer2.getExpandedElements();
+                    treeViewer2.setInput(result);
                     treeViewer2.setExpandedElements(expanded);
                 }
             }

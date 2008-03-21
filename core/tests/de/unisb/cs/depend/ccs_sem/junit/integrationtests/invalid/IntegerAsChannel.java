@@ -4,11 +4,11 @@ package de.unisb.cs.depend.ccs_sem.junit.integrationtests.invalid;
 import de.unisb.cs.depend.ccs_sem.junit.FailingIntegrationTest;
 
 
-public class WrongParameter2 extends FailingIntegrationTest {
+public class IntegerAsChannel extends FailingIntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "X[a] = a; X[out!1]";
+        return "1!2";
     }
 
     @Override

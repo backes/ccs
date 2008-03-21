@@ -172,9 +172,9 @@ public class EvaluationJob extends Job {
                 monitor.subTask("Checking expression...");
                 // TODO let user set to ignore failed checks here
                 if (!ccsProgram.isGuarded())
-                    throw new ParseException("Your recursive definitions are not guarded.");
+                    throw new ParseException("Your recursive definitions are not guarded.", -1, -1);
                 if (!ccsProgram.isRegular())
-                    throw new ParseException("Your recursive definitions are not regular.");
+                    throw new ParseException("Your recursive definitions are not regular.", -1, -1);
                 monitor.worked(WORK_CHECKING);
 
                 if (monitor.isCanceled())
@@ -205,14 +205,8 @@ public class EvaluationJob extends Job {
                 }
             } catch (final LexException e) {
                 warning = "Error lexing: " + e.getMessage();
-                if (e.getEnvironment() != null)
-                    warning = warning + Globals.getNewline()
-                        + "(around this context: " + e.getEnvironment() + ")";
             } catch (final ParseException e) {
                 warning = "Error parsing: " + e.getMessage();
-                if (e.getEnvironment() != null)
-                    warning = warning + Globals.getNewline()
-                        + "(around this context: " + e.getEnvironment() + ")";
             }
 
             if (monitor.isCanceled())

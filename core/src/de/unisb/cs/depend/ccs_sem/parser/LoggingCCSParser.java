@@ -36,7 +36,7 @@ public class LoggingCCSParser extends CCSParser implements IParsingProblemListen
     @Override
     public Program parse(Reader input) {
         addProblemListener(this);
-        Program program = super.parse(input);
+        final Program program = super.parse(input);
         removeProblemListener(this);
         return program;
     }
@@ -44,7 +44,7 @@ public class LoggingCCSParser extends CCSParser implements IParsingProblemListen
     @Override
     public Program parse(String input) {
         addProblemListener(this);
-        Program program = super.parse(input);
+        final Program program = super.parse(input);
         removeProblemListener(this);
         return program;
     }
@@ -61,12 +61,14 @@ public class LoggingCCSParser extends CCSParser implements IParsingProblemListen
     @Override
     public Program parse(List<Token> tokens) {
         result.tokens = tokens;
-        return super.parse(tokens);
+        addProblemListener(this);
+        final Program program = super.parse(tokens);
+        removeProblemListener(this);
+        return program;
     }
 
     @Override
-    protected ProcessVariable readProcessDeclaration(ExtendedListIterator<Token> tokens)
-            throws ParseException {
+    protected ProcessVariable readProcessDeclaration(ExtendedListIterator<Token> tokens) {
         final int tokenPositionBefore = tokens.nextIndex();
         final ProcessVariable readProcessVariable = super.readProcessDeclaration(tokens);
         final int tokenPositionAfter = tokens.previousIndex();

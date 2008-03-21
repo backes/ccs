@@ -62,7 +62,7 @@ public class UnknownRecursiveExpression extends Expression {
                 // this possibly throws a ParseException
                 try {
                     proc.checkMatch(parameters);
-                } catch (ParseException e) {
+                } catch (final ParseException e) {
                     throw new ParseException(e.getMessage(), startPos, endPos);
                 }
                 final RecursiveExpression newExpr = new RecursiveExpression(proc, parameters);
@@ -91,23 +91,8 @@ public class UnknownRecursiveExpression extends Expression {
 
     @Override
     public Expression instantiate(Map<Parameter, Value> params) {
-        // TODO check
         assert false;
-
-
-        final List<Value> newParameters = new ArrayList<Value>(parameters.size());
-        boolean changed = false;
-        for (final Value param: parameters) {
-            final Value newParam = param.instantiate(params);
-            if (!changed && !newParam.equals(param))
-                changed = true;
-            newParameters.add(newParam);
-        }
-
-        if (!changed)
-            return this;
-
-        return ExpressionRepository.getExpression(new UnknownRecursiveExpression(name, newParameters, startPos, endPos));
+        return null;
     }
 
     @Override

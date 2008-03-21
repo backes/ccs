@@ -41,11 +41,11 @@ public class ParsingResult {
             return processVariable.getFullName();
         }
 
-        public int getPositionStart() {
+        public int getStartPosition() {
             return tokens == null ? -1 : tokens.get(tokenIndexStart).getStartPosition();
         }
 
-        public int getPositionEnd() {
+        public int getEndPosition() {
             return tokens == null ? -1 : tokens.get(tokenIndexEnd).getEndPosition();
         }
     }
@@ -80,7 +80,7 @@ public class ParsingResult {
         if (offset < 0 || offset >= inputLength)
             return -1;
         while (left < right) {
-            int mid = (left + right)/2;
+            final int mid = (left + right)/2;
             if (offset < lineStarts.get(mid))
                 right = mid;
             else if (mid+1 < lineStarts.size() && offset >= lineStarts.get(mid+1))

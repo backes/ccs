@@ -204,7 +204,7 @@ public class InformationTab extends CTabItem implements SelectionListener {
         widgetSelected(e);
     }
 
-    public void widgetSelected(SelectionEvent e) {
+    public synchronized void widgetSelected(SelectionEvent e) {
         if (e.widget == getParent() && getParent().getSelection() == this
                 && !upToDate && updateJob != null) {
             if (updateJob.getState() == Job.NONE)

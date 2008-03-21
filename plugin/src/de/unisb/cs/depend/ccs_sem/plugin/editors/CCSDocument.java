@@ -116,7 +116,7 @@ public class CCSDocument extends Document implements IDocumentListener {
     }
 
     public void lock() {
-        lock .lock();
+        lock.lock();
     }
 
     public void unlock() {

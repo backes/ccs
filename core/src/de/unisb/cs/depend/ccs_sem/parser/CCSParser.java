@@ -16,16 +16,7 @@ import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.lexer.CCSLexer;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.*;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.ChoiceExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.ConditionalExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.ErrorExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.ExpressionRepository;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.ParallelExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.PrefixExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.RestrictExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.StopExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.UnknownRecursiveExpression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.*;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.adapters.TopMostExpression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
@@ -129,7 +120,7 @@ public class CCSParser implements Parser {
     public Program parse(Reader input) {
         try {
             return parse(getDefaultLexer().lex(input));
-        } catch (LexException e) {
+        } catch (final LexException e) {
             reportProblem(new ParsingProblem(ParsingProblem.ERROR, "Error lexing: " + e.getMessage(), e.getPosition(), e.getPosition()));
             return null;
         }
@@ -149,7 +140,7 @@ public class CCSParser implements Parser {
     public Program parse(String input) {
         try {
             return parse(getDefaultLexer().lex(input));
-        } catch (LexException e) {
+        } catch (final LexException e) {
             reportProblem(new ParsingProblem(ParsingProblem.ERROR, "Error lexing: " + e.getMessage(), e.getPosition(), e.getPosition()));
             return null;
         }
@@ -176,7 +167,7 @@ public class CCSParser implements Parser {
         Expression mainExpr;
         try {
             mainExpr = readMainExpression(it);
-        } catch (ParseException e) {
+        } catch (final ParseException e) {
             reportProblem(new ParsingProblem(ParsingProblem.ERROR, e.getMessage(), e.getStartPosition(), e.getEndPosition()));
             return null;
         }
@@ -191,7 +182,7 @@ public class CCSParser implements Parser {
 
         try {
             return new Program(processVariables, mainExpr);
-        } catch (ParseException e) {
+        } catch (final ParseException e) {
             reportProblem(new ParsingProblem(ParsingProblem.ERROR, e.getMessage(), e.getStartPosition(), e.getEndPosition()));
         }
 
@@ -202,6 +193,7 @@ public class CCSParser implements Parser {
             final ArrayList<ProcessVariable> processVariables) {
 
         while (true) {
+            final int oldPosition = tokens.nextIndex();
             try {
                 if (tokens.peek() instanceof ConstToken) {
                     tokens.next();
@@ -250,7 +242,6 @@ public class CCSParser implements Parser {
 
                     ranges.put(rangeName, range);
                 } else {
-                    final int oldPosition = tokens.nextIndex();
                     final Token nextToken = tokens.peek();
                     final ProcessVariable nextProcessVariable = readProcessDeclaration(tokens);
                     if (nextProcessVariable == null) {
@@ -261,15 +252,19 @@ public class CCSParser implements Parser {
                     // check if a process variable with the same name and number of parameters is already known
                     for (final ProcessVariable proc: processVariables)
                         if (proc.getName().equals(nextProcessVariable.getName())
-                                && proc.getParamCount() == nextProcessVariable.getParamCount())
+                                && proc.getParamCount() == nextProcessVariable.getParamCount()) {
                             reportProblem(new ParsingProblem(ParsingProblem.ERROR,
                                     "Duplicate process variable definition (" + nextProcessVariable.getName()
                                     + "[" + nextProcessVariable.getParamCount() + "]", nextToken));
+                            break;
+                        }
 
                     processVariables.add(nextProcessVariable);
                 }
-            } catch (ParseException e) {
-                // TODO
+            } catch (final ParseException e) {
+                reportProblem(new ParsingProblem(e));
+                // ... but continue parsing (readProcessDeclaration moved
+                // forward to the next semicolon)
             }
         }
         processVariables.trimToSize();
@@ -278,7 +273,7 @@ public class CCSParser implements Parser {
     /**
      * @return <code>null</code>, if there are no more declarations
      */
-    protected ProcessVariable readProcessDeclaration(ExtendedListIterator<Token> tokens) throws ParseException {
+    protected ProcessVariable readProcessDeclaration(ExtendedListIterator<Token> tokens) {
         final Token token1 = tokens.hasNext() ? tokens.next() : null;
         final Token token2 = tokens.hasNext() ? tokens.next() : null;
         if (token1 == null || token2 == null)
@@ -291,32 +286,46 @@ public class CCSParser implements Parser {
         final Identifier identifier = (Identifier) token1;
         if (identifier.isQuoted() || !Character.isUpperCase(identifier.getName().charAt(0)))
             return null;
-        List<Parameter> myParameters;
-        Expression expr;
+        List<Parameter> myParameters = null;
+        Expression expr = null;
 
-        if (token2 instanceof Assign) {
-            expr = readExpression(tokens);
-            myParameters = Collections.emptyList();
-        } else if (token2 instanceof LBracket) {
-            myParameters = readParameters(tokens);
-            if (myParameters == null || !tokens.hasNext()
-                    || !(tokens.next() instanceof Assign))
-                return null;
-            // save old parameters
-            final LinkedList<Parameter> oldParameters = parameters;
-            try {
-                // set new parameters
-                parameters = new LinkedList<Parameter>(myParameters);
+        try {
+            if (token2 instanceof Assign) {
+                myParameters = Collections.emptyList();
                 expr = readExpression(tokens);
-            } finally {
-                // restore old parameters
-                parameters = oldParameters;
-            }
-        } else
-            return null;
+            } else if (token2 instanceof LBracket) {
+                myParameters = readParameters(tokens);
+                if (myParameters == null || !(tokens.next() instanceof Assign))
+                    return null;
+                // save old parameters
+                final LinkedList<Parameter> oldParameters = parameters;
+                try {
+                    // set new parameters
+                    parameters = new LinkedList<Parameter>(myParameters);
+                    expr = readExpression(tokens);
+                } finally {
+                    // restore old parameters
+                    parameters = oldParameters;
+                }
+            } else
+                return null;
+        } catch (final ParseException e) {
+            reportProblem(new ParsingProblem(e));
+        }
 
-        if (!(tokens.next() instanceof Semicolon))
-            throw new ParseException("Expected ';' after this declaration", tokens.peekPrevious());
+        assert myParameters != null;
+        if (expr == null)
+            expr = StopExpression.get();
+
+        if (!(tokens.next() instanceof Semicolon)) {
+            reportProblem(new ParsingProblem(ParsingProblem.ERROR,
+                "Expected ';' after this declaration", tokens.peekPrevious()));
+            // move forward to the next semicolon
+            while (!(tokens.next() instanceof Semicolon)) {
+                // nothing
+            }
+            // ... and continue parsing
+        }
 
         final ProcessVariable proc = new ProcessVariable(identifier.getName(), myParameters, expr);
         // hook for logging:
@@ -347,7 +356,7 @@ public class CCSParser implements Parser {
     }
 
     private Range readRangeDef(ExtendedListIterator<Token> tokens) throws ParseException {
-        Token nextToken = tokens.peek();
+        final Token nextToken = tokens.peek();
         // just a range definition in parenthesis?
         if (nextToken instanceof LParenthesis) {
             tokens.next();
@@ -612,12 +621,12 @@ public class CCSParser implements Parser {
             // an arithmetic expression (if it is more complex,
             // it must have parenthesis around it)
 
-            int posStart = tokens.peek().getStartPosition();
+            final int posStart = tokens.peek().getStartPosition();
             final Value value = readArithmeticBaseExpression(tokens); // may return null
             if (value instanceof ParameterReference)
                 try {
                         ((ParameterReference)value).getParam().setType(Parameter.Type.VALUE);
-                } catch (ParseException e) {
+                } catch (final ParseException e) {
                     throw new ParseException(e.getMessage(), posStart, tokens.peekPrevious().getEndPosition());
                 }
             return new InputAction(channel, value);
@@ -634,12 +643,12 @@ public class CCSParser implements Parser {
 
     // returns null if there is no output value
     private Value readOutputValue(ExtendedListIterator<Token> tokens) throws ParseException {
-        int posStart = tokens.peek().getStartPosition();
+        final int posStart = tokens.peek().getStartPosition();
         final Value value = readArithmeticBaseExpression(tokens); // may return null
         if (value instanceof ParameterReference)
             try {
                 ((ParameterReference)value).getParam().setType(Parameter.Type.VALUE);
-            } catch (ParseException e) {
+            } catch (final ParseException e) {
                 throw new ParseException(e.getMessage(), posStart, tokens.peekPrevious().getEndPosition());
             }
         return value;
@@ -658,7 +667,7 @@ public class CCSParser implements Parser {
                 if (param.getName().equals(identifier.getName())) {
                     try {
                         param.setType(Parameter.Type.CHANNEL);
-                    } catch (ParseException e) {
+                    } catch (final ParseException e) {
                         throw new ParseException(e.getMessage(), identifier);
                     }
                     channel = new ParameterRefChannel(param);
@@ -740,7 +749,7 @@ public class CCSParser implements Parser {
     private Expression readWhenExpression(ExtendedListIterator<Token> tokens) throws ParseException {
         if (tokens.peek() instanceof When) {
             tokens.next();
-            int startPos = tokens.peek().getStartPosition();
+            final int startPos = tokens.peek().getStartPosition();
             final Value condition = readArithmeticExpression(tokens);
             ensureBoolean(condition, "Expected boolean expression after 'when'.", startPos, tokens.peekPrevious().getEndPosition());
 
@@ -810,7 +819,7 @@ public class CCSParser implements Parser {
     }
 
     private Value readArithmeticConditionalExpression(ExtendedListIterator<Token> tokens) throws ParseException {
-        int posBefore = tokens.peek().getStartPosition();
+        final int posBefore = tokens.peek().getStartPosition();
         final Value orValue = readArithmeticOrExpression(tokens);
         if (tokens.peek() instanceof QuestionMark) {
             tokens.next();
@@ -857,13 +866,13 @@ public class CCSParser implements Parser {
     }
 
     private Value readArithmeticEqExpression(ExtendedListIterator<Token> tokens) throws ParseException {
-        int posBefore = tokens.peek().getStartPosition();
+        final int posBefore = tokens.peek().getStartPosition();
         Value value = readArithmeticCompExpression(tokens);
         while (tokens.peek() instanceof Equals
                 || tokens.peek() instanceof Neq) {
             final boolean isNeq = tokens.next() instanceof Neq;
             final Value secondValue = readArithmeticCompExpression(tokens);
-            int posAfter = tokens.peekPrevious().getEndPosition();
+            final int posAfter = tokens.peekPrevious().getEndPosition();
             ensureEqualTypes(value, secondValue, "Values to compare must have the same type.", posBefore, posAfter);
             value = EqValue.create(value, secondValue, isNeq);
         }
@@ -963,7 +972,7 @@ public class CCSParser implements Parser {
         final Token nextToken = tokens.peek();
         if (nextToken instanceof Exclamation) {
             tokens.next();
-            int posStart = tokens.peek().getStartPosition();
+            final int posStart = tokens.peek().getStartPosition();
             final Value negatedValue = readArithmeticUnaryExpression(tokens);
             ensureBoolean(negatedValue, "The negated value must be a boolean expression.", posStart, tokens.peekPrevious().getEndPosition());
             return NotValue.create(negatedValue);
@@ -972,7 +981,7 @@ public class CCSParser implements Parser {
             return readArithmeticUnaryExpression(tokens);
         } else if (nextToken instanceof Minus) {
             tokens.next();
-            int posStart = tokens.peek().getStartPosition();
+            final int posStart = tokens.peek().getStartPosition();
             final Value negativeValue = readArithmeticUnaryExpression(tokens);
             ensureInteger(negativeValue, "The negated value must be an integer expression.", posStart, tokens.peekPrevious().getEndPosition());
             return NegativeValue.create(negativeValue);
@@ -1049,7 +1058,7 @@ public class CCSParser implements Parser {
                 ((ParameterReference)value2).getParam().match(value1);
                 return;
             }
-        } catch (ParseException e) {
+        } catch (final ParseException e) {
             throw new ParseException(e.getMessage(), startPos, endPos);
         }
         if (value1 instanceof ConditionalValue) {
@@ -1072,7 +1081,7 @@ public class CCSParser implements Parser {
         if (value instanceof ParameterReference) {
             try {
                 ((ParameterReference)value).getParam().setType(Parameter.Type.BOOLEANVALUE);
-            } catch (ParseException e) {
+            } catch (final ParseException e) {
                 throw new ParseException(message + e.getMessage(), startPos, endPos);
             }
             return;
@@ -1126,7 +1135,7 @@ public class CCSParser implements Parser {
     }
 
     public void reportProblem(ParsingProblem problem) {
-        for (IParsingProblemListener listener: listeners)
+        for (final IParsingProblemListener listener: listeners)
             listener.reportParsingProblem(problem);
     }
 

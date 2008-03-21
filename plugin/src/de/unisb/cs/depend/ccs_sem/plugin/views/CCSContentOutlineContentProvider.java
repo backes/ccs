@@ -82,8 +82,8 @@ public class CCSContentOutlineContentProvider implements ITreeContentProvider,
                 // TODO ensure that the positions are up to date
                 //ensureUpToDate();
                 final ReadProcessVariable proc = (ReadProcessVariable) first;
-                final int start = proc.getPositionStart();
-                final int end = proc.getPositionEnd();
+                final int start = proc.getStartPosition();
+                final int end = proc.getEndPosition();
                 sourceViewer.setSelectedRange(start, end-start+1);
             } else if (first == mainExpressionItem
                     && sourceViewer != null) {

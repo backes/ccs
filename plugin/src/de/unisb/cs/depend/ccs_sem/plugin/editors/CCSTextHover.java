@@ -10,6 +10,7 @@ import org.eclipse.jface.text.Region;
 
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Identifier;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token;
+import de.unisb.cs.depend.ccs_sem.parser.ParsingProblem;
 import de.unisb.cs.depend.ccs_sem.parser.ParsingResult;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.ParseCCSProgramJob.ParseStatus;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.UnknownRecursiveExpression;
@@ -29,30 +30,41 @@ public class CCSTextHover implements ITextHover {
 
         public Token token;
         public ParseStatus parseStatus;
+        public ParsingProblem problem;
 
         public MyRegion(Token token, ParseStatus parseStatus) {
             this.token = token;
             this.parseStatus = parseStatus;
         }
 
+        public MyRegion(ParsingProblem problem) {
+            this.problem = problem;
+        }
+
         public int getLength() {
+            if (problem != null)
+                return problem.getEndPosition() - problem.getStartPosition() + 1;
             return token.getLength();
         }
 
         public int getOffset() {
-            return token.getStartPosition();
+            return problem != null ? problem.getStartPosition() : token.getStartPosition();
         }
 
     }
 
     public String getHoverInfo(ITextViewer textViewer, IRegion hoverRegion) {
         if (hoverRegion instanceof MyRegion) {
-            final Token token = ((MyRegion)hoverRegion).token;
-            final ParseStatus parseStatus = ((MyRegion)hoverRegion).parseStatus;
-            final ParsingResult result = parseStatus.getParsingResult();
+            final MyRegion myRegion = (MyRegion)hoverRegion;
+            final ParseStatus parseStatus = myRegion.parseStatus;
+            final ParsingResult result = parseStatus == null ? null : parseStatus.getParsingResult();
 
-            if (token instanceof Identifier && result != null) {
-                final Object o = result.identifiers.get(token);
+            if (myRegion.problem != null) {
+                return myRegion.problem.getMessage();
+            }
+
+            if (myRegion.token instanceof Identifier && result != null) {
+                final Object o = result.identifiers.get(myRegion.token);
                 if (o instanceof Parameter) {
                     final Parameter param = (Parameter) o;
                     return "Parameter \"" + param.getName() + "\": " + param.getType();
@@ -85,6 +97,9 @@ public class CCSTextHover implements ITextHover {
             final ParseStatus lastResult = ((CCSDocument)doc).getLastParseResult();
             if (lastResult != null) {
                 final ParsingResult parsingResult = lastResult.getParsingResult();
+                final ParsingProblem problem = parsingResult == null ? null : binarySearchProblemOnOffset(parsingResult.parsingProblems, offset);
+                if (problem != null)
+                    return new MyRegion(problem);
                 final List<Token> tokens = parsingResult == null ? null : parsingResult.tokens;
                 if (tokens != null && tokens.size() > 0) {
                     final Token hoveredToken = binarySearchTokenOnOffset(tokens, offset);
@@ -94,6 +109,25 @@ public class CCSTextHover implements ITextHover {
             }
         }
         return new Region(offset, 1);
+    }
+
+    private ParsingProblem binarySearchProblemOnOffset(
+            List<ParsingProblem> problems, int offset) {
+        int left = 0;
+        int right = problems.size();
+        while (left < right) {
+            final int index = (left + right)/2;
+            final ParsingProblem cur = problems.get(index);
+            if (cur.getStartPosition() > offset) {
+                right = index;
+            } else if (cur.getEndPosition() < offset) {
+                left = index+1;
+            } else {
+                // TODO handle multiple overlapping problems
+                return cur;
+            }
+        }
+        return null;
     }
 
     private Token binarySearchTokenOnOffset(List<Token> tokens, int offset) {

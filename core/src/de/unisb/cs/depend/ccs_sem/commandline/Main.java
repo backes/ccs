@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PushbackReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -41,6 +42,7 @@ public class Main implements IParsingProblemListener {
     private boolean minimizeWeak = false;
     private boolean minimizeStrong = false;
     private int[] lineOffsets = null;
+    private boolean errorsOccured = false;
 
     // TODO add parameter for controlling this
     private static final boolean allowUnguarded = true; //false;
@@ -69,10 +71,9 @@ public class Main implements IParsingProblemListener {
             return false;
         }
 
-        final Program program;
+        log("Lexing...");
+        final List<Token> tokens;
         try {
-            log("Lexing...");
-            final List<Token> tokens;
             try {
                 tokens = new CCSLexer().lex(inputFileReader);
             } finally {
@@ -82,13 +83,17 @@ public class Main implements IParsingProblemListener {
                     // ignore
                 }
             }
-            log("Parsing...");
-            CCSParser parser = new CCSParser();
-            parser.addProblemListener(this);
-            program = parser.parse(tokens);
         } catch (final LexException e) {
             System.err.println("Error lexing input file: " + e.getMessage());
             // TODO print environment
+            return false;
+        }
+        log("Parsing...");
+        final CCSParser parser = new CCSParser();
+        parser.addProblemListener(this);
+        final Program program = parser.parse(tokens);
+
+        if (errorsOccured) {
             return false;
         }
 
@@ -401,15 +406,20 @@ public class Main implements IParsingProblemListener {
     }
 
     public void reportParsingProblem(ParsingProblem problem) {
-        System.out.println(problem.getType() == ParsingProblem.ERROR ? "Error: " : "Warning: ");
+        if (problem.getType() == ParsingProblem.ERROR)
+            errorsOccured = true;
+
+        System.out.println();
+        System.out.print(problem.getType() == ParsingProblem.ERROR
+            ? "Error:       " : "Warning:     ");
         System.out.println(problem.getMessage());
-        System.out.println("At Location: ");
+        System.out.print("at location: ");
         if (lineOffsets == null) {
             lineOffsets = readLineOffsets(inputFile);
         }
         assert lineOffsets != null;
-        int startLine = getLineOfOffset(problem.getStartPosition());
-        int endLine = getLineOfOffset(problem.getEndPosition());
+        final int startLine = getLineOfOffset(problem.getStartPosition());
+        final int endLine = getLineOfOffset(problem.getEndPosition());
         if (startLine == -1 || endLine == -1) {
             System.out.println("(no information)");
         } else {
@@ -420,18 +430,82 @@ public class Main implements IParsingProblemListener {
             if (endLine > 1)
                 endOffset -= lineOffsets[endLine-2];
             if (startLine == endLine) {
-                System.out.println(" line " + startLine);
+                System.out.print("line " + startLine);
                 if (startOffset == endOffset)
                     System.out.println(", character" + (startOffset+1));
                 else
                     System.out.println(", characters " + (startOffset+1)
                             + " to " + (endOffset+1));
+                System.out.print("context:     ");
+                Reader reader = null;
+                try {
+                    reader = new FileReader(inputFile);
+                    if (startLine > 1)
+                        reader.skip(lineOffsets[startLine-2]);
+                    int ch;
+                    int skipChars = 13;
+                    int markChars = 0;
+                    int o = 0;
+                    StringBuilder sb = new StringBuilder();
+                    while ((ch = reader.read()) != -1 && ch != '\r' && ch != '\n') {
+                        if (o < startOffset)
+                            skipChars += ch == '\t' ? 4 : 1;
+                        else if (o <= endOffset)
+                            markChars += ch == '\t' ? 4 : 1;
+                        ++o;
+                        if (ch == '\t')
+                            sb.append("    ");
+                        else
+                            sb.append((char)ch);
+                    }
+                    System.out.println(sb.toString());
+                    sb = new StringBuilder();
+                    for (int i = 0; i < skipChars; ++i)
+                        sb.append(' ');
+                    for (int i = 0; i < markChars; ++i)
+                        sb.append('^');
+                    System.out.println(sb.toString());
+                } catch (final IOException e) {
+                    System.err.println("Error reading input file \"" + inputFile + "\": " + e.getMessage());
+                    System.exit(-1);
+                }
+                if (reader != null)
+                    try {
+                        reader.close();
+                    } catch (final IOException e) {
+                        // ignore
+                    }
             } else {
-                System.out.println(" line " + startLine + ", character "
+                System.out.println("line " + startLine + ", character "
                         + (startOffset+1) + " to line " + endLine
                         + ", character " + (endOffset+1));
+                System.out.print("context:     ");
+                Reader reader = null;
+                for (int line = startLine; line <= endLine; ++line) {
+                    try {
+                        if (line != startLine)
+                            System.out.print("             ");
+                        reader = new FileReader(inputFile);
+                        if (line > 1)
+                            reader.skip(lineOffsets[line-2]);
+                        int ch;
+                        while ((ch = reader.read()) != -1 && ch != '\r' && ch != '\n') {
+                            System.out.print(ch == '\t' ? "    " : (char)ch);
+                        }
+                        System.out.println();
+                    } catch (final IOException e) {
+                        // ignore
+                    }
+                    if (reader != null)
+                        try {
+                            reader.close();
+                        } catch (final IOException e) {
+                            // ignore
+                        }
+                }
             }
         }
+        System.out.println();
     }
 
     private int getLineOfOffset(int startPosition) {
@@ -446,7 +520,7 @@ public class Main implements IParsingProblemListener {
         int left = 0;
         int right = lineOffsets.length;
         while (left < right) {
-            int mid = (left + right)/2;
+            final int mid = (left + right)/2;
             if (lineOffsets[mid] > startPosition)
                 right = mid;
             else if (lineOffsets[mid+1] <= startPosition)
@@ -478,7 +552,7 @@ public class Main implements IParsingProblemListener {
                     // fallthrough
                 case '\n':
                     if (lineNumber >= offsets.length) {
-                        int[] oldOffsets = offsets;
+                        final int[] oldOffsets = offsets;
                         offsets = new int[offsets.length * 2];
                         System.arraycopy(oldOffsets, 0, offsets, 0, offsets.length);
                     }
@@ -489,15 +563,14 @@ public class Main implements IParsingProblemListener {
                     break;
                 }
             }
-            int[] realOffsets = new int[lineNumber];
+            final int[] realOffsets = new int[lineNumber];
             System.arraycopy(offsets, 0, realOffsets, 0, lineNumber);
-            return offsets;
-        } catch (IOException e) {
-            e.printStackTrace();
+            return realOffsets;
+        } catch (final IOException e) {
             if (reader != null)
                 try {
                     reader.close();
-                } catch (IOException e1) {
+                } catch (final IOException e1) {
                     // ignore
                 }
             System.err.println("Error reading input file " + file + ": " + e.getMessage());

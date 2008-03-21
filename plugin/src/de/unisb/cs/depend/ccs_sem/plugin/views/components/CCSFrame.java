@@ -52,7 +52,7 @@ public class CCSFrame extends SashForm {
         */
     }
 
-    public void updateEvaluation() {
+    public synchronized void updateEvaluation() {
         if (evaluationJob != null)
             evaluationJob.cancel();
         evaluationJob = new EvaluationJob(ccsEditor.getText(), minimize);

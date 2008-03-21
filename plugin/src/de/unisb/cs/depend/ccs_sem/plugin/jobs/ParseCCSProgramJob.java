@@ -9,11 +9,13 @@ import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.Job;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
-import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.lexer.LoggingCCSLexer;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.Identifier;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token;
 import de.unisb.cs.depend.ccs_sem.parser.LoggingCCSParser;
+import de.unisb.cs.depend.ccs_sem.parser.ParsingProblem;
 import de.unisb.cs.depend.ccs_sem.parser.ParsingResult;
+import de.unisb.cs.depend.ccs_sem.parser.ParsingResult.ReadProcessVariable;
 import de.unisb.cs.depend.ccs_sem.plugin.Global;
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSDocument;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
@@ -70,17 +72,27 @@ public class ParseCCSProgramJob extends Job {
             monitor.worked(WORK_PARSING);
 
             monitor.subTask("Checking Expression");
-            if (!ccsProgram.isGuarded())
-                throw new ParseException("Your recursive definitions are not guarded.");
-            if (!ccsProgram.isRegular())
-                throw new ParseException("Your recursive definitions are not regular.");
+            // TODO let user decide if error or warning
+            final int unguardedProblemType = ParsingProblem.ERROR;
+            final int unregularProblemType = ParsingProblem.WARNING;
+            assert result.processVariables.size() == ccsProgram.getProcessVariables().size();
+            for (final ReadProcessVariable proc: result.processVariables) {
+                if (!proc.processVariable.isGuarded()) {
+                    final Token firstToken = searchFirstToken(result.tokens, proc.getStartPosition());
+                    assert firstToken instanceof Identifier && firstToken.getStartPosition() == proc.getStartPosition();
+                    result.parsingProblems.add(new ParsingProblem(unguardedProblemType,
+                        "This process definition is unguarded.", firstToken));
+                }
+                if (!proc.processVariable.isRegular()) {
+                    final Token firstToken = searchFirstToken(result.tokens, proc.getStartPosition());
+                    assert firstToken instanceof Identifier && firstToken.getStartPosition() == proc.getStartPosition();
+                    result.parsingProblems.add(new ParsingProblem(unregularProblemType,
+                        "This process definition is not regular.", firstToken));
+                }
+            }
             monitor.worked(WORK_CHECKING);
         } catch (final LexException e) {
-            warning = "Error lexing: " + e.getMessage() + "\\n"
-                + "(around this context: " + e.getEnvironment() + ")";
-        } catch (final ParseException e) {
-            warning = "Error parsing: " + e.getMessage() + "\\n"
-                + "(around this context: " + e.getEnvironment() + ")";
+            warning = "Error lexing: " + e.getMessage();
         }
 
         final ParseStatus status;
@@ -94,6 +106,24 @@ public class ParseCCSProgramJob extends Job {
         // TODO additional parameter for the parsing result (map expression->position)
 
         return status;
+    }
+
+    private Token searchFirstToken(List<Token> tokens, int position) {
+        // binary search
+        int left = 0;
+        int right = tokens.size();
+        while (left < right) {
+            final int mid = (left+right)/2;
+            final Token midToken = tokens.get(mid);
+            if (position < midToken.getStartPosition())
+                right = mid;
+            else if (position > midToken.getEndPosition())
+                left = mid+1;
+            else
+                return midToken;
+        }
+
+        return null;
     }
 
     public class ParseStatus extends Status {

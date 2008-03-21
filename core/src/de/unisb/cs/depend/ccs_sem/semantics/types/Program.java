@@ -87,6 +87,10 @@ public class Program {
         return true;
     }
 
+    public List<ProcessVariable> getProcessVariables() {
+        return processVariables;
+    }
+
     public void evaluate(Evaluator eval) throws InterruptedException {
         evaluate(eval, null);
     }

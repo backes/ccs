@@ -31,6 +31,7 @@ import de.unisb.cs.depend.ccs_sem.lexer.tokens.Identifier;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.KeywordToken;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.OperatorToken;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token;
+import de.unisb.cs.depend.ccs_sem.parser.ParsingProblem;
 import de.unisb.cs.depend.ccs_sem.parser.ParsingResult;
 import de.unisb.cs.depend.ccs_sem.parser.ParsingResult.ReadComment;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.ParseCCSProgramJob.ParseStatus;
@@ -155,13 +156,21 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
     }
 
     protected void addMarkers(IResource res,
-            ParseStatus result) throws CoreException {
+            ParseStatus status) throws CoreException {
 
-        final IMarker marker = res.createMarker(Constants.MARKER_PROBLEM);
-        marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO);
-        marker.setAttribute(IMarker.CHAR_START, 3);
-        marker.setAttribute(IMarker.CHAR_END, 7);
-        marker.setAttribute(IMarker.MESSAGE, "Example error");
+        final ParsingResult result = status.getParsingResult();
+        if (result == null)
+            return;
+
+        for (final ParsingProblem problem: result.parsingProblems) {
+            final IMarker marker = res.createMarker(Constants.MARKER_PROBLEM);
+            marker.setAttribute(IMarker.SEVERITY,
+                problem.getType() == ParsingProblem.ERROR ? IMarker.SEVERITY_ERROR : IMarker.SEVERITY_WARNING);
+            marker.setAttribute(IMarker.CHAR_START, problem.getStartPosition());
+            // CHAR_END is exclusive!
+            marker.setAttribute(IMarker.CHAR_END, problem.getEndPosition()+1);
+            marker.setAttribute(IMarker.MESSAGE, problem.getMessage());
+        }
     }
 
     private TextPresentation createPresentationAfterParsing(IDocument document, ParseStatus status) {
