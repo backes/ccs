@@ -225,8 +225,8 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
                 } else if (o instanceof ProcessVariable) {
                     // no style so far... (process variable definition)
                 } else {
-                    // we should not get here
-                    assert false;
+                    // we should not get here, if o is set
+                    assert o == null;
                 }
             }
 

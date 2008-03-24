@@ -3,6 +3,7 @@ package de.unisb.cs.depend.ccs_sem.plugin.editors;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextHover;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
+import org.eclipse.jface.text.source.IAnnotationHover;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 
@@ -33,6 +34,11 @@ public class CCSSourceViewerConfiguration extends SourceViewerConfiguration {
     public ITextHover getTextHover(ISourceViewer sourceViewer,
             String contentType) {
         return new CCSTextHover();
+    }
+
+    @Override
+    public IAnnotationHover getAnnotationHover(ISourceViewer sourceViewer) {
+        return new CCSAnnotationHover();
     }
 
 }

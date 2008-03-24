@@ -1,6 +1,8 @@
 package de.unisb.cs.depend.ccs_sem.parser;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -90,6 +92,25 @@ public class ParsingResult {
         }
         assert false;
         return -1;
+    }
+
+    public boolean hasParsingErrors() {
+        if (parsingProblems == null)
+            return false;
+        for (ParsingProblem prob: parsingProblems)
+            if (prob.getType() == ParsingProblem.ERROR)
+                return true;
+
+        return false;
+    }
+
+    public void finish() {
+        if (parsingProblems != null && parsingProblems.size() > 0)
+            Collections.sort(parsingProblems, new Comparator<ParsingProblem>() {
+                public int compare(ParsingProblem p1, ParsingProblem p2) {
+                    return p1.getStartPosition() - p2.getStartPosition();
+                }
+            });
     }
 
 }

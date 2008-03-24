@@ -38,6 +38,7 @@ public class LoggingCCSParser extends CCSParser implements IParsingProblemListen
         addProblemListener(this);
         final Program program = super.parse(input);
         removeProblemListener(this);
+        result.finish();
         return program;
     }
 
@@ -46,6 +47,7 @@ public class LoggingCCSParser extends CCSParser implements IParsingProblemListen
         addProblemListener(this);
         final Program program = super.parse(input);
         removeProblemListener(this);
+        result.finish();
         return program;
     }
 
@@ -64,6 +66,7 @@ public class LoggingCCSParser extends CCSParser implements IParsingProblemListen
         addProblemListener(this);
         final Program program = super.parse(tokens);
         removeProblemListener(this);
+        result.finish();
         return program;
     }
 

@@ -71,23 +71,25 @@ public class ParseCCSProgramJob extends Job {
             ccsProgram = new LoggingCCSParser(result).parse(tokens);
             monitor.worked(WORK_PARSING);
 
-            monitor.subTask("Checking Expression");
-            // TODO let user decide if error or warning
-            final int unguardedProblemType = ParsingProblem.ERROR;
-            final int unregularProblemType = ParsingProblem.WARNING;
-            assert result.processVariables.size() == ccsProgram.getProcessVariables().size();
-            for (final ReadProcessVariable proc: result.processVariables) {
-                if (!proc.processVariable.isGuarded()) {
-                    final Token firstToken = searchFirstToken(result.tokens, proc.getStartPosition());
-                    assert firstToken instanceof Identifier && firstToken.getStartPosition() == proc.getStartPosition();
-                    result.parsingProblems.add(new ParsingProblem(unguardedProblemType,
-                        "This process definition is unguarded.", firstToken));
-                }
-                if (!proc.processVariable.isRegular()) {
-                    final Token firstToken = searchFirstToken(result.tokens, proc.getStartPosition());
-                    assert firstToken instanceof Identifier && firstToken.getStartPosition() == proc.getStartPosition();
-                    result.parsingProblems.add(new ParsingProblem(unregularProblemType,
-                        "This process definition is not regular.", firstToken));
+            if (!result.hasParsingErrors()) {
+                monitor.subTask("Checking Expression");
+                // TODO let user decide if error or warning
+                final int unguardedProblemType = ParsingProblem.ERROR;
+                final int unregularProblemType = ParsingProblem.WARNING;
+                assert result.processVariables.size() == ccsProgram.getProcessVariables().size();
+                for (final ReadProcessVariable proc: result.processVariables) {
+                    if (!proc.processVariable.isGuarded()) {
+                        final Token firstToken = searchFirstToken(result.tokens, proc.getStartPosition());
+                        assert firstToken instanceof Identifier && firstToken.getStartPosition() == proc.getStartPosition();
+                        result.parsingProblems.add(new ParsingProblem(unguardedProblemType,
+                            "This process definition is unguarded.", firstToken));
+                    }
+                    if (!proc.processVariable.isRegular()) {
+                        final Token firstToken = searchFirstToken(result.tokens, proc.getStartPosition());
+                        assert firstToken instanceof Identifier && firstToken.getStartPosition() == proc.getStartPosition();
+                        result.parsingProblems.add(new ParsingProblem(unregularProblemType,
+                            "This process definition is not regular.", firstToken));
+                    }
                 }
             }
             monitor.worked(WORK_CHECKING);

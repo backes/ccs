@@ -534,9 +534,14 @@ public class Main implements IParsingProblemListener {
     @SuppressWarnings("fallthrough")
     private int[] readLineOffsets(File file) {
         PushbackReader reader = null;
-        int[] offsets = new int[16];
         try {
             reader = new PushbackReader(new FileReader(file));
+        } catch (FileNotFoundException e) {
+            System.err.println("Input file " + file.getAbsolutePath() + " not found: " + e.getMessage());
+            System.exit(-1);
+        }
+        try {
+            int[] offsets = new int[16];
             int pos = 0;
             int lineNumber = 0;
             int ch;
@@ -567,14 +572,14 @@ public class Main implements IParsingProblemListener {
             System.arraycopy(offsets, 0, realOffsets, 0, lineNumber);
             return realOffsets;
         } catch (final IOException e) {
-            if (reader != null)
-                try {
-                    reader.close();
-                } catch (final IOException e1) {
-                    // ignore
-                }
-            System.err.println("Error reading input file " + file + ": " + e.getMessage());
+            System.err.println("Error reading input file " + file.getAbsolutePath() + ": " + e.getMessage());
             System.exit(-1);
+        } finally {
+            try {
+                reader.close();
+            } catch (final IOException e) {
+                System.err.println("Input file " + file.getAbsolutePath() + " cannot be closed: " + e.getMessage());
+            }
         }
         return null;
     }
