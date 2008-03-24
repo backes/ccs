@@ -35,10 +35,14 @@ public class GrappaBox extends java.awt.geom.Rectangle2D.Double {
      * Constructs and initializes a <code>GrappaBox</code> with the specified
      * coordinates.
      *
-     * @param x,&nbsp;y
-     *            the upper-left position coordinates of the box
-     * @param width,&nbsp;height
-     *            the size of the box
+     * @param x
+     *            x-coordinate of the upper-left position coordinates of the box
+     * @param y
+     *            x-coordinate of the upper-left position coordinates of the box
+     * @param width
+     *            the width of the box
+     * @param height
+     *            the height of the box
      */
     public GrappaBox(double x, double y, double width, double height) {
         this.x = x;

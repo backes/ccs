@@ -442,7 +442,7 @@ public final class Attribute extends java.util.Observable implements
                     while (keys.hasMoreElements()) {
                         if (strbuf.length() > 0)
                             strbuf.append(',');
-                        strbuf.append((String) (keys.nextElement()));
+                        strbuf.append(keys);
                     }
                     stringValue = strbuf.toString();
                 }
@@ -543,7 +543,7 @@ public final class Attribute extends java.util.Observable implements
      *            the element type to which the named attribute applies
      * @param name
      *            the name of the attribute
-     * @param value
+     * @param stringValue
      *            the string value to be converted to an object
      * @param attrtype
      *            the type of the attribute

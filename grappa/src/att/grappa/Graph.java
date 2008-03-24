@@ -429,10 +429,9 @@ public class Graph extends Subgraph {
      *
      * @return an Enumeration of Attribute objects
      */
-    public Enumeration<?> getGrappaAttributeKeys() {
-        if (grattributes == null) {
-            return Grappa.emptyEnumeration.elements();
-        }
+    public Enumeration<String> getGrappaAttributeKeys() {
+        if (grattributes == null)
+            return new EmptyEnumeration<String>();
         return grattributes.keys();
     }
 

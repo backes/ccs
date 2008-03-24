@@ -1,9 +1,12 @@
 package att.grappa;
 
 import java.io.PrintWriter;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
+
 
 /**
  * This abstract class is the root class for the <A
@@ -95,7 +98,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
     Hashtable<String, Attribute> attributes = null;
 
     // attributes
-    Hashtable<String, Object> attrsOfInterest = null;
+    HashSet<String> attrsOfInterest = null;
 
     // the Shape for drawing
     GrappaNexus grappaNexus = null;
@@ -295,9 +298,9 @@ public abstract class Element implements att.grappa.GrappaConstants {
         if (name == null || isOfInterest(name))
             return;
         if (attrsOfInterest == null) {
-            attrsOfInterest = new Hashtable<String, Object>();
+            attrsOfInterest = new HashSet<String>();
         }
-        attrsOfInterest.put(name, name);
+        attrsOfInterest.add(name);
         if (grappaNexus != null) {
             final Attribute attr = getAttribute(name);
             if (attr != null) {
@@ -328,10 +331,10 @@ public abstract class Element implements att.grappa.GrappaConstants {
      *
      * @return an enumeration of attribute names that are of interest
      */
-    public Enumeration<?> listAttrsOfInterest() {
+    public Enumeration<String> listAttrsOfInterest() {
         if (attrsOfInterest == null)
-            return Grappa.emptyEnumeration.elements();
-        return attrsOfInterest.elements();
+            return new EmptyEnumeration<String>();
+        return Collections.enumeration(attrsOfInterest);
     }
 
     /**
@@ -557,9 +560,9 @@ public abstract class Element implements att.grappa.GrappaConstants {
      * @return an Enumneration of String objects
      */
 
-    public Enumeration<?> getLocalAttributeKeys() {
+    public Enumeration<String> getLocalAttributeKeys() {
         if (attributes == null) {
-            return Grappa.emptyEnumeration.elements();
+            return new EmptyEnumeration<String>();
         }
         return (attributes.keys());
     }
@@ -571,9 +574,9 @@ public abstract class Element implements att.grappa.GrappaConstants {
      */
     public Enumeration<Attribute> getLocalAttributePairs() {
         if (attributes == null) {
-            return Grappa.emptyAttributeEnumeration.elements();
+            return new EmptyEnumeration<Attribute>();
         }
-        return (attributes.elements());
+        return attributes.elements();
     }
 
     /**
@@ -582,18 +585,10 @@ public abstract class Element implements att.grappa.GrappaConstants {
      * @return an enumeration of local and default Attribute objects for this
      *         element.
      */
-    public Enumeration<?> getAttributePairs() {
-        Hashtable<String, Object> pairs = null;
-        Attribute attr = null;
+    public Enumeration<Attribute> getAttributePairs() {
+        Hashtable<String, Attribute> pairs = null;
 
-        Enumeration<Attribute> enm = getLocalAttributePairs();
-        if (enm.hasMoreElements())
-            pairs = new Hashtable<String, Object>(32);
-        while (enm.hasMoreElements()) {
-            attr = enm.nextElement();
-            pairs.put(attr.getName(), attr);
-        }
-
+        Enumeration<Attribute> enm = null;
         switch (getType()) {
         case GrappaConstants.NODE:
             enm = getSubgraph().getNodeAttributePairs();
@@ -601,22 +596,28 @@ public abstract class Element implements att.grappa.GrappaConstants {
         case GrappaConstants.EDGE:
             enm = getSubgraph().getEdgeAttributePairs();
             break;
-        case GrappaConstants.SUBGRAPH:
-            enm = getLocalAttributePairs();
-            break;
         }
 
-        if (pairs != null) {
+        if (enm != null && enm.hasMoreElements()) {
+            pairs = new Hashtable<String, Attribute>(16);
             while (enm.hasMoreElements()) {
-                attr = enm.nextElement();
-                if (!pairs.containsKey(attr.getName())) {
-                    pairs.put(attr.getName(), attr);
-                }
+                Attribute attr = enm.nextElement();
+                pairs.put(attr.getName(), attr);
+            }
+        }
+
+        enm = getLocalAttributePairs();
+        if (enm.hasMoreElements()) {
+            if (pairs == null)
+                return enm;
+            while (enm.hasMoreElements()) {
+                Attribute attr = enm.nextElement();
+                pairs.put(attr.getName(), attr);
             }
             return pairs.elements();
         }
 
-        return enm;
+        return pairs == null ? new EmptyEnumeration<Attribute>() : pairs.elements();
     }
 
     /**
@@ -631,8 +632,8 @@ public abstract class Element implements att.grappa.GrappaConstants {
      */
     public Attribute getLocalAttribute(String key) {
         if (attributes == null)
-            return (null);
-        return ((attributes.get(key)));
+            return null;
+        return attributes.get(key);
     }
 
     /**
@@ -701,7 +702,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
 
         if (sg == null) {
             // unattached, so try global attributes
-            return (Graph.getGlobalAttribute(type, key));
+            return Graph.getGlobalAttribute(type, key);
         }
 
         switch (type) {
@@ -744,7 +745,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
         if ((attr = getLocalAttribute(key)) == null) {
             attr = getDefaultAttribute(key);
         }
-        return (attr);
+        return attr;
     }
 
     /**
@@ -756,13 +757,10 @@ public abstract class Element implements att.grappa.GrappaConstants {
      * @return the corresponding attribute value or null.
      */
     public Object getAttributeValue(String key) {
-        Object value = null;
-
         final Attribute attr = getAttribute(key);
-        if (attr != null) {
-            value = attr.getValue();
-        }
-        return (value);
+        if (attr == null)
+            return null;
+        return attr.getValue();
     }
 
     /**
@@ -918,7 +916,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
             printlist = (Hashtable<?, ?>) getAttributeValue(PRINTLIST_ATTR);
         }
 
-        Enumeration<?> attrs = null;
+        Enumeration<Attribute> attrs = null;
         if (Grappa.elementPrintAllAttributes || printAllAttributes) {
             attrs = getAttributePairs();
         } else if (attributes != null && !attributes.isEmpty()) {
@@ -926,7 +924,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
         }
         if (attrs != null) {
             while (attrs.hasMoreElements()) {
-                attr = (Attribute) (attrs.nextElement());
+                attr = attrs.nextElement();
                 key = attr.getName();
                 if (printlist != null && printlist.get(key) == null)
                     continue;
@@ -1108,13 +1106,12 @@ public abstract class Element implements att.grappa.GrappaConstants {
      */
     public final boolean delete() {
         if (!setDelete(true))
-            return (false);
+            return false;
         final String name = getName();
-        Enumeration<?> enm = null;
         if (attributes != null && grappaNexus != null) {
-            enm = attributes.elements();
+            Enumeration<Attribute> enm = attributes.elements();
             while (enm.hasMoreElements()) {
-                ((Attribute) enm.nextElement()).deleteObserver(grappaNexus);
+                enm.nextElement().deleteObserver(grappaNexus);
             }
         }
         Element elem = null;
@@ -1130,7 +1127,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
         }
         switch (getType()) {
         case GrappaConstants.NODE:
-            enm = ((Node) this).edgeElements();
+            Enumeration<?> enm = ((Node) this).edgeElements();
             while (enm.hasMoreElements()) {
                 elem = (Element) (enm.nextElement());
                 prnt = elem.getSubgraph();
@@ -1177,186 +1174,6 @@ public abstract class Element implements att.grappa.GrappaConstants {
             grappaNexus = null;
         }
         return (true);
-    }
-
-    /**
-     * Tags the element with the supplied string.
-     *
-     * @param tag
-     *            the tag to associate with this Element.
-     */
-    @SuppressWarnings("unchecked")
-    public void addTag(String tag) {
-        Attribute attr;
-        Hashtable<String, String> tags;
-
-        if (tag == null || tag.indexOf(',') >= 0) {
-            throw new RuntimeException("tag value null or contains a comma ("
-                    + tag + ")");
-        }
-
-        if ((attr = getLocalAttribute(TAG_ATTR)) == null) {
-            attr =
-                    new Attribute(getType(), TAG_ATTR,
-                            new Hashtable<String, String>());
-            setAttribute(attr);
-            attr = getAttribute(TAG_ATTR); // needed
-        }
-        tags = (Hashtable<String, String>) (attr.getValue());
-
-        tags.put(tag, tag);
-        // if it becomes desireable to retain the original order, we
-        // could always use the value in the following (instead of
-        // what is done above) to reconstruct the original order
-        // (Note that no code makes use of the value at this point,
-        // so that would all have to be added in printAttributes, for
-        // example)
-        // tags.put(tag,new Long(System.currentTimeMillis()));
-    }
-
-    /**
-     * Check if this Element has the supplied tag either locally or as a
-     * default.
-     *
-     * @param tag
-     *            tag value to be searched for
-     * @return true, if this Element contains the supplied tag
-     */
-    public boolean hasTag(String tag) {
-        Attribute attr;
-        Hashtable<?, ?> tags;
-
-        if (tag == null || tag.indexOf(',') >= 0) {
-            throw new RuntimeException("tag value null or contains a comma ("
-                    + tag + ")");
-        }
-
-        if ((attr = getLocalAttribute(TAG_ATTR)) == null) {
-            return (hasDefaultTag(tag));
-        }
-        tags = (Hashtable<?, ?>) (attr.getValue());
-        if (tags == null || tags.size() == 0)
-            return false;
-        return (tags.containsKey(tag));
-    }
-
-    /**
-     * Check if this Element has the supplied tag locally.
-     *
-     * @param tag
-     *            tag value to be searched for
-     * @return true, if this Element contains the supplied tag
-     */
-    public boolean hasLocalTag(String tag) {
-        Attribute attr;
-        Hashtable<?, ?> tags;
-        if ((attr = getLocalAttribute(TAG_ATTR)) == null)
-            return false;
-        tags = (Hashtable<?, ?>) (attr.getValue());
-        if (tags == null || tags.size() == 0)
-            return false;
-        return (tags.containsKey(tag));
-    }
-
-    /**
-     * Check if this Element has the supplied tag as a default tag.
-     *
-     * @param tag
-     *            tag value to be searched for
-     * @return true, if this Element has the supplied tag as a default tag
-     */
-    public boolean hasDefaultTag(String tag) {
-        Attribute attr;
-        Hashtable<?, ?> tags;
-
-        if ((attr = getDefaultAttribute(TAG_ATTR)) == null)
-            return false;
-        tags = (Hashtable<?, ?>) (attr.getValue());
-        if (tags == null || tags.size() == 0)
-            return false;
-        return (tags.containsKey(tag));
-    }
-
-    /**
-     * Check if this Element is tagged at all either locally or with a default.
-     *
-     * @return true, if this Element is tagged at all
-     */
-    public boolean hasTags() {
-        Attribute attr;
-        Hashtable<?, ?> tags;
-
-        if ((attr = getLocalAttribute(TAG_ATTR)) == null) {
-            return (hasDefaultTags());
-        }
-        tags = (Hashtable<?, ?>) (attr.getValue());
-        if (tags == null || tags.size() == 0)
-            return false;
-        return true;
-    }
-
-    /**
-     * Check if this Element is tagged at all locally.
-     *
-     * @return true, if this Element is tagged locally
-     */
-    public boolean hasLocalTags() {
-        Attribute attr;
-        Hashtable<?, ?> tags;
-        if ((attr = getLocalAttribute(TAG_ATTR)) == null)
-            return false;
-        tags = (Hashtable<?, ?>) (attr.getValue());
-        if (tags == null || tags.size() == 0)
-            return false;
-        return true;
-    }
-
-    /**
-     * Check if this Element has any default tags at all.
-     *
-     * @return true, if this Element has any default tags
-     */
-    public boolean hasDefaultTags() {
-        Attribute attr;
-        Hashtable<?, ?> tags;
-
-        if ((attr = getDefaultAttribute(TAG_ATTR)) == null)
-            return false;
-        tags = (Hashtable<?, ?>) (attr.getValue());
-        if (tags == null || tags.size() == 0)
-            return false;
-        return true;
-    }
-
-    /**
-     * Removes all tags locally associated with this element.
-     */
-    public void removeTags() {
-        Attribute attr;
-        Hashtable<?, ?> tags;
-        if ((attr = getLocalAttribute(TAG_ATTR)) == null)
-            return;
-        tags = (Hashtable<?, ?>) (attr.getValue());
-        if (tags == null || tags.size() == 0)
-            return;
-        tags.clear();
-    }
-
-    /**
-     * Removes the specified tag locally from this element.
-     *
-     * @param tag
-     *            the tag value to remove
-     */
-    public void removeTag(String tag) {
-        Attribute attr;
-        Hashtable<?, ?> tags;
-        if ((attr = getLocalAttribute(TAG_ATTR)) == null)
-            return;
-        tags = (Hashtable<?, ?>) (attr.getValue());
-        if (tags == null || tags.size() == 0)
-            return;
-        tags.remove(tag);
     }
 
     /**
@@ -1497,9 +1314,9 @@ public abstract class Element implements att.grappa.GrappaConstants {
         if (grappaNexus == null) {
             grappaNexus = new GrappaNexus(this);
             Attribute attr = null;
-            final Enumeration<?> enm = listAttrsOfInterest();
+            final Enumeration<String> enm = listAttrsOfInterest();
             while (enm.hasMoreElements()) {
-                attr = getAttribute((String) enm.nextElement());
+                attr = getAttribute(enm.nextElement());
                 if (attr != null) {
                     attr.addObserver(grappaNexus);
                 }
@@ -1553,16 +1370,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
     private static void doBDFS(int type, int depth, long stamp, int level,
             Vector<Object> inbox, Vector<Object> layers) {
 
-        Element elem;
-        Subgraph subg;
-        Edge edge;
-
-        int sz;
-
-        Enumeration<?> enm;
-        Vector<Object> input;
-
-        if ((sz = inbox.size()) == 0)
+        if (inbox.size() == 0)
             return;
 
         layers.addElement(inbox);
@@ -1572,20 +1380,20 @@ public abstract class Element implements att.grappa.GrappaConstants {
         if (depth >= 0 && level > depth)
             return;
 
-        input = new Vector<Object>();
+        Vector<Object> input = new Vector<Object>();
 
-        for (int i = 0; i < sz; i++) {
+        for (int i = 0; i < inbox.size(); i++) {
 
-            elem = (Element) inbox.elementAt(i);
+            Element elem = (Element) inbox.elementAt(i);
 
             if (type == SUBGRAPH) {
 
                 //stack.addElement(elem);
 
                 if (depth < 0 || level <= depth) {
-                    enm = ((Subgraph) elem).subgraphElements();
+                    Enumeration<Subgraph> enm = ((Subgraph) elem).subgraphElements();
                     while (enm.hasMoreElements()) {
-                        subg = (Subgraph) (enm.nextElement());
+                        Subgraph subg = (enm.nextElement());
                         if (subg.visastamp != stamp) {
                             input.addElement(subg);
                             subg.visastamp = stamp;
@@ -1599,9 +1407,9 @@ public abstract class Element implements att.grappa.GrappaConstants {
                 //stack.addElement(elem);
 
                 if (depth < 0 || level <= depth) {
-                    enm = ((Node) elem).outEdgeElements();
+                    Enumeration<Edge> enm = ((Node) elem).outEdgeElements();
                     while (enm.hasMoreElements()) {
-                        edge = (Edge) (enm.nextElement());
+                        Edge edge = (enm.nextElement());
                         if (edge.goesForward()) {
                             if (edge.getHead().visastamp != stamp) {
                                 input.addElement(edge.getHead());
@@ -1611,7 +1419,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
                     }
                     enm = ((Node) elem).inEdgeElements();
                     while (enm.hasMoreElements()) {
-                        edge = (Edge) (enm.nextElement());
+                        Edge edge = (enm.nextElement());
                         if (edge.goesReverse()) {
                             if (edge.getTail().visastamp != stamp) {
                                 input.addElement(edge.getTail());
@@ -1627,9 +1435,9 @@ public abstract class Element implements att.grappa.GrappaConstants {
 
                 if (depth < 0 || level <= depth) {
                     if (((Edge) elem).goesForward()) {
-                        enm = ((Edge) elem).getHead().outEdgeElements();
+                        Enumeration<Edge> enm = ((Edge) elem).getHead().outEdgeElements();
                         while (enm.hasMoreElements()) {
-                            edge = (Edge) (enm.nextElement());
+                            Edge edge = (enm.nextElement());
                             if (edge.goesForward()) {
                                 if (edge.visastamp != stamp) {
                                     input.addElement(edge);
@@ -1639,7 +1447,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
                         }
                         enm = ((Edge) elem).getHead().inEdgeElements();
                         while (enm.hasMoreElements()) {
-                            edge = (Edge) (enm.nextElement());
+                            Edge edge = (enm.nextElement());
                             if (edge.goesReverse()) {
                                 if (edge.visastamp != stamp) {
                                     input.addElement(edge);
@@ -1649,9 +1457,9 @@ public abstract class Element implements att.grappa.GrappaConstants {
                         }
                     }
                     if (((Edge) elem).goesReverse()) {
-                        enm = ((Edge) elem).getTail().outEdgeElements();
+                        Enumeration<Edge> enm = ((Edge) elem).getTail().outEdgeElements();
                         while (enm.hasMoreElements()) {
-                            edge = (Edge) (enm.nextElement());
+                            Edge edge = (enm.nextElement());
                             if (edge.goesForward()) {
                                 if (edge.visastamp != stamp) {
                                     input.addElement(edge);
@@ -1661,7 +1469,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
                         }
                         enm = ((Edge) elem).getTail().inEdgeElements();
                         while (enm.hasMoreElements()) {
-                            edge = (Edge) (enm.nextElement());
+                            Edge edge = (enm.nextElement());
                             if (edge.goesReverse()) {
                                 if (edge.visastamp != stamp) {
                                     input.addElement(edge);

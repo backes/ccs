@@ -1,6 +1,5 @@
 package att.grappa;
 
-import java.util.Vector;
 
 /**
  * This class sets default option variables and other set-up. In addition, some
@@ -134,7 +133,6 @@ public abstract class Grappa implements att.grappa.GrappaConstants {
      *            The exception value about which information is to be
      *            displayed.
      * @see Grappa#doDisplayException
-     * @see DisplayException
      */
     public static boolean displayException(Exception ex) {
         if (!doDisplayException)
@@ -152,7 +150,6 @@ public abstract class Grappa implements att.grappa.GrappaConstants {
      * @param msg
      *            Additional text to be displayed ahead of exception info.
      * @see Grappa#doDisplayException
-     * @see DisplayException
      */
     public static boolean displayException(Exception ex, String msg) {
         if (!doDisplayException)
@@ -160,20 +157,6 @@ public abstract class Grappa implements att.grappa.GrappaConstants {
         exceptionDisplay.displayException(ex, msg);
         return true;
     }
-
-    /**
-     * A convenience Vector useful when an enumeration is to be returned, but
-     * the object to be enumerated is null (in which case, the return value can
-     * be <I>Grappa.emptyEnumeration.elements()</I>, whose <I>hasMoreElements()</I>
-     * method will return <B>false</B>).
-     */
-    public static final Vector<?> emptyEnumeration = new Vector<Object>(0);
-    public static final Vector<Attribute> emptyAttributeEnumeration =
-            new Vector<Attribute>(0);
-    public static final Vector<Node> emptyNodeEnumeration = new Vector<Node>(0);
-    public static final Vector<Edge> emptyEdgeEnumeration = new Vector<Edge>(0);
-    public static final Vector<Subgraph> emptySubgraphEnumeration =
-            new Vector<Subgraph>(0);
 
     /*
      * Default tool-tip text when cursor is outside graph, but inside
@@ -389,7 +372,7 @@ public abstract class Grappa implements att.grappa.GrappaConstants {
      * When enable the Graph dropcloth method can be used to prevent paints
      * during certain critical operations.
      *
-     * @see Graph#dropcloth(boolan, boolean)
+     * @see Graph#dropcloth(boolean, boolean)
      */
     public static boolean synchronizePaint = false;
 

@@ -3,7 +3,16 @@ package att.grappa;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.Enumeration;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -527,7 +536,7 @@ implements GrappaConstants
      *
      * @param subg
      *            the subgraph to be searched.
-     * @param pt
+     * @param box
      *            the container box.
      * @return a vector whose components may be single elements or another
      *         vector of this same type with the property that all the elements

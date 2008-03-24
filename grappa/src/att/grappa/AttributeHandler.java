@@ -34,7 +34,7 @@ public interface AttributeHandler
      *
      * @param elemType the element type to which the named attribute applies
      * @param name the name of the attribute
-     * @param value the string value to be converted to an object
+     * @param stringValue the string value to be converted to an object
      * @param convType the string-to-object conversion type of the value object
      * @return an object representation of the supplied value
      */

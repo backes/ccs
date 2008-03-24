@@ -263,10 +263,10 @@ public class Subgraph extends Element implements Comparator<Object> {
      *
      * @return an enumeration of String objects.
      */
-    public Enumeration<?> getNodeAttributeKeys() {
+    public Enumeration<String> getNodeAttributeKeys() {
         if (nodeAttributes == null)
-            return Grappa.emptyEnumeration.elements();
-        return (nodeAttributes.keys());
+            return new EmptyEnumeration<String>();
+        return nodeAttributes.keys();
     }
 
     /**
@@ -276,8 +276,8 @@ public class Subgraph extends Element implements Comparator<Object> {
      */
     public Enumeration<Attribute> getNodeAttributePairs() {
         if (nodeAttributes == null)
-            return Grappa.emptyAttributeEnumeration.elements();
-        return (nodeAttributes.elements());
+            return new EmptyEnumeration<Attribute>();
+        return nodeAttributes.elements();
     }
 
     /**
@@ -289,7 +289,7 @@ public class Subgraph extends Element implements Comparator<Object> {
      *            the node Attribute object to set as a default.
      * @return the Attribute object previously stored for this attribute, if
      *         any.
-     * @see Subgraph#setNodeAttribute(java.lang.String, java.lang.String)
+     * @see Subgraph#setNodeAttribute(String, Object)
      */
     public Object setNodeAttribute(Attribute attr) {
         if (attr == null)
@@ -421,7 +421,7 @@ public class Subgraph extends Element implements Comparator<Object> {
      * @param attr
      *            the edge attribute pair to set.
      * @return the attribute pair previously stored for this attribute.
-     * @see Subgraph#setEdgeAttribute(java.lang.String, java.lang.String)
+     * @see Subgraph#setEdgeAttribute(String, Object)
      */
     public Object setEdgeAttribute(Attribute attr) {
         if (attr == null)
@@ -555,7 +555,7 @@ public class Subgraph extends Element implements Comparator<Object> {
      * @param attr
      *            the graph attribute pair to set.
      * @return the attribute pair previously stored for this attribute.
-     * @see Subgraph#setAttribute(java.lang.String, java.lang.String)
+     * @see Subgraph#setAttribute(String, Object)
      */
     @Override
     public Object setAttribute(Attribute attr) {
@@ -717,10 +717,10 @@ public class Subgraph extends Element implements Comparator<Object> {
      *
      * @return an enumeration of String objects.
      */
-    public Enumeration<?> getEdgeAttributeKeys() {
+    public Enumeration<String> getEdgeAttributeKeys() {
         if (edgeAttributes == null)
-            return Grappa.emptyEnumeration.elements();
-        return (edgeAttributes.keys());
+            return new EmptyEnumeration<String>();
+        return edgeAttributes.keys();
     }
 
     /**
@@ -730,8 +730,8 @@ public class Subgraph extends Element implements Comparator<Object> {
      */
     public Enumeration<Attribute> getEdgeAttributePairs() {
         if (edgeAttributes == null)
-            return Grappa.emptyAttributeEnumeration.elements();
-        return (edgeAttributes.elements());
+            return new EmptyEnumeration<Attribute>();
+        return edgeAttributes.elements();
     }
 
     /**
@@ -847,7 +847,7 @@ public class Subgraph extends Element implements Comparator<Object> {
     /**
      * Prints an ascii description of each graph element to the supplied stream.
      *
-     * @param output
+     * @param out
      *            the OutputStream for writing the graph description.
      */
     public void printSubgraph(PrintWriter out) {
@@ -1176,8 +1176,6 @@ public class Subgraph extends Element implements Comparator<Object> {
      *            created
      * @param attrs
      *            attributes describing the element to be created
-     * @exception InstantiationException
-     *                whenever element cannot be created
      */
     public Element createElement(int type, Object[] info, Attribute[] attrs) {
         Element elem = null;
@@ -2348,9 +2346,8 @@ public class Subgraph extends Element implements Comparator<Object> {
      * @return an Enumeration of Node objects
      */
     public Enumeration<Node> nodeElements() {
-        if (nodedict == null) {
-            return Grappa.emptyNodeEnumeration.elements();
-        }
+        if (nodedict == null)
+            return new EmptyEnumeration<Node>();
         return nodedict.elements();
     }
 
@@ -2360,9 +2357,8 @@ public class Subgraph extends Element implements Comparator<Object> {
      * @return an Enumeration of Edge objects
      */
     public Enumeration<Edge> edgeElements() {
-        if (edgedict == null) {
-            return Grappa.emptyEdgeEnumeration.elements();
-        }
+        if (edgedict == null)
+            return new EmptyEnumeration<Edge>();
         return edgedict.elements();
     }
 
@@ -2372,9 +2368,8 @@ public class Subgraph extends Element implements Comparator<Object> {
      * @return an Enumeration of Subgraph objects
      */
     public Enumeration<Subgraph> subgraphElements() {
-        if (graphdict == null) {
-            return Grappa.emptySubgraphEnumeration.elements();
-        }
+        if (graphdict == null)
+            return new EmptyEnumeration<Subgraph>();
         return graphdict.elements();
     }
 

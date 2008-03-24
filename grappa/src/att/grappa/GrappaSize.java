@@ -33,8 +33,11 @@ public class GrappaSize extends java.awt.geom.Dimension2D {
      * Constructs and initializes a <code>GrappaSize</code> with the specified
      * coordinates.
      *
-     * @param width,&nbsp;height
-     *            the coordinates to which to set the newly constructed
+     * @param width
+     *            the width to which to set the newly constructed
+     *            <code>GrappaSize</code>
+     * @param height
+     *            the width to which to set the newly constructed
      *            <code>GrappaSize</code>
      */
     public GrappaSize(double width, double height) {

@@ -102,8 +102,7 @@ public class GrappaLine implements GrappaConstants, Cloneable, Shape {
     /**
      * Check for equality of this object with the supplied object.
      *
-     * @param the
-     *            object to be checked for equality
+     * @param obj the object to be checked for equality
      * @return true, when equal
      */
     @Override
@@ -539,7 +538,7 @@ public class GrappaLine implements GrappaConstants, Cloneable, Shape {
     /**
      * Equivalent to <TT>getPathIterator(null)</TT>.
      *
-     * @see getPathIterator(AffineTransform)
+     * @see #getPathIterator(AffineTransform)
      */
     public final PathIterator getPathIterator() {
         return path.getPathIterator(null);

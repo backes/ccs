@@ -1,6 +1,15 @@
 package att.grappa;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
@@ -1311,7 +1320,7 @@ public class GrappaPanel extends javax.swing.JPanel implements
      * attribute and any scaling.
      *
      * @return The preferredSize of a JViewport whose view is this Scrollable.
-     * @see JViewport#getPreferredSize
+     * @see JViewport#getPreferredSize()
      */
     public Dimension getPreferredScrollableViewportSize() {
 

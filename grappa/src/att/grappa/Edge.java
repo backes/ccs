@@ -151,7 +151,7 @@ public class Edge extends Element {
                                 + tail.getName() + (directed ? "->" : "--")
                                 + head.getName() + ")");
             } else {
-                final Enumeration<?> enm = Edge.findEdgesByEnds(tail, head);
+                final Enumeration<Edge> enm = Edge.findEdgesByEnds(tail, head);
                 if (enm.hasMoreElements()) {
                     if (!directed) {
                         throw new RuntimeException(
@@ -159,7 +159,7 @@ public class Edge extends Element {
                     } else {
                         Edge tmpedge = null;
                         while (enm.hasMoreElements()) {
-                            tmpedge = (Edge) enm.nextElement();
+                            tmpedge = enm.nextElement();
                             if (tmpedge.getHead() == head
                                     && tmpedge.getTail() == tail) {
                                 throw new RuntimeException(
@@ -471,14 +471,13 @@ public class Edge extends Element {
      *            for no constraint on the other vertex
      * @return an enumeration of Edge objects.
      */
-    public static Enumeration<?> findEdgesByEnds(Node node1, Node node2) {
-        if (node1 == null) {
-            return Grappa.emptyEnumeration.elements();
-        }
+    public static Enumeration<Edge> findEdgesByEnds(Node node1, Node node2) {
+        if (node1 == null)
+            return new EmptyEnumeration<Edge>();
         return new Enumerator(node1, node2);
     }
 
-    static class Enumerator implements Enumeration<Edge> {
+    private static class Enumerator implements Enumeration<Edge> {
 
         Node node1 = null;
         Node node2 = null;

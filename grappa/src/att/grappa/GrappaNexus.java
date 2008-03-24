@@ -175,11 +175,11 @@ public class GrappaNexus implements GrappaConstants, Cloneable, ImageObserver,
     /**
      * Recompute the components of this GrappaNexus.
      *
-     * @see updateStyle
-     * @see updateDecoration
-     * @see updateShape
-     * @see updateText
-     * @see updateImage
+     * @see #updateStyle()
+     * @see #updateDecoration()
+     * @see #updateShape()
+     * @see #updateText()
+     * @see #updateImage()
      */
     public void rebuild() {
         updateStyle();
@@ -1408,7 +1408,7 @@ public class GrappaNexus implements GrappaConstants, Cloneable, ImageObserver,
     /**
      * Equivalent to <TT>getPathIterator(null)</TT>.
      *
-     * @see getPathIterator(AffineTransform)
+     * @see #getPathIterator(AffineTransform)
      */
     public PathIterator getPathIterator() {
         return new GrappaPathIterator(this, null);

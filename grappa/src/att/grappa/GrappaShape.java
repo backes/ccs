@@ -641,7 +641,7 @@ public class GrappaShape implements GrappaConstants, Cloneable, Shape {
     /**
      * Equivalent to <TT>getPathIterator(null)</TT>.
      *
-     * @see getPathIterator(AffineTransform)
+     * @see #getPathIterator(AffineTransform)
      */
     public final PathIterator getPathIterator() {
         return path.getPathIterator(null);

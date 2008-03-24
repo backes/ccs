@@ -22,7 +22,8 @@ public class GrappaPoint extends java.awt.geom.Point2D.Double {
      * Constructs and initializes a <code>GrappaPoint</code> with the
      * specified coordinates.
      *
-     * @param x,&nbsp;y
+     * @param x
+     * @param y
      *            the coordinates to which to set the newly constructed
      *            <code>GrappaPoint</code>
      */
