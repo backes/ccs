@@ -52,7 +52,7 @@ public class ParsingResult {
         }
     }
 
-    public List<Token> tokens;
+    public List<Token> tokens = Collections.emptyList(); // is later set to the correct list (after lexing)
     public final List<ReadProcessVariable> processVariables = new ArrayList<ReadProcessVariable>();
     public int mainExpressionTokenIndexStart;
     public int mainExpressionTokenIndexEnd;

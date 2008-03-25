@@ -1,11 +1,20 @@
 package de.unisb.cs.depend.ccs_sem.plugin.editors;
 
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.SafeRunner;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.text.AbstractDocument;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
@@ -48,9 +57,64 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterReference;
 public class CCSPresentationReconciler implements IPresentationReconciler,
         IPresentationDamager, IPresentationRepairer, IParsingListener, ITextInputListener {
 
+    private final class CreatePresentationJob extends Job {
+        private final IDocument document;
+        protected ParseStatus result;
+
+        public CreatePresentationJob(IDocument document, ParseStatus result) {
+            super("Update CCS Presentation");
+            this.document = document;
+            this.result = result;
+        }
+
+        @Override
+        protected IStatus run(IProgressMonitor monitor) {
+
+            final TextPresentation presentation =
+                createPresentationAfterParsing(document, result);
+
+            final StyledText textWidget = textViewer.getTextWidget();
+            final Display display = textWidget == null || textWidget.isDisposed()
+                ? null : textWidget.getDisplay();
+            if (display != null) {
+                final Runnable runnable = new Runnable() {
+                    public void run() {
+                        if (getDocModCount(textViewer) == result.getDocModCount()
+                                && textViewer.getTextWidget() != null
+                                && !textViewer.getTextWidget().isDisposed()) {
+                            textViewer.changeTextPresentation(presentation, true);
+
+                            if (editor != null) {
+                                IEditorInput input = editor.getEditorInput();
+                                IPath path = input instanceof IFileEditorInput
+                                    ? ((IFileEditorInput)input).getFile().getFullPath()
+                                    : null;
+                                final IResource res = path == null ? null : ResourcesPlugin.getWorkspace().getRoot().getFile(path);
+                                if (res != null && res.exists()) {
+                                    SafeRunner.run(new SafeRunnable() {
+                                        public void run() throws CoreException {
+                                            updateMarkers(res, result);
+                                        }
+
+                                    });
+                                }
+                            }
+                        }
+                    }
+                };
+                if (result.isSyncExec())
+                    display.syncExec(runnable);
+                else
+                    display.asyncExec(runnable);
+            }
+            return org.eclipse.core.runtime.Status.OK_STATUS;
+        }
+    }
+
     protected ITextViewer textViewer;
     private final ColorManager colorManager;
     protected final CCSEditor editor;
+    private Job createPresentationJob = null;
 
 
     public CCSPresentationReconciler(ColorManager colorManager, CCSEditor editor) {
@@ -114,66 +178,86 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
         }
     }
 
-    public void parsingDone(IDocument document, final ParseStatus result) {
-        final TextPresentation presentation =
-            createPresentationAfterParsing(document, result);
-
-        final StyledText textWidget = textViewer.getTextWidget();
-        final Display display = textWidget == null ? null : textWidget.getDisplay();
-        if (display != null) {
-            final Runnable runnable = new Runnable() {
-                public void run() {
-                    if (getDocModCount(textViewer) == result.getDocModCount()
-                            && textViewer.getTextWidget() != null
-                            && !textViewer.getTextWidget().isDisposed()) {
-                        textViewer.changeTextPresentation(presentation, true);
-
-                        if (editor != null) {
-                            IEditorInput input = editor.getEditorInput();
-                            IPath path = input instanceof IFileEditorInput
-                                ? ((IFileEditorInput)input).getFile().getFullPath()
-                                : null;
-                            final IResource res = path == null ? null : ResourcesPlugin.getWorkspace().getRoot().getFile(path);
-                            if (res != null && res.exists()) {
-                                SafeRunner.run(new SafeRunnable() {
-                                    public void run() throws CoreException {
-                                        res.deleteMarkers(Constants.MARKER_PROBLEM, true, IResource.DEPTH_INFINITE);
-
-                                        addMarkers(res, result);
-                                    }
-
-                                });
-                            }
-                        }
-                    }
-                }
-            };
-            if (result.isSyncExec())
-                display.syncExec(runnable);
-            else
-                display.asyncExec(runnable);
-        }
+    public synchronized void parsingDone(IDocument document, final ParseStatus result) {
+        if (createPresentationJob  != null)
+            createPresentationJob.cancel();
+        createPresentationJob = new CreatePresentationJob(document, result);
+        createPresentationJob.schedule();
     }
 
-    protected void addMarkers(IResource res,
+    protected void updateMarkers(IResource res,
             ParseStatus status) throws CoreException {
+
+        IMarker[] oldMarkersArray = res.findMarkers(Constants.MARKER_PROBLEM, true, IResource.DEPTH_INFINITE);
+        SortedSet<IMarker> oldMarkers = new TreeSet<IMarker>(new Comparator<IMarker>() {
+            public int compare(IMarker m1, IMarker m2) {
+                return m1.getAttribute(IMarker.CHAR_START, -1) - m2.getAttribute(IMarker.CHAR_START, -1);
+            }
+        });
+        oldMarkers.addAll(Arrays.asList(oldMarkersArray));
 
         final ParsingResult result = status.getParsingResult();
         if (result == null)
             return;
 
         for (final ParsingProblem problem: result.parsingProblems) {
+            int severity = problem.getType() == ParsingProblem.ERROR ? IMarker.SEVERITY_ERROR : IMarker.SEVERITY_WARNING;
+            int start = problem.getStartPosition();
+            int end;
+            if (start == -1)
+                end = -1;
+            else {
+                end = problem.getEndPosition()+1;
+                if (end == 0) // endPosition was -1, but startPosition is != -1
+                    end = start+1;
+            }
+            // search if this marker already exists:
+            boolean found = false;
+            Iterator<IMarker> oldIt = oldMarkers.iterator();
+            while (oldIt.hasNext()) {
+                IMarker old = oldIt.next();
+                int oldStart = old.getAttribute(IMarker.CHAR_START, -1);
+                int oldEnd = old.getAttribute(IMarker.CHAR_END, -1);
+
+                if (oldStart > problem.getStartPosition())
+                    break;
+                if (oldEnd < problem.getEndPosition()) {
+                    // this marker was not removed before, so it is not needed any more.
+                    // remove it.
+                    old.delete();
+                    oldIt.remove();
+                    continue;
+                }
+                if (old.getAttribute(IMarker.SEVERITY, severity+1) == severity
+                        && oldStart == start && oldEnd == end
+                        && (problem.getMessage() == null
+                            ? old.getAttribute(IMarker.MESSAGE) == null
+                            : problem.getMessage().equals(old.getAttribute(IMarker.MESSAGE)))) {
+                    // found an equal marker!
+                    oldMarkers.remove(old);
+                    found = true;
+                    break;
+                }
+            }
+            if (found)
+                continue;
+
+            // it was not found, so create a new marker
             final IMarker marker = res.createMarker(Constants.MARKER_PROBLEM);
             marker.setAttribute(IMarker.SEVERITY,
-                problem.getType() == ParsingProblem.ERROR ? IMarker.SEVERITY_ERROR : IMarker.SEVERITY_WARNING);
-            marker.setAttribute(IMarker.CHAR_START, problem.getStartPosition());
-            // CHAR_END is exclusive!
-            marker.setAttribute(IMarker.CHAR_END, problem.getEndPosition()+1);
+                severity);
+            if (start != -1)
+                marker.setAttribute(IMarker.CHAR_START, start);
+            if (end != -1)
+                marker.setAttribute(IMarker.CHAR_END, end);
             marker.setAttribute(IMarker.MESSAGE, problem.getMessage());
         }
+        // if there are old markers, remove them
+        for (IMarker old: oldMarkers)
+            old.delete();
     }
 
-    private TextPresentation createPresentationAfterParsing(IDocument document, ParseStatus status) {
+    protected TextPresentation createPresentationAfterParsing(IDocument document, ParseStatus status) {
         final ParsingResult result = status.getParsingResult();
 
         final TextPresentation presentation = new TextPresentation();

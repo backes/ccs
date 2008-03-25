@@ -52,7 +52,6 @@ public class ParseCCSProgramJob extends Job {
         monitor.beginTask(getName(), totalWork);
 
         Program ccsProgram = null;
-        String warning = null;
         final ParsingResult result = new ParsingResult();
         try {
             monitor.subTask("Lexing...");
@@ -94,20 +93,10 @@ public class ParseCCSProgramJob extends Job {
             }
             monitor.worked(WORK_CHECKING);
         } catch (final LexException e) {
-            warning = "Error lexing: " + e.getMessage();
+            // ignore (it is already registered in the ParsingResult...
         }
 
-        final ParseStatus status;
-        if (warning == null)
-            status = new ParseStatus(IStatus.OK, "", ccsProgram, result);
-        else
-            status = new ParseStatus(IStatus.INFO, warning, ccsProgram, result);
-
-
-        // TODO ParseResult, highlighting, ...
-        // TODO additional parameter for the parsing result (map expression->position)
-
-        return status;
+        return new ParseStatus(IStatus.OK, "", ccsProgram, result);
     }
 
     private Token searchFirstToken(List<Token> tokens, int position) {

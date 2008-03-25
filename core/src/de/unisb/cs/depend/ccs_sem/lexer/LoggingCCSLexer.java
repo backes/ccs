@@ -5,8 +5,18 @@ import java.util.List;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token;
+import de.unisb.cs.depend.ccs_sem.parser.ParsingProblem;
 import de.unisb.cs.depend.ccs_sem.parser.ParsingResult;
 
+
+/**
+ * A lexer that logs some additional information usefull e.g. for syntax highlighting.
+ *
+ * If a lexing error occures, the error is reported to the {@link ParsingResult}, and
+ * additionally, the exception is thrown.
+ *
+ * @author Clemens Hammahcer
+ */
 public class LoggingCCSLexer extends CCSLexer {
 
     private final ParsingResult result;
@@ -27,9 +37,14 @@ public class LoggingCCSLexer extends CCSLexer {
 
     @Override
     public List<Token> lex(Reader input) throws LexException {
-        List<Token> tokens = super.lex(input);
-        result.inputLength = position;
-        return tokens;
+        try {
+            return super.lex(input);
+        } catch (LexException e) {
+            result.parsingProblems.add(new ParsingProblem(ParsingProblem.ERROR, "Error lexing: " + e.getMessage(), e.getPosition(), e.getPosition()));
+            throw e;
+        } finally {
+            result.inputLength = position;
+        }
     }
 
     @Override

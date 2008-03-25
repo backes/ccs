@@ -75,7 +75,7 @@ public class UnknownRecursiveExpression extends Expression {
         for (final ProcessVariable proc: processVariables)
             if (proc.getName().equalsIgnoreCase(name))
                 proposals.add(proc);
-        final StringBuilder sb = new StringBuilder("Unknown recursion identifier ");
+        final StringBuilder sb = new StringBuilder("Unknown process variable ");
         sb.append(this);
         if (proposals.size() > 1) {
             sb.append(". Did you mean");
@@ -114,6 +114,8 @@ public class UnknownRecursiveExpression extends Expression {
         int result = 1;
         result = PRIME * result + name.hashCode();
         result = PRIME * result + parameters.hashCode();
+        result = PRIME * result + startPos;
+        result = PRIME * result + endPos;
         return result;
     }
 
@@ -128,6 +130,10 @@ public class UnknownRecursiveExpression extends Expression {
         final UnknownRecursiveExpression other = (UnknownRecursiveExpression) obj;
         // hashCode is cached, so we compare it first (it's cheap)
         if (hashCode() != other.hashCode())
+            return false;
+        if (startPos != other.startPos)
+            return false;
+        if (endPos != other.endPos)
             return false;
         if (!name.equals(other.name))
             return false;
