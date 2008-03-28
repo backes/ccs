@@ -322,9 +322,15 @@ public class CCSParser implements Parser {
             reportProblem(new ParsingProblem(ParsingProblem.ERROR,
                 "Expected ';' after this declaration", tokens.peekPrevious()));
             // move forward to the next semicolon
-            while (tokens.hasNext())
-                if (tokens.next() instanceof Semicolon)
+            while (tokens.hasNext()) {
+                final Token nextToken = tokens.next();
+                if (nextToken instanceof Semicolon)
                     break;
+                if (nextToken instanceof EOFToken) {
+                    tokens.previous();
+                    break;
+                }
+            }
             // ... and continue parsing
         }
 

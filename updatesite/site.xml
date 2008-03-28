@@ -90,5 +90,8 @@
    <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.28.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.28">
       <category name="CCS"/>
    </feature>
+   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.29.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.29">
+      <category name="CCS"/>
+   </feature>
    <category-def name="CCS" label="CCS Evaluator Tool"/>
 </site>

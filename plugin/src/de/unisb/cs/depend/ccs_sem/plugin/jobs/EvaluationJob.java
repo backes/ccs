@@ -169,6 +169,11 @@ public class EvaluationJob extends Job {
                 if (monitor.isCanceled())
                     return new EvaluationStatus(IStatus.CANCEL, "cancelled");
 
+                if (ccsProgram == null) {
+                    monitor.done();
+                    return new EvaluationStatus(IStatus.OK, "", "program could not be parsed", null);
+                }
+
                 monitor.subTask("Checking expression...");
                 // TODO let user set to ignore failed checks here
                 if (!ccsProgram.isGuarded())

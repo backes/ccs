@@ -9,6 +9,8 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
@@ -149,6 +151,11 @@ public class StepByStepTraverseFrame extends Composite {
         tree.setHeaderVisible(true);
 
         tree.addListener(SWT.SetData, treeListener);
+
+        final Menu popupMenu = new Menu(tree);
+        final MenuItem item = new MenuItem(popupMenu, SWT.NONE);
+        item.setText("Copy to clipboard");
+        tree.setMenu(popupMenu);
     }
 
     private synchronized void changeEditor(CCSEditor editor) {
