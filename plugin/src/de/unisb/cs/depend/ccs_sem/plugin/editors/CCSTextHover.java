@@ -10,6 +10,7 @@ import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
 
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Identifier;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.IntegerToken;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token;
 import de.unisb.cs.depend.ccs_sem.parser.ParsingProblem;
 import de.unisb.cs.depend.ccs_sem.parser.ParsingResult;
@@ -48,7 +49,7 @@ public class CCSTextHover implements ITextHover {
             assert problems.size() > 0;
             int offset = 0;
             int minEnd = Integer.MAX_VALUE;
-            for (ParsingProblem prob: problems) {
+            for (final ParsingProblem prob: problems) {
                 if (prob.getStartPosition() > offset)
                     offset = prob.getStartPosition();
                 if (prob.getEndPosition() < minEnd)
@@ -76,8 +77,8 @@ public class CCSTextHover implements ITextHover {
             if (myRegion.problems != null) {
                 if (myRegion.problems.size() == 1)
                     return myRegion.problems.get(0).getMessage();
-                StringBuilder sb = new StringBuilder();
-                for (ParsingProblem prob: myRegion.problems) {
+                final StringBuilder sb = new StringBuilder();
+                for (final ParsingProblem prob: myRegion.problems) {
                     if (sb.length() > 0)
                         sb.append(Globals.getNewline());
                     sb.append("- ").append(prob.getMessage());
@@ -108,6 +109,8 @@ public class CCSTextHover implements ITextHover {
                     // we should not get here
                     assert false;
                 }
+            } else if (myRegion.token instanceof IntegerToken) {
+                return "Integer constant: " + ((IntegerToken)myRegion.token).getValue();
             }
         }
         return null;
@@ -135,8 +138,8 @@ public class CCSTextHover implements ITextHover {
 
     private List<ParsingProblem> searchProblemsOnOffset(
             List<ParsingProblem> problems, int offset) {
-        List<ParsingProblem> foundProblems = new ArrayList<ParsingProblem>(1);
-        for (ParsingProblem problem: problems) {
+        final List<ParsingProblem> foundProblems = new ArrayList<ParsingProblem>(1);
+        for (final ParsingProblem problem: problems) {
             // the problems are ordered by their startPosition:
             if (problem.getStartPosition() > offset)
                 break;

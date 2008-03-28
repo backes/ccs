@@ -14,11 +14,13 @@ import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
 
 import de.unisb.cs.depend.ccs_sem.evaluators.SequentialEvaluator;
+import de.unisb.cs.depend.ccs_sem.parser.ParsingResult;
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSDocument;
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor;
 import de.unisb.cs.depend.ccs_sem.plugin.editors.IParsingListener;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.ParseCCSProgramJob.ParseStatus;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 
 
@@ -41,12 +43,17 @@ public class StepByStepTraverseFrame extends Composite {
                                 || isDisposed())
                             return;
 
-                        if (result.getSeverity() != IStatus.OK) {
+                        ParsingResult parsingResult = result.getParsingResult();
+                        Program program = result.getParsedProgram();
+                        if (result.getSeverity() != IStatus.OK
+                                || parsingResult == null
+                                || parsingResult.hasParsingErrors()
+                                || program == null) {
                             tree.setEnabled(false);
                             tree.setItemCount(0);
                             tree.clearAll(true);
                         } else {
-                            Expression newExpr = result.getParsedProgram().getExpression();
+                            Expression newExpr = program.getExpression();
                             if (newExpr != currentExpression) {
                                 currentExpression = newExpr;
                                 try {
@@ -132,6 +139,7 @@ public class StepByStepTraverseFrame extends Composite {
         int parentWidth = getParent().getClientArea().width;
         parentWidth = Math.max(600, parentWidth);
         tree = new Tree(this, SWT.H_SCROLL | SWT.V_SCROLL | SWT.VIRTUAL | SWT.FULL_SELECTION);
+        tree.setLinesVisible(true);
         final TreeColumn col1 = new TreeColumn(tree, SWT.LEFT);
         col1.setText("Action");
         col1.setWidth(parentWidth*3/9);

@@ -149,6 +149,47 @@
             type="org.eclipse.core.resources.problemmarker">
       </super>
    </extension>
+   <extension
+         id="de.unisb.cs.depend.ccs_sem.plugin.ccsBuilder"
+         name="CCS Builder"
+         point="org.eclipse.core.resources.builders">
+      <builder
+            hasNature="true">
+         <run
+               class="de.unisb.cs.depend.ccs_sem.plugin.builder.CCSBuilder">
+         </run>
+      </builder>
+   </extension>
+   <extension
+         id="de.unisb.cs.depend.ccs_sem.plugin.ccsNature"
+         name="CCS Nature"
+         point="org.eclipse.core.resources.natures">
+      <runtime>
+         <run
+               class="de.unisb.cs.depend.ccs_sem.plugin.builder.CCSNature">
+         </run>
+      </runtime>
+      <builder
+            id="de.unisb.cs.depend.ccs_sem.plugin.ccsBuilder">
+      </builder>
+   </extension>
+   <extension
+         point="org.eclipse.ui.actionSets">
+      <actionSet
+            id="de.unisb.cs.depend.ccs_sem.plugin.ccsRessourceCreationActionSet"
+            label="CCS Resource Creation Actionset"
+            visible="false">
+         <action
+               class="de.unisb.cs.depend.ccs_sem.plugin.actions.NewCCSFile"
+               icon="resources/icons/ccs_file.gif"
+               id="de.unisb.cs.depend.ccs_sem.plugin.newCCSFileAction"
+               label="New CCS File"
+               style="pulldown"
+               toolbarPath="CCS/NewCCSFile"
+               tooltip="Create a new CCS File">
+         </action>
+      </actionSet>
+   </extension>
 
 
 </plugin>

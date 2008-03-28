@@ -73,9 +73,10 @@ public class StepByStepTraverseView extends ViewPart implements ISelectionListen
             changeEditor((IEditorPart) part);
     }
 
-    public void changeEditor(IEditorPart activeEditor) {
+    public synchronized void changeEditor(IEditorPart activeEditor) {
         if (activeEditor instanceof CCSEditor) {
             final CCSEditor editor = (CCSEditor) activeEditor;
+
             StepByStepTraverseFrame stepByStepTraverseFrame = frames.get(editor);
             if (stepByStepTraverseFrame == null)
                 frames.put(editor, stepByStepTraverseFrame = new StepByStepTraverseFrame(myPages, SWT.NONE, editor));

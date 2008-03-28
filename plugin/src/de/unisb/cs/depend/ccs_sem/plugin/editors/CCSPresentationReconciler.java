@@ -1,10 +1,14 @@
 package de.unisb.cs.depend.ccs_sem.plugin.editors;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -93,7 +97,9 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
                                 if (res != null && res.exists()) {
                                     SafeRunner.run(new SafeRunnable() {
                                         public void run() throws CoreException {
-                                            updateMarkers(res, result);
+                                            ParsingResult parsingResult = result.getParsingResult();
+                                            if (parsingResult != null)
+                                                updateMarkers(res, parsingResult);
                                         }
 
                                     });
@@ -110,6 +116,8 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
             return org.eclipse.core.runtime.Status.OK_STATUS;
         }
     }
+
+    private static Map<IResource,Lock> resourceLocks = null;
 
     protected ITextViewer textViewer;
     private final ColorManager colorManager;
@@ -185,76 +193,118 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
         createPresentationJob.schedule();
     }
 
-    protected void updateMarkers(IResource res,
-            ParseStatus status) throws CoreException {
+    public static void updateMarkers(IResource res,
+            ParsingResult result) throws CoreException {
 
-        IMarker[] oldMarkersArray = res.findMarkers(Constants.MARKER_PROBLEM, true, IResource.DEPTH_INFINITE);
-        SortedSet<IMarker> oldMarkers = new TreeSet<IMarker>(new Comparator<IMarker>() {
-            public int compare(IMarker m1, IMarker m2) {
-                return m1.getAttribute(IMarker.CHAR_START, -1) - m2.getAttribute(IMarker.CHAR_START, -1);
-            }
-        });
-        oldMarkers.addAll(Arrays.asList(oldMarkersArray));
-
-        final ParsingResult result = status.getParsingResult();
         if (result == null)
             return;
 
-        for (final ParsingProblem problem: result.parsingProblems) {
-            int severity = problem.getType() == ParsingProblem.ERROR ? IMarker.SEVERITY_ERROR : IMarker.SEVERITY_WARNING;
-            int start = problem.getStartPosition();
-            int end;
-            if (start == -1)
-                end = -1;
-            else {
-                end = problem.getEndPosition()+1;
-                if (end == 0) // endPosition was -1, but startPosition is != -1
-                    end = start+1;
-            }
-            // search if this marker already exists:
-            boolean found = false;
-            Iterator<IMarker> oldIt = oldMarkers.iterator();
-            while (oldIt.hasNext()) {
-                IMarker old = oldIt.next();
-                int oldStart = old.getAttribute(IMarker.CHAR_START, -1);
-                int oldEnd = old.getAttribute(IMarker.CHAR_END, -1);
+        final Lock resourceLock = getLock(res);
+        assert resourceLock != null;
 
-                if (oldStart > problem.getStartPosition())
-                    break;
-                if (oldEnd < problem.getEndPosition()) {
-                    // this marker was not removed before, so it is not needed any more.
-                    // remove it.
-                    old.delete();
+        resourceLock.lock();
+        try {
+            final IMarker[] oldMarkersArray = res.findMarkers(Constants.MARKER_PROBLEM, true, IResource.DEPTH_INFINITE);
+            final LinkedList<IMarker> oldMarkers = new LinkedList<IMarker>(Arrays.asList(oldMarkersArray));
+            Collections.sort(oldMarkers, new Comparator<IMarker>() {
+                public int compare(IMarker m1, IMarker m2) {
+                    return m1.getAttribute(IMarker.CHAR_START, -1) - m2.getAttribute(IMarker.CHAR_START, -1);
+                }
+            });
+
+            for (final ParsingProblem problem: result.parsingProblems) {
+                final int severity = problem.getType() == ParsingProblem.ERROR ? IMarker.SEVERITY_ERROR : IMarker.SEVERITY_WARNING;
+                int start = problem.getStartPosition();
+                int end;
+                if (start == -1)
+                    end = -1;
+                else {
+                    end = problem.getEndPosition()+1;
+                    if (end == 0) // endPosition was -1, but startPosition is != -1
+                        end = start+1;
+                }
+                // check if the marked position is after the document end (e.g.
+                // "unexpected eof" markers). in this case, mark the last token.
+                int line = -1;
+                if (start == result.inputLength && end == start+1) {
+                    line = result.getLineCount();
+                    start = end = -1;
+                }
+
+                // search if this marker already exists:
+                boolean found = false;
+                final Iterator<IMarker> oldIt = oldMarkers.iterator();
+                while (oldIt.hasNext()) {
+                    final IMarker old = oldIt.next();
+                    if (line != -1) {
+                        final int oldLine = old.getAttribute(IMarker.LINE_NUMBER, -1);
+                        if (old.getAttribute(IMarker.SEVERITY, severity+1) == severity
+                                && oldLine == line
+                                && (problem.getMessage() == null
+                                    ? old.getAttribute(IMarker.MESSAGE) == null
+                                    : problem.getMessage().equals(old.getAttribute(IMarker.MESSAGE)))) {
+                            found = true;
+                            break;
+                        } else
+                            continue;
+                    }
+
+                    final int oldStart = old.getAttribute(IMarker.CHAR_START, -1);
+                    final int oldEnd = old.getAttribute(IMarker.CHAR_END, -1);
+
+                    if (oldStart > problem.getStartPosition())
+                        break;
+                    if (oldEnd < problem.getEndPosition() && oldEnd != -1) {
+                        // this marker was not removed before, so it is not needed any more.
+                        // remove it.
+                        old.delete();
+                        oldIt.remove();
+                        continue;
+                    }
+                    if (old.getAttribute(IMarker.SEVERITY, severity+1) == severity
+                            && oldStart == start && oldEnd == end
+                            && (problem.getMessage() == null
+                                ? old.getAttribute(IMarker.MESSAGE) == null
+                                : problem.getMessage().equals(old.getAttribute(IMarker.MESSAGE)))) {
+                        // found an equal marker!
+                        found = true;
+                        break;
+                    }
+                }
+                if (found) {
                     oldIt.remove();
                     continue;
                 }
-                if (old.getAttribute(IMarker.SEVERITY, severity+1) == severity
-                        && oldStart == start && oldEnd == end
-                        && (problem.getMessage() == null
-                            ? old.getAttribute(IMarker.MESSAGE) == null
-                            : problem.getMessage().equals(old.getAttribute(IMarker.MESSAGE)))) {
-                    // found an equal marker!
-                    oldMarkers.remove(old);
-                    found = true;
-                    break;
-                }
-            }
-            if (found)
-                continue;
 
-            // it was not found, so create a new marker
-            final IMarker marker = res.createMarker(Constants.MARKER_PROBLEM);
-            marker.setAttribute(IMarker.SEVERITY,
-                severity);
-            if (start != -1)
-                marker.setAttribute(IMarker.CHAR_START, start);
-            if (end != -1)
-                marker.setAttribute(IMarker.CHAR_END, end);
-            marker.setAttribute(IMarker.MESSAGE, problem.getMessage());
+                // it was not found, so create a new marker
+                final IMarker marker = res.createMarker(Constants.MARKER_PROBLEM);
+                marker.setAttribute(IMarker.SEVERITY,
+                    severity);
+                if (start != -1)
+                    marker.setAttribute(IMarker.CHAR_START, start);
+                if (end != -1)
+                    marker.setAttribute(IMarker.CHAR_END, end);
+                if (line != -1)
+                    marker.setAttribute(IMarker.LINE_NUMBER, line);
+                marker.setAttribute(IMarker.MESSAGE, problem.getMessage());
+            }
+            // if there are old markers, remove them
+            for (final IMarker old: oldMarkers)
+                old.delete();
+        } finally {
+            resourceLock.unlock();
         }
-        // if there are old markers, remove them
-        for (IMarker old: oldMarkers)
-            old.delete();
+    }
+
+    private static synchronized Lock getLock(IResource res) {
+        if (resourceLocks == null)
+            resourceLocks = new HashMap<IResource, Lock>();
+
+        Lock lock = resourceLocks.get(res);
+        if (lock == null)
+            resourceLocks.put(res, lock = new ReentrantLock());
+
+        return lock;
     }
 
     protected TextPresentation createPresentationAfterParsing(IDocument document, ParseStatus status) {

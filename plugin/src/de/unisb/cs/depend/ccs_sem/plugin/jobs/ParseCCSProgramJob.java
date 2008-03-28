@@ -1,5 +1,7 @@
 package de.unisb.cs.depend.ccs_sem.plugin.jobs;
 
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -8,7 +10,6 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.Job;
 
-import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
 import de.unisb.cs.depend.ccs_sem.lexer.LoggingCCSLexer;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Identifier;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token;
@@ -23,7 +24,9 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 
 public class ParseCCSProgramJob extends Job {
 
-    private final CCSDocument ccsDocument;
+    // exactly one of these two must be set!
+    private CCSDocument ccsDocument;
+    private Reader input;
 
     public volatile boolean shouldRunImmediately = false;
     public volatile boolean syncExec = false;
@@ -38,63 +41,72 @@ public class ParseCCSProgramJob extends Job {
 
     private static final ISchedulingRule rule = new IdentityRule();
 
-    public ParseCCSProgramJob(CCSDocument document) {
+    private ParseCCSProgramJob() {
         super("Parse CCS Term");
-        this.ccsDocument = document;
         setRule(rule);
         setSystem(true);
     }
 
+    public ParseCCSProgramJob(CCSDocument document) {
+        this();
+        this.ccsDocument = document;
+    }
+
+    public ParseCCSProgramJob(Reader input) {
+        this();
+        this.input = input;
+    }
+
     @Override
-    protected IStatus run(IProgressMonitor monitor) {
+    public ParseStatus run(IProgressMonitor monitor) {
         final int totalWork = WORK_LEXING + WORK_PARSING + WORK_CHECKING;
 
         monitor.beginTask(getName(), totalWork);
 
         Program ccsProgram = null;
         final ParsingResult result = new ParsingResult();
-        try {
-            monitor.subTask("Lexing...");
-            String text;
+        monitor.subTask("Lexing...");
+        if (input == null) {
+            if (ccsDocument == null)
+                return new ParseStatus(IStatus.ERROR,
+                    "Neither input nor ccsDocument set in parseCCSProgramJob");
             ccsDocument.lock();
             try {
                 docModCount = ccsDocument.getModificationStamp();
-                text = ccsDocument.get();
+                input = new StringReader(ccsDocument.get());
             } finally {
                 ccsDocument.unlock();
             }
-            final List<Token> tokens = new LoggingCCSLexer(result).lex(text);
-            monitor.worked(WORK_LEXING);
+        }
+        final List<Token> tokens = new LoggingCCSLexer(result).lex(input);
+        monitor.worked(WORK_LEXING);
 
-            monitor.subTask("Parsing...");
-            ccsProgram = new LoggingCCSParser(result).parse(tokens);
-            monitor.worked(WORK_PARSING);
+        monitor.subTask("Parsing...");
+        ccsProgram = new LoggingCCSParser(result).parse(tokens);
+        monitor.worked(WORK_PARSING);
 
-            if (!result.hasParsingErrors()) {
-                monitor.subTask("Checking Expression");
-                // TODO let user decide if error or warning
-                final int unguardedProblemType = ParsingProblem.ERROR;
-                final int unregularProblemType = ParsingProblem.WARNING;
-                assert result.processVariables.size() == ccsProgram.getProcessVariables().size();
-                for (final ReadProcessVariable proc: result.processVariables) {
-                    if (!proc.processVariable.isGuarded()) {
-                        final Token firstToken = searchFirstToken(result.tokens, proc.getStartPosition());
-                        assert firstToken instanceof Identifier && firstToken.getStartPosition() == proc.getStartPosition();
-                        result.parsingProblems.add(new ParsingProblem(unguardedProblemType,
-                            "This process definition is unguarded.", firstToken));
-                    }
-                    if (!proc.processVariable.isRegular()) {
-                        final Token firstToken = searchFirstToken(result.tokens, proc.getStartPosition());
-                        assert firstToken instanceof Identifier && firstToken.getStartPosition() == proc.getStartPosition();
-                        result.parsingProblems.add(new ParsingProblem(unregularProblemType,
-                            "This process definition is not regular.", firstToken));
-                    }
+        if (!result.hasParsingErrors()) {
+            monitor.subTask("Checking Expression");
+            // TODO let user decide if error or warning
+            final int unguardedProblemType = ParsingProblem.ERROR;
+            final int unregularProblemType = ParsingProblem.WARNING;
+            assert result.processVariables.size() == ccsProgram.getProcessVariables().size();
+            for (final ReadProcessVariable proc: result.processVariables) {
+                if (!proc.processVariable.isGuarded()) {
+                    final Token firstToken = searchFirstToken(result.tokens, proc.getStartPosition());
+                    assert firstToken instanceof Identifier && firstToken.getStartPosition() == proc.getStartPosition();
+                    result.parsingProblems.add(new ParsingProblem(unguardedProblemType,
+                        "This process definition is unguarded.", firstToken));
+                }
+                if (!proc.processVariable.isRegular()) {
+                    final Token firstToken = searchFirstToken(result.tokens, proc.getStartPosition());
+                    assert firstToken instanceof Identifier && firstToken.getStartPosition() == proc.getStartPosition();
+                    result.parsingProblems.add(new ParsingProblem(unregularProblemType,
+                        "This process definition is not regular.", firstToken));
                 }
             }
-            monitor.worked(WORK_CHECKING);
-        } catch (final LexException e) {
-            // ignore (it is already registered in the ParsingResult...
         }
+        monitor.worked(WORK_CHECKING);
 
         return new ParseStatus(IStatus.OK, "", ccsProgram, result);
     }

@@ -14,6 +14,7 @@ import java.util.Vector;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.eclipse.jface.text.IDocument;
@@ -188,7 +189,12 @@ public class GrappaFrame extends Composite {
     protected void setGraph(GraphUpdateStatus status) {
         graphLock.lock();
         try {
-            final Graph newGraph = status.getGraph();
+            Graph newGraph = status.getGraph();
+            if (status.getSeverity() == IStatus.CANCEL) {
+                newGraph = createErrorGraph("Graph Creation cancelled");
+            } else if (newGraph == null) {
+                newGraph = createErrorGraph("Error");
+            }
             grappaPanel = createGrappaPanel(newGraph);
             graph = newGraph;
             EventQueue.invokeLater(new Runnable() {
@@ -201,6 +207,21 @@ public class GrappaFrame extends Composite {
         } finally {
             graphLock.unlock();
         }
+    }
+
+    private Graph createErrorGraph(String errorMessage) {
+        final Graph graph = new Graph("ERROR");
+        graph.setToolTipText("");
+
+        final Node node = new Node(graph, "error_node");
+        node.setAttribute(GrappaConstants.LABEL_ATTR, errorMessage);
+        node.setAttribute(GrappaConstants.STYLE_ATTR, "filled");
+        node.setAttribute(GrappaConstants.FILLCOLOR_ATTR, GraphHelper.WARN_NODE_COLOR);
+        node.setAttribute(GrappaConstants.TIP_ATTR,
+            "The graph could not be built. This is the reason why.");
+        node.setAttribute(GrappaConstants.SHAPE_ATTR, "plaintext");
+        graph.addNode(node);
+        return graph;
     }
 
     public void setScaleToFit(boolean scaleToFit) {

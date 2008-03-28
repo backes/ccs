@@ -1,32 +1,10 @@
 package de.unisb.cs.depend.ccs_sem.plugin.wizards;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
-
-import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWizard;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.ide.IDE;
 
 /**
  * This is a sample new wizard. Its role is to create a new file
@@ -41,14 +19,15 @@ import org.eclipse.ui.ide.IDE;
 
 public class NewCCSFileWizard extends Wizard implements INewWizard {
     private NewCCSFileWizardPage page;
-    private ISelection selection;
+    private IStructuredSelection selection;
 
     /**
      * Constructor for NewCCSFileWizard.
      */
     public NewCCSFileWizard() {
         super();
-        setNeedsProgressMonitor(true);
+        setWindowTitle("New CCS File");
+        //setNeedsProgressMonitor(true);
     }
 
     /**
@@ -57,7 +36,7 @@ public class NewCCSFileWizard extends Wizard implements INewWizard {
 
     @Override
     public void addPages() {
-        page = new NewCCSFileWizardPage(selection);
+        page = new NewCCSFileWizardPage("newCCSFilePage", selection);
         addPage(page);
     }
 
@@ -68,81 +47,7 @@ public class NewCCSFileWizard extends Wizard implements INewWizard {
      */
     @Override
     public boolean performFinish() {
-        final String containerName = page.getContainerName();
-        final String fileName = page.getFileName();
-        final IRunnableWithProgress op = new IRunnableWithProgress() {
-            public void run(IProgressMonitor monitor) throws InvocationTargetException {
-                try {
-                    // create a sample file
-                    monitor.beginTask("Creating " + fileName, 2);
-                    final IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-                    final IResource resource = root.findMember(new Path(containerName));
-                    if (!resource.exists() || !(resource instanceof IContainer)) {
-                        throwCoreException("Container \"" + containerName + "\" does not exist.");
-                    }
-                    final IContainer container = (IContainer) resource;
-                    final IFile file = container.getFile(new Path(fileName));
-                    try {
-                        final InputStream stream = openContentStream();
-                        if (file.exists()) {
-                            file.setContents(stream, true, true, monitor);
-                        } else {
-                            file.create(stream, true, monitor);
-                        }
-                        stream.close();
-                    } catch (final IOException e) {
-                        // ignore it (should not occure)
-                    }
-                    monitor.worked(1);
-                    monitor.setTaskName("Opening file for editing...");
-                    getShell().getDisplay().syncExec(new Runnable() {
-                        public void run() {
-                            final IWorkbenchPage page =
-                                PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-                            try {
-                                IDE.openEditor(page, file, true);
-                            } catch (final PartInitException e) {
-                                // ok, so it's not opened :)
-                            }
-                        }
-                    });
-                    monitor.worked(1);
-                } catch (CoreException e) {
-                    throw new InvocationTargetException(e);
-                } finally {
-                    monitor.done();
-                }
-            }
-        };
-        try {
-            getContainer().run(true, false, op);
-        } catch (final InterruptedException e) {
-            // reset interruption flag
-            Thread.currentThread().interrupt();
-            return false;
-        } catch (final InvocationTargetException e) {
-            final Throwable realException = e.getTargetException();
-            MessageDialog.openError(getShell(), "Error", realException.getMessage());
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * We will initialize file contents with a sample text.
-     */
-
-    protected InputStream openContentStream() {
-        final String contents =
-            "(* This is an example CCS file *)\n\nX = x.y.X;\n" +
-            "Y[c,a,b] = c!a.c!b.Y[c,b,a];\n\nX | Y[out, 0, 1]\n";
-        return new ByteArrayInputStream(contents.getBytes());
-    }
-
-    protected void throwCoreException(String message) throws CoreException {
-        final IStatus status =
-            new Status(IStatus.ERROR, "de.unisb.cs.depend.ccs_sem.plugin", IStatus.OK, message, null);
-        throw new CoreException(status);
+        return page.finish();
     }
 
     /**

@@ -36,34 +36,46 @@ public class CCSPerspective implements IPerspectiveFactory {
         // Creates the overall folder layout.
         // Note that each new Folder uses a percentage of the remaining EditorArea.
 
+        final IFolderLayout leftTop =
+            factory.createFolder(
+                "leftTop",
+                IPageLayout.LEFT,
+                0.25f,
+                factory.getEditorArea());
+
+        final IFolderLayout leftBottom =
+            factory.createFolder(
+                "leftBottom",
+                IPageLayout.BOTTOM,
+                0.6f,
+                "leftTop");
+
         final IFolderLayout bottom =
             factory.createFolder(
                 "bottom",
                 IPageLayout.BOTTOM,
-                0.7f,
+                0.45f,
                 factory.getEditorArea());
-        bottom.addView(IPageLayout.ID_PROBLEM_VIEW);
-        //bottom.addPlaceholder(IConsoleConstants.ID_CONSOLE_VIEW);
-        bottom.addView(IConsoleConstants.ID_CONSOLE_VIEW);
 
         final IFolderLayout center =
             factory.createFolder(
                 "center",
-                IPageLayout.BOTTOM,
-                0.5f,
-                factory.getEditorArea());
-        center.addPlaceholder(Global.getGraphViewId());
+                IPageLayout.TOP,
+                0.75f,
+                "bottom");
 
-        final IFolderLayout topLeft =
-            factory.createFolder("topLeft", IPageLayout.LEFT, 0.2f, factory.getEditorArea());
-        //topLeft.addView(IPageLayout.ID_RES_NAV);
-        topLeft.addView(IPageLayout.ID_OUTLINE);
-
+        leftTop.addView(IPageLayout.ID_RES_NAV);
+        leftBottom.addView(IPageLayout.ID_OUTLINE);
+        bottom.addView(IPageLayout.ID_PROBLEM_VIEW);
+        bottom.addPlaceholder(IConsoleConstants.ID_CONSOLE_VIEW);
+        center.addView(Global.getGraphViewId());
+        center.addView(Global.getStepByStepTraverseViewId());
     }
 
     private void addActionSets() {
         //factory.addActionSet(IPageLayout.ID_NAVIGATE_ACTION_SET); //NON-NLS-1
-        factory.addActionSet(Global.getActionSetId());
+        //factory.addActionSet(Global.getActionSetId());
+        //factory.addActionSet(Global.getResourceCreationActionSetId());
     }
 
     private void addPerspectiveShortcuts() {
@@ -71,7 +83,8 @@ public class CCSPerspective implements IPerspectiveFactory {
     }
 
     private void addNewWizardShortcuts() {
-        // nothing
+        factory.addNewWizardShortcut(Global.getNewCCSProjectWizardId());
+        factory.addNewWizardShortcut(Global.getNewCCSFileWizardId());
     }
 
     private void addViewShortcuts() {
