@@ -51,8 +51,21 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
         }
     }
 
-    public boolean awaitTermination(long timeout, TimeUnit unit) {
-        throw new UnsupportedOperationException();
+    public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+        long waitMillis = unit.toMillis(timeout);
+        final long waitUntil = System.currentTimeMillis() + waitMillis;
+        while (waitMillis > 0) {
+            for (final Thread t: threadJobs.keySet()) {
+                if (t.isAlive()) {
+                    t.join(waitMillis);
+                    waitMillis = waitUntil - System.currentTimeMillis();
+                    continue;
+                }
+            }
+            // no more threads alive
+            return true;
+        }
+        return false;
     }
 
     public boolean isShutdown() {
@@ -143,6 +156,8 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
             myJobs = threadJobs.get(myThread);
             if (myJobs == null) {
                 myJobs = new Stack<Runnable>();
+                if (threadJobs == null)
+                    return;
                 if (threadJobs.putIfAbsent(myThread, myJobs) != null)
                     myJobs = threadJobs.get(myThread);
             }
@@ -159,6 +174,8 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
                 }
                 nextJob.run();
             }
+            if (threadJobs != null)
+                threadJobs.remove(myThread);
         }
 
         private Runnable getNextJob() {

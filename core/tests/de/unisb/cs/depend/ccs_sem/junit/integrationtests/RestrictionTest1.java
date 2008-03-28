@@ -3,12 +3,6 @@ package de.unisb.cs.depend.ccs_sem.junit.integrationtests;
 import de.unisb.cs.depend.ccs_sem.junit.IntegrationTest;
 
 
-/*
-The CCS program:
-
-a.0 + b.0 + c.0 \ {b}
-*/
-
 public class RestrictionTest1 extends IntegrationTest {
 
     @Override

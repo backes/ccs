@@ -3,10 +3,8 @@ package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -14,7 +12,6 @@ import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
-import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
@@ -22,9 +19,9 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 public class RestrictExpression extends Expression {
 
     private final Expression innerExpr;
-    private final Set<Action> restricted;
+    private final Set<Channel> restricted;
 
-    public RestrictExpression(Expression innerExpr, Set<Action> restricted) {
+    public RestrictExpression(Expression innerExpr, Set<Channel> restricted) {
         super();
         this.innerExpr = innerExpr;
         this.restricted = restricted;
@@ -40,67 +37,20 @@ public class RestrictExpression extends Expression {
         final List<Transition> oldTransitions = innerExpr.getTransitions();
         final List<Transition> newTransitions = new ArrayList<Transition>(oldTransitions.size());
 
-        boolean useComplexWay = restricted.size() > 5;
+        for (final Transition trans: oldTransitions) {
+            final Channel channel = trans.getAction().getChannel();
+            if (restricted.contains(channel))
+                continue;
 
-        // in debug mode switch between the two modes
-        assert (useComplexWay = new Random().nextBoolean()) || !useComplexWay;
-
-        if (useComplexWay) {
-            restrictComplex(oldTransitions, newTransitions);
-        } else {
-            restrictNaive(oldTransitions, newTransitions);
+            Expression newExpr = new RestrictExpression(trans.getTarget(), restricted);
+            // search if this expression is already known
+            newExpr = ExpressionRepository.getExpression(newExpr);
+            // create the new Transition
+            final Transition newTrans = new Transition(trans.getAction(), newExpr);
+            newTransitions.add(newTrans);
         }
 
         return newTransitions;
-    }
-
-    private void restrictNaive(final List<Transition> oldTransitions,
-            final List<Transition> newTransitions) {
-        outer:
-        for (Transition trans: oldTransitions) {
-            for (final Action restrictedAction: restricted) {
-                trans = trans.restrictBy(restrictedAction);
-                if (trans == null)
-                    continue outer;
-            }
-
-            Expression newExpr = new RestrictExpression(trans.getTarget(), restricted);
-            // search if this expression is already known
-            newExpr = ExpressionRepository.getExpression(newExpr);
-            // search if this transition is already known (otherwise create it)
-            final Transition newTrans = new Transition(trans.getAction(), newExpr);
-            newTransitions.add(newTrans);
-        }
-    }
-
-    private void restrictComplex(final List<Transition> oldTransitions,
-            final List<Transition> newTransitions) {
-        // build a mapping from channel (String) to Action(s) to hide on this channel
-        final Map<Channel, List<Action>> restrictionMap = new HashMap<Channel, List<Action>>();
-        for (final Action a: restricted) {
-            List<Action> list = restrictionMap.get(a.getChannel());
-            if (list == null)
-                restrictionMap.put(a.getChannel(), list = new ArrayList<Action>(2));
-            list.add(a);
-        }
-
-        outer:
-        for (Transition trans: oldTransitions) {
-            final List<Action> restrList = restrictionMap.get(trans.getAction().getChannel());
-            if (restrList != null)
-                for (final Action restrictedAction: restrList) {
-                    trans = trans.restrictBy(restrictedAction);
-                    if (trans == null)
-                        continue outer;
-                }
-
-            Expression newExpr = new RestrictExpression(trans.getTarget(), restricted);
-            // search if this expression is already known
-            newExpr = ExpressionRepository.getExpression(newExpr);
-            // search if this transition is already known (otherwise create it)
-            final Transition newTrans = new Transition(trans.getAction(), newExpr);
-            newTransitions.add(newTrans);
-        }
     }
 
     @Override
@@ -121,7 +71,7 @@ public class RestrictExpression extends Expression {
         final StringBuilder sb = new StringBuilder();
         sb.append(innerExpr).append(" \\ {");
         boolean first = true;
-        for (final Action restr: restricted) {
+        for (final Channel restr: restricted) {
             if (first)
                 first = false;
             else
@@ -136,16 +86,24 @@ public class RestrictExpression extends Expression {
     @Override
     public Expression instantiate(Map<Parameter, Value> parameters) {
         final Expression newExpr = innerExpr.instantiate(parameters);
-        final Set<Action> newRestricted = new TreeSet<Action>();
-        boolean restChanged = false;
-        for (final Action rest: restricted) {
-            final Action newRest = rest.instantiate(parameters);
-            if (!restChanged && !rest.equals(newRest))
-                restChanged = true;
-            newRestricted.add(newRest);
+        Set<Channel> newRestricted = null;
+        for (final Channel rest: restricted) {
+            final Channel newRest = rest.instantiate(parameters);
+            if (newRestricted == null) {
+                if (!rest.equals(newRest)) {
+                    newRestricted = new TreeSet<Channel>();
+                    for (final Channel ch: restricted) {
+                        if (ch == rest)
+                            break;
+                        newRestricted.add(ch);
+                    }
+                    newRestricted.add(newRest);
+                }
+            } else
+                newRestricted.add(newRest);
         }
 
-        if (!restChanged && newExpr.equals(innerExpr))
+        if (newRestricted == null) // this means no changes
             return this;
         return ExpressionRepository.getExpression(new RestrictExpression(newExpr, newRestricted));
     }

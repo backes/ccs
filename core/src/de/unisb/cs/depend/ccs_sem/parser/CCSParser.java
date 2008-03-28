@@ -42,7 +42,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.*;
  *
  * expression          --> restrictExpression
  * restrictExpression  --> parallelExpression
- *                          | restrictExpression "\" "{" ( ( action "," )* action )? "}"
+ *                          | restrictExpression "\" "{" ( ( channel "," )* channel )? "}"
  * parallelExpression  --> choiceExpression
  *                          | parallelExpression "|" choiceExpression
  * choiceExpression    --> prefixExpression
@@ -56,7 +56,8 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.*;
  *                          | recursionVariable
  *                          | action
  *
- * action              --> lcIdentifier ( "?" inputValue | "!" outputValue )?
+ * action              --> channel ( "?" inputValue | "!" outputValue )?
+ * channel             --> lcIdentifier
  * identifier          --> character ( digit | character ) *
  * lcIdentifier        --> lcCharacter ( digit | character ) *
  * ucIdentifier        --> ucCharacter ( digit | character ) *
@@ -168,7 +169,7 @@ public class CCSParser implements Parser {
         try {
             mainExpr = readMainExpression(it);
         } catch (final ParseException e) {
-            reportProblem(new ParsingProblem(ParsingProblem.ERROR, e.getMessage(), e.getStartPosition(), e.getEndPosition()));
+            reportProblem(new ParsingProblem(e));
             return null;
         }
 
@@ -321,9 +322,9 @@ public class CCSParser implements Parser {
             reportProblem(new ParsingProblem(ParsingProblem.ERROR,
                 "Expected ';' after this declaration", tokens.peekPrevious()));
             // move forward to the next semicolon
-            while (!(tokens.next() instanceof Semicolon)) {
-                // nothing
-            }
+            while (tokens.hasNext())
+                if (tokens.next() instanceof Semicolon)
+                    break;
             // ... and continue parsing
         }
 
@@ -540,7 +541,7 @@ public class CCSParser implements Parser {
             tokens.next();
             if (!(tokens.next() instanceof LBrace))
                 throw new ParseException("Expected '{'", tokens.peekPrevious());
-            final Set<Action> restricted = readRestrictionActionSet(tokens);
+            final Set<Channel> restricted = readRestrictionChannelSet(tokens);
             expr = ExpressionRepository.getExpression(new RestrictExpression(expr, restricted));
         }
 
@@ -550,8 +551,8 @@ public class CCSParser implements Parser {
     /**
      * Read all actions up to the next RBrace (this token is read too).
      */
-    private Set<Action> readRestrictionActionSet(ExtendedListIterator<Token> tokens) throws ParseException {
-        final Set<Action> actions = new TreeSet<Action>();
+    private Set<Channel> readRestrictionChannelSet(ExtendedListIterator<Token> tokens) throws ParseException {
+        final Set<Channel> channels = new TreeSet<Channel>();
 
         if (tokens.hasNext() && tokens.peek() instanceof RBrace) {
             tokens.next();
@@ -560,16 +561,19 @@ public class CCSParser implements Parser {
 
         while (true) {
 
-            final Action newAction = readAction(tokens, false);
-            if (newAction == null)
-                throw new ParseException("Expected an action here", tokens.next());
+            final Token startToken = tokens.peek();
+            final Channel newChannel = readChannel(tokens);
+            if (newChannel == null)
+                throw new ParseException("Expected a channel here", startToken);
+            if (newChannel instanceof TauChannel)
+                throw new ParseException("Tau channel cannot be restricted", startToken.getStartPosition(), tokens.peekPrevious().getEndPosition());
 
-            actions.add(newAction);
+            channels.add(newChannel);
 
             final Token nextToken = tokens.next();
 
             if (nextToken instanceof RBrace)
-                return actions;
+                return channels;
 
             if (!(nextToken instanceof Comma))
                 throw new ParseException("Expected ',' or '}'", nextToken);
@@ -811,7 +815,7 @@ public class CCSParser implements Parser {
             }
         }
 
-        throw new ParseException(nextToken instanceof EOFToken ? "Unexcepted end of file" : "Syntax error (unexpected token)", nextToken);
+        throw new ParseException(nextToken instanceof EOFToken ? "Unexpected end of file" : "Syntax error (unexpected token)", nextToken);
     }
 
     private Value readArithmeticExpression(ExtendedListIterator<Token> tokens) throws ParseException {

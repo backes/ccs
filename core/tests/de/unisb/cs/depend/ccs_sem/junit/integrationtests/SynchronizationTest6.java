@@ -7,15 +7,15 @@ public class SynchronizationTest6 extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "out!1 + a.out!3 | out?x.read!x \\ {out!, out?}";
+        return "out!1 + a.out!3 | out?x.read!x \\ {out}";
     }
 
     @Override
     protected void addStates() {
-        addState("out!1.0 + a.out!3.0 | out?x.read!x.0 \\ {out!, out?}");
-        addState("0 | read!1.0 \\ {out!, out?}");
-        addState("out!3.0 | out?x.read!x.0 \\ {out!, out?}");
-        addState("0 | read!3.0 \\ {out!, out?}");
+        addState("out!1.0 + a.out!3.0 | out?x.read!x.0 \\ {out}");
+        addState("0 | read!1.0 \\ {out}");
+        addState("out!3.0 | out?x.read!x.0 \\ {out}");
+        addState("0 | read!3.0 \\ {out}");
         addState("0 | 0");
     }
 

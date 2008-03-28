@@ -35,13 +35,20 @@ public class LoggingCCSLexer extends CCSLexer {
         return result;
     }
 
+    /**
+     * This method throws no {@link LexException}, but returns null, if an error
+     * occured, and stores the error in the {@link ParsingResult}, that can be
+     * received through the method {@link #getResult()}.
+     *
+     * {@inheritDoc}
+     */
     @Override
-    public List<Token> lex(Reader input) throws LexException {
+    public List<Token> lex(Reader input) {
         try {
             return super.lex(input);
-        } catch (LexException e) {
+        } catch (final LexException e) {
             result.parsingProblems.add(new ParsingProblem(ParsingProblem.ERROR, "Error lexing: " + e.getMessage(), e.getPosition(), e.getPosition()));
-            throw e;
+            return null;
         } finally {
             result.inputLength = position;
         }

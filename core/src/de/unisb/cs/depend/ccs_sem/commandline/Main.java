@@ -84,8 +84,8 @@ public class Main implements IParsingProblemListener {
                 }
             }
         } catch (final LexException e) {
-            System.err.println("Error lexing input file: " + e.getMessage());
-            // TODO print environment
+            // for conformity, we use the method reportParsingProblem
+            reportParsingProblem(new ParsingProblem(ParsingProblem.ERROR, e.getMessage(), e.getPosition(), e.getPosition()));
             return false;
         }
         log("Parsing...");
@@ -366,45 +366,6 @@ public class Main implements IParsingProblemListener {
         System.out.format((Locale)null, "[%7.3f] %s%n", 1e-9 * diff, output);
     }
 
-    private static class EvalMonitor implements EvaluationMonitor {
-
-        private static final int EVALUATION_INTERVAL = 10000;
-        private static final int MINIMIZATION_INTERVAL = 1000000;
-        private int transitions = 0;
-        private int states = 0;
-        private final boolean isMinimization;
-        private final int showInterval;
-
-        public EvalMonitor(boolean isMinimization) {
-            this.isMinimization = isMinimization;
-            this.showInterval = isMinimization ? MINIMIZATION_INTERVAL : EVALUATION_INTERVAL;
-        }
-
-        public synchronized void newTransitions(int size) {
-            transitions += size;
-        }
-
-        public synchronized void newState() {
-            ++states;
-            if (states % showInterval == 0)
-                log(states + " states, " + transitions + " transitions so far...");
-        }
-
-        public synchronized void ready() {
-            log((isMinimization ? "Minimized " : "Evaluated ") + states + " states and " + transitions + " transitions.");
-        }
-
-        public void error(String errorString) {
-            log("An error occured during " + (isMinimization ? "minimization: " : "evaluation: ") + errorString);
-        }
-
-        public synchronized void newState(int numTransitions) {
-            newTransitions(numTransitions);
-            newState();
-        }
-
-    }
-
     public void reportParsingProblem(ParsingProblem problem) {
         if (problem.getType() == ParsingProblem.ERROR)
             errorsOccured = true;
@@ -432,7 +393,7 @@ public class Main implements IParsingProblemListener {
             if (startLine == endLine) {
                 System.out.print("line " + startLine);
                 if (startOffset == endOffset)
-                    System.out.println(", character" + (startOffset+1));
+                    System.out.println(", character " + (startOffset+1));
                 else
                     System.out.println(", characters " + (startOffset+1)
                             + " to " + (endOffset+1));
@@ -509,6 +470,9 @@ public class Main implements IParsingProblemListener {
     }
 
     private int getLineOfOffset(int startPosition) {
+        if (lineOffsets == null) {
+            lineOffsets = readLineOffsets(inputFile);
+        }
         if (lineOffsets.length == 0)
             return 1;
         if (startPosition >= lineOffsets[lineOffsets.length-1])
@@ -536,7 +500,7 @@ public class Main implements IParsingProblemListener {
         PushbackReader reader = null;
         try {
             reader = new PushbackReader(new FileReader(file));
-        } catch (FileNotFoundException e) {
+        } catch (final FileNotFoundException e) {
             System.err.println("Input file " + file.getAbsolutePath() + " not found: " + e.getMessage());
             System.exit(-1);
         }
@@ -582,6 +546,45 @@ public class Main implements IParsingProblemListener {
             }
         }
         return null;
+    }
+
+    private static class EvalMonitor implements EvaluationMonitor {
+
+        private static final int EVALUATION_INTERVAL = 10000;
+        private static final int MINIMIZATION_INTERVAL = 1000000;
+        private int transitions = 0;
+        private int states = 0;
+        private final boolean isMinimization;
+        private final int showInterval;
+
+        public EvalMonitor(boolean isMinimization) {
+            this.isMinimization = isMinimization;
+            this.showInterval = isMinimization ? MINIMIZATION_INTERVAL : EVALUATION_INTERVAL;
+        }
+
+        public synchronized void newTransitions(int size) {
+            transitions += size;
+        }
+
+        public synchronized void newState() {
+            ++states;
+            if (states % showInterval == 0)
+                log(states + " states, " + transitions + " transitions so far...");
+        }
+
+        public synchronized void ready() {
+            log((isMinimization ? "Minimized " : "Evaluated ") + states + " states and " + transitions + " transitions.");
+        }
+
+        public void error(String errorString) {
+            log("An error occured during " + (isMinimization ? "minimization: " : "evaluation: ") + errorString);
+        }
+
+        public synchronized void newState(int numTransitions) {
+            newTransitions(numTransitions);
+            newState();
+        }
+
     }
 
 }

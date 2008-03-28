@@ -97,7 +97,7 @@ public class ParsingResult {
     public boolean hasParsingErrors() {
         if (parsingProblems == null)
             return false;
-        for (ParsingProblem prob: parsingProblems)
+        for (final ParsingProblem prob: parsingProblems)
             if (prob.getType() == ParsingProblem.ERROR)
                 return true;
 
@@ -111,6 +111,10 @@ public class ParsingResult {
                     return p1.getStartPosition() - p2.getStartPosition();
                 }
             });
+    }
+
+    public int getLineCount() {
+        return lineStarts.size()+1;
     }
 
 }

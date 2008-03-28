@@ -10,6 +10,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
@@ -123,12 +124,25 @@ public class ParallelEvaluator implements Evaluator {
         return Executors.newFixedThreadPool(threadsToInstantiate, threadFactory);
     }
 
+    /**
+     * Shuts down this evaluator.
+     * Delegates to the {@link ExecutorService} and awaits it's termination.
+     */
     private void shutdown() {
         if (errorOccured && executor != null)
             executor.shutdownNow();
 
-        if (executor != null)
+        if (executor != null) {
             executor.shutdown();
+            try {
+                executor.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+            } catch (final InterruptedException e) {
+                // reset this flag
+                Thread.currentThread().interrupt();
+            } catch (final UnsupportedOperationException e) {
+                // ignore
+            }
+        }
         executor = null;
 
         assert errorOccured || currentlyEvaluating == null || currentlyEvaluating.isEmpty();
@@ -225,8 +239,9 @@ public class ParallelEvaluator implements Evaluator {
             assert removed != null;
 
             // if everything is evaluated, inform the waiting thread(s)
-            if (currentlyEvaluating.isEmpty()) {
-                assert currentlyEvaluating.isEmpty();
+            // currentlyEvaluating can be null if another worker just informed
+            // the main thread that we are ready
+            if (currentlyEvaluating != null && currentlyEvaluating.isEmpty()) {
                 synchronized (readyLock) {
                     if (monitor != null)
                         monitor.ready();
