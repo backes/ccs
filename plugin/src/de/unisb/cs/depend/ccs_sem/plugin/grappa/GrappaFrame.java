@@ -72,10 +72,10 @@ public class GrappaFrame extends Composite {
             graph = createGraph();
             final Node node = new Node(graph, "warn_node");
             node.setAttribute(GrappaConstants.LABEL_ATTR,
-                    "Click the \"Show Graph\" button to create the LTS.");
+                    "Click the \"Evaluate\" button to create the LTS.");
             node.setAttribute(GrappaConstants.STYLE_ATTR, "filled");
             node.setAttribute(GrappaConstants.COLOR_ATTR, GraphHelper.WARN_NODE_COLOR);
-            node.setAttribute(GrappaConstants.TIP_ATTR, "In the CCS Editor, click the \"Show Graph\" button to generate the graph.");
+            node.setAttribute(GrappaConstants.TIP_ATTR, "In the CCS Editor, click the \"Evaluate\" button to create the LTS.");
             node.setAttribute(GrappaConstants.SHAPE_ATTR, "plaintext");
             graph.addNode(node);
             try {

@@ -17,10 +17,6 @@ public abstract class AbstractValue implements Value {
         return this;
     }
 
-    public Value instantiateInputValue(Value value) {
-        return this;
-    }
-
     @Override
     public String toString() {
         return getStringValue();

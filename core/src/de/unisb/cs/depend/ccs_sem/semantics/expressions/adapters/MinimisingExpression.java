@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -14,6 +15,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.TauAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 import de.unisb.cs.depend.ccs_sem.utils.Bisimulation;
@@ -28,7 +30,8 @@ import de.unisb.cs.depend.ccs_sem.utils.Bisimulation.TransitionToPartition;
  *
  * It uses my very own algorithm to compute the quotient of the LTS w.r.t
  * weak bisimulation (i.e. it computes the smalles weak bisimilar LTS).
- * There are a lot of strange optimisations to get a very fast runtime.
+ * There are a lot of strange optimisations to get a hopefully relatively
+ * fast runtime.
  *
  * @author Clemens Hammacher
  */
@@ -40,6 +43,7 @@ public class MinimisingExpression extends Expression {
     private MinimisingExpression(int stateNo) {
         super();
         this.stateNo = stateNo;
+        // the transitions are set later (in create())
         this.transitions = new ArrayList<Transition>();
     }
 
@@ -105,6 +109,31 @@ public class MinimisingExpression extends Expression {
     }
 
     @Override
+    public Set<Action> getAlphabet(Set<ProcessVariable> alreadyIncluded) {
+        // this is a bit more complex: we have to do a full graph search for
+        // all possible actions
+        final Set<Action> alphabet = new HashSet<Action>();
+
+        final UniqueQueue<MinimisingExpression> queue = new UniqueQueue<MinimisingExpression>();
+        queue.add(this);
+
+        MinimisingExpression e = null;
+        while ((e = queue.poll()) != null) {
+            for (final Transition trans: e.getTransitions()) {
+                alphabet.add(trans.getAction());
+                // all successors of MinimisingExpressions must be
+                // MinimisingExpressions and must be evaluated
+                assert trans.getTarget() instanceof MinimisingExpression
+                    && trans.getTarget().isEvaluated();
+                final MinimisingExpression succ = (MinimisingExpression) trans.getTarget();
+                queue.add(succ);
+            }
+        }
+
+        return alphabet;
+    }
+
+    @Override
     protected boolean isError0() {
         return stateNo == -1;
     }
@@ -116,7 +145,7 @@ public class MinimisingExpression extends Expression {
 
     @Override
     protected int hashCode0() {
-        // TODO fix
+        // TODO fix, s.t. they can be cached
         return System.identityHashCode(this);
     }
 

@@ -5,11 +5,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
@@ -42,7 +44,7 @@ public class UnknownRecursiveExpression extends Expression {
 
     @Override
     public Collection<Expression> getChildren() {
-        throw new UnsupportedOperationException();
+        return Collections.emptyList();
     }
 
     @Override
@@ -97,6 +99,11 @@ public class UnknownRecursiveExpression extends Expression {
 
     @Override
     protected boolean isError0() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Action> getAlphabet(Set<ProcessVariable> alreadyIncluded) {
         throw new UnsupportedOperationException();
     }
 

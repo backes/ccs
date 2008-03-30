@@ -181,19 +181,39 @@ public class CCSParser implements Parser {
             reportProblem(new ParsingProblem(ParsingProblem.ERROR, "Unexpected token", eof));
         }
 
+        Program program = null;
         try {
-            return new Program(processVariables, mainExpr);
+            program = new Program(processVariables, mainExpr);
         } catch (final ParseException e) {
-            reportProblem(new ParsingProblem(ParsingProblem.ERROR, e.getMessage(), e.getStartPosition(), e.getEndPosition()));
+            reportProblem(new ParsingProblem(e));
         }
 
-        return null;
+        if (program != null) {
+            // search if the alphabet contains parameterized input actions
+            final Set<Action> alphabet = program.getAlphabet();
+            for (final Action act: alphabet) {
+                if (!(act instanceof InputAction))
+                    continue;
+                final Parameter param = ((InputAction)act).getParameter();
+                if (param == null)
+                    continue;
+                final Range range = param.getRange();
+                if (range != null && range.isRangeRestricted())
+                    continue;
+
+                // ok, we have an unrestricted and not range restricted action.
+                // get the tokens where this action can come from
+                reportUnboundInputParameter(act);
+            }
+        }
+
+        return program;
     }
 
     private void readDeclarations(final ExtendedListIterator<Token> tokens,
             final ArrayList<ProcessVariable> processVariables) {
 
-        while (true) {
+        while (tokens.hasNext() && !(tokens.peek() instanceof EOFToken)) {
             final int oldPosition = tokens.nextIndex();
             try {
                 if (tokens.peek() instanceof ConstToken) {
@@ -318,19 +338,16 @@ public class CCSParser implements Parser {
         if (expr == null)
             expr = StopExpression.get();
 
-        if (!(tokens.next() instanceof Semicolon)) {
+        if (!tokens.hasNext() || !(tokens.next() instanceof Semicolon)) {
             reportProblem(new ParsingProblem(ParsingProblem.ERROR,
-                "Expected ';' after this declaration", tokens.peekPrevious()));
+                "Expected ';' after the declaration", tokens.peekPrevious()));
             // move forward to the next semicolon
-            while (tokens.hasNext()) {
-                final Token nextToken = tokens.next();
-                if (nextToken instanceof Semicolon)
+            while (tokens.hasNext())
+                if (tokens.next() instanceof Semicolon)
                     break;
-                if (nextToken instanceof EOFToken) {
-                    tokens.previous();
-                    break;
-                }
-            }
+            // we don't want to read the EOFToken
+            if (tokens.peekPrevious() instanceof EOFToken)
+                tokens.previous();
             // ... and continue parsing
         }
 
@@ -595,7 +612,7 @@ public class CCSParser implements Parser {
      *         In this case, the iterator is not changed.
      * @throws ParseException
      */
-    private Action readAction(ExtendedListIterator<Token> tokens, boolean tauAllowed) throws ParseException {
+    protected Action readAction(ExtendedListIterator<Token> tokens, boolean tauAllowed) throws ParseException {
         final Channel channel = readChannel(tokens);
         if (channel == null)
             return null;
@@ -1147,6 +1164,13 @@ public class CCSParser implements Parser {
     public void reportProblem(ParsingProblem problem) {
         for (final IParsingProblemListener listener: listeners)
             listener.reportParsingProblem(problem);
+    }
+
+    protected void reportUnboundInputParameter(Action act) {
+        reportProblem(new ParsingProblem(ParsingProblem.ERROR,
+            "The action \"" + act + "\" is not restricted and without a range. "
+                + "This would leed to infinitely many transitions.",
+            -1, -1));
     }
 
 }

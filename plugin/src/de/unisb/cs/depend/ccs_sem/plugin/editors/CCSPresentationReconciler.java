@@ -62,20 +62,18 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
         IPresentationDamager, IPresentationRepairer, IParsingListener, ITextInputListener {
 
     private final class CreatePresentationJob extends Job {
-        private final IDocument document;
         protected ParseStatus result;
 
-        public CreatePresentationJob(IDocument document, ParseStatus result) {
+        public CreatePresentationJob(ParseStatus result) {
             super("Update CCS Presentation");
-            this.document = document;
             this.result = result;
         }
 
         @Override
         protected IStatus run(IProgressMonitor monitor) {
 
-            final TextPresentation presentation =
-                createPresentationAfterParsing(document, result);
+            final TextPresentation presentation = new TextPresentation();
+            createPresentation(presentation, result);
 
             final StyledText textWidget = textViewer.getTextWidget();
             final Display display = textWidget == null || textWidget.isDisposed()
@@ -176,12 +174,16 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
 
         final IDocument doc = textViewer.getDocument();
         if (doc instanceof CCSDocument) {
-            ((CCSDocument)doc).reparseNow();
-            try {
-                ((CCSDocument)doc).waitForReparsingDone();
-            } catch (final InterruptedException e) {
-                // ignore and reset interruption flag
-                Thread.currentThread().interrupt();
+            final ParseStatus status = ((CCSDocument)doc).reparseIfNecessary();
+            if (status == null) {
+                try {
+                    ((CCSDocument)doc).waitForReparsingDone();
+                } catch (final InterruptedException e) {
+                    // ignore and reset interruption flag
+                    Thread.currentThread().interrupt();
+                }
+            } else {
+                parsingDone(doc, status);
             }
         }
     }
@@ -189,7 +191,7 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
     public synchronized void parsingDone(IDocument document, final ParseStatus result) {
         if (createPresentationJob  != null)
             createPresentationJob.cancel();
-        createPresentationJob = new CreatePresentationJob(document, result);
+        createPresentationJob = new CreatePresentationJob(result);
         createPresentationJob.schedule();
     }
 
@@ -213,7 +215,13 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
             });
 
             for (final ParsingProblem problem: result.parsingProblems) {
-                final int severity = problem.getType() == ParsingProblem.ERROR ? IMarker.SEVERITY_ERROR : IMarker.SEVERITY_WARNING;
+                final int severity;
+                if (problem.getType() == ParsingProblem.ERROR)
+                    severity = IMarker.SEVERITY_ERROR;
+                else if (problem.getType() == ParsingProblem.WARNING)
+                    severity = IMarker.SEVERITY_WARNING;
+                else
+                    continue;
                 int start = problem.getStartPosition();
                 int end;
                 if (start == -1)
@@ -223,9 +231,9 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
                     if (end == 0) // endPosition was -1, but startPosition is != -1
                         end = start+1;
                 }
+                int line = result.getLineOfOffset(start);
                 // check if the marked position is after the document end (e.g.
-                // "unexpected eof" markers). in this case, mark the last token.
-                int line = -1;
+                // "unexpected eof" markers)
                 if (start == result.inputLength && end == start+1) {
                     line = result.getLineCount();
                     start = end = -1;
@@ -236,21 +244,10 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
                 final Iterator<IMarker> oldIt = oldMarkers.iterator();
                 while (oldIt.hasNext()) {
                     final IMarker old = oldIt.next();
-                    if (line != -1) {
-                        final int oldLine = old.getAttribute(IMarker.LINE_NUMBER, -1);
-                        if (old.getAttribute(IMarker.SEVERITY, severity+1) == severity
-                                && oldLine == line
-                                && (problem.getMessage() == null
-                                    ? old.getAttribute(IMarker.MESSAGE) == null
-                                    : problem.getMessage().equals(old.getAttribute(IMarker.MESSAGE)))) {
-                            found = true;
-                            break;
-                        } else
-                            continue;
-                    }
 
                     final int oldStart = old.getAttribute(IMarker.CHAR_START, -1);
                     final int oldEnd = old.getAttribute(IMarker.CHAR_END, -1);
+                    final int oldLine = old.getAttribute(IMarker.LINE_NUMBER, -1);
 
                     if (oldStart > problem.getStartPosition())
                         break;
@@ -262,7 +259,7 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
                         continue;
                     }
                     if (old.getAttribute(IMarker.SEVERITY, severity+1) == severity
-                            && oldStart == start && oldEnd == end
+                            && oldStart == start && oldEnd == end && oldLine == line
                             && (problem.getMessage() == null
                                 ? old.getAttribute(IMarker.MESSAGE) == null
                                 : problem.getMessage().equals(old.getAttribute(IMarker.MESSAGE)))) {
@@ -307,11 +304,10 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
         return lock;
     }
 
-    protected TextPresentation createPresentationAfterParsing(IDocument document, ParseStatus status) {
+    protected void createPresentation(TextPresentation presentation, ParseStatus status) {
         final ParsingResult result = status.getParsingResult();
 
-        final TextPresentation presentation = new TextPresentation();
-        presentation.setDefaultStyleRange(new StyleRange(0, document.getLength(), null, null));
+        presentation.setDefaultStyleRange(new StyleRange(0, result.inputLength, null, null));
 
         for (final ReadComment comment: result.comments) {
             presentation.addStyleRange(new StyleRange(comment.startPosition,
@@ -373,8 +369,6 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
                 presentation.addStyleRange(style);
             }
         }
-
-        return presentation;
     }
 
     public void inputDocumentAboutToBeChanged(IDocument oldInput, IDocument newInput) {

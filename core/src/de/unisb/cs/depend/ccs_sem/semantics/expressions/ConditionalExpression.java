@@ -4,11 +4,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstBooleanValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
@@ -77,6 +79,13 @@ public class ConditionalExpression extends Expression {
     protected boolean isError0() {
         // if the condition is not evaluatable so far, we cannot detect an error
         return false;
+    }
+
+    @Override
+    public Set<Action> getAlphabet(Set<ProcessVariable> alreadyIncluded) {
+        // the alphabet is the consequence's alphabet, even if we don't know
+        // whether it will ever occur
+        return consequence.getAlphabet(alreadyIncluded);
     }
 
     @Override

@@ -87,6 +87,7 @@ public class InputAction extends Action {
             return null;
 
         // the channel have to match
+        // TODO handle quotes
         if (!channel.equals(otherAction.getChannel()))
             return null;
 

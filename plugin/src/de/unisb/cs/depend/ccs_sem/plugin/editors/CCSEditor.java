@@ -1,6 +1,7 @@
 package de.unisb.cs.depend.ccs_sem.plugin.editors;
 
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
@@ -22,6 +23,8 @@ public class CCSEditor extends TextEditor {
     public void dispose() {
         super.dispose();
         colorManager.dispose();
+        if (fOutlinePage != null)
+            fOutlinePage.dispose();
     }
 
     @SuppressWarnings("unchecked")
@@ -36,7 +39,8 @@ public class CCSEditor extends TextEditor {
     }
 
     public IDocument getDocument() {
-        return getSourceViewer().getDocument();
+        final ISourceViewer sourceViewer = getSourceViewer();
+        return sourceViewer == null ? null : sourceViewer.getDocument();
     }
 
     public String getText() {

@@ -1,5 +1,6 @@
 package de.unisb.cs.depend.ccs_sem.lexer;
 
+import java.io.IOException;
 import java.io.Reader;
 import java.util.List;
 
@@ -50,6 +51,13 @@ public class LoggingCCSLexer extends CCSLexer {
             result.parsingProblems.add(new ParsingProblem(ParsingProblem.ERROR, "Error lexing: " + e.getMessage(), e.getPosition(), e.getPosition()));
             return null;
         } finally {
+            // move forward until the end
+            try {
+                while (input.read() != -1)
+                    ++position;
+            } catch (final IOException e) {
+                // ignore
+            }
             result.inputLength = position;
         }
     }

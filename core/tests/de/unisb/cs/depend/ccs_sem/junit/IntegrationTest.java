@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -261,6 +262,14 @@ public abstract class IntegrationTest implements IParsingProblemListener {
         }
     }
 
+    @Test
+    public void checkProgramOutputAndReconstruction() {
+        final String parsedExpressionString = program.toString(true);
+        final Program reparsed = new CCSParser().parse(parsedExpressionString);
+        assertEquals("Reparsed expression string differs from original expression",
+            program.getMainExpression(), reparsed.getMainExpression());
+    }
+
     private void failAtState(int stateNo, Expression foundExpr, String message) {
         final StringBuilder sb = new StringBuilder();
         sb.append(message).append(" at state \"").append(states.get(stateNo));
@@ -356,11 +365,11 @@ public abstract class IntegrationTest implements IParsingProblemListener {
     public void reportParsingProblem(ParsingProblem problem) {
         if (evaluating && problem.getType() == ParsingProblem.ERROR)
             evaluationErrors.add(problem);
-        if (!evaluating && problem.getType() == ParsingProblem.ERROR)
+        else if (!evaluating && problem.getType() == ParsingProblem.ERROR)
             parsingErrors.add(problem);
-        if (evaluating && problem.getType() == ParsingProblem.WARNING)
+        else if (evaluating && problem.getType() == ParsingProblem.WARNING)
             evaluationWarnings.add(problem);
-        if (!evaluating && problem.getType() == ParsingProblem.WARNING)
+        else if (!evaluating && problem.getType() == ParsingProblem.WARNING)
             parsingWarnings.add(problem);
     }
 
@@ -435,6 +444,11 @@ public abstract class IntegrationTest implements IParsingProblemListener {
 
         @Override
         public Expression replaceRecursion(List<ProcessVariable> processVariables) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Set<Action> getAlphabet(Set<ProcessVariable> alreadyIncluded) {
             throw new UnsupportedOperationException();
         }
 

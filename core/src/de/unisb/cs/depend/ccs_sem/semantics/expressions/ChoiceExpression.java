@@ -5,11 +5,13 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
@@ -113,6 +115,14 @@ public class ChoiceExpression extends Expression {
         }
 
         return sb.toString();
+    }
+
+    @Override
+    public Set<Action> getAlphabet(Set<ProcessVariable> alreadyIncluded) {
+        final Set<Action> leftAlphabet = left.getAlphabet(alreadyIncluded);
+        final Set<Action> rightAlphabet = right.getAlphabet(alreadyIncluded);
+        leftAlphabet.addAll(rightAlphabet);
+        return leftAlphabet;
     }
 
     @Override

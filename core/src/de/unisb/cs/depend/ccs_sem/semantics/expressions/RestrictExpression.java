@@ -3,6 +3,7 @@ package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -12,6 +13,7 @@ import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
@@ -67,23 +69,6 @@ public class RestrictExpression extends Expression {
     }
 
     @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append(innerExpr).append(" \\ {");
-        boolean first = true;
-        for (final Channel restr: restricted) {
-            if (first)
-                first = false;
-            else
-                sb.append(", ");
-            sb.append(restr);
-        }
-        sb.append('}');
-
-        return sb.toString();
-    }
-
-    @Override
     public Expression instantiate(Map<Parameter, Value> parameters) {
         final Expression newExpr = innerExpr.instantiate(parameters);
         Set<Channel> newRestricted = null;
@@ -106,6 +91,35 @@ public class RestrictExpression extends Expression {
         if (newRestricted == null) // this means no changes
             return this;
         return ExpressionRepository.getExpression(new RestrictExpression(newExpr, newRestricted));
+    }
+
+    @Override
+    public Set<Action> getAlphabet(Set<ProcessVariable> alreadyIncluded) {
+        // filter out the restricted actions
+        final Set<Action> innerAlphabet = innerExpr.getAlphabet(alreadyIncluded);
+        final Iterator<Action> it = innerAlphabet.iterator();
+        while (it.hasNext())
+            if (restricted.contains(it.next().getChannel()))
+                it.remove();
+
+        return innerAlphabet;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append(innerExpr).append(" \\ {");
+        boolean first = true;
+        for (final Channel restr: restricted) {
+            if (first)
+                first = false;
+            else
+                sb.append(", ");
+            sb.append(restr);
+        }
+        sb.append('}');
+
+        return sb.toString();
     }
 
     @Override

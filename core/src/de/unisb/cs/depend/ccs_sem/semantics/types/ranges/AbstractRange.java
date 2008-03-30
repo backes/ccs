@@ -46,5 +46,4 @@ public abstract class AbstractRange implements Range {
         return sb.toString();
     }
 
-    // TODO should we cache the possible values?
 }

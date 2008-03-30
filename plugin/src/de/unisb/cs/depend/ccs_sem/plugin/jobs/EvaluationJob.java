@@ -6,6 +6,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -20,7 +21,10 @@ import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.lexer.CCSLexer;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token;
 import de.unisb.cs.depend.ccs_sem.parser.CCSParser;
+import de.unisb.cs.depend.ccs_sem.parser.IParsingProblemListener;
+import de.unisb.cs.depend.ccs_sem.parser.ParsingProblem;
 import de.unisb.cs.depend.ccs_sem.plugin.Global;
+import de.unisb.cs.depend.ccs_sem.plugin.MyPreferenceStore;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
@@ -162,23 +166,38 @@ public class EvaluationJob extends Job {
                 if (monitor.isCanceled())
                     return new EvaluationStatus(IStatus.CANCEL, "cancelled");
 
+                if (tokens == null) {
+                    monitor.done();
+                    return new EvaluationStatus(IStatus.OK, "", "There are errors in your code", null);
+                }
+
                 monitor.subTask("Parsing...");
-                ccsProgram = new CCSParser().parse(tokens);
+                final CCSParser parser = new CCSParser();
+                // we just need a "boolean holder"
+                final AtomicBoolean errorsOccured = new AtomicBoolean(false);
+                parser.addProblemListener(new IParsingProblemListener() {
+                    public void reportParsingProblem(ParsingProblem problem) {
+                        if (problem.getType() == ParsingProblem.ERROR)
+                            errorsOccured.set(true);
+                    }
+                });
+                ccsProgram = parser.parse(tokens);
                 monitor.worked(WORK_PARSING);
 
                 if (monitor.isCanceled())
                     return new EvaluationStatus(IStatus.CANCEL, "cancelled");
 
-                if (ccsProgram == null) {
+                if (errorsOccured.get() || ccsProgram == null) {
                     monitor.done();
-                    return new EvaluationStatus(IStatus.OK, "", "program could not be parsed", null);
+                    return new EvaluationStatus(IStatus.OK, "", "There are errors in your code", null);
                 }
 
                 monitor.subTask("Checking expression...");
-                // TODO let user set to ignore failed checks here
-                if (!ccsProgram.isGuarded())
+                if (!ccsProgram.isGuarded()
+                        && MyPreferenceStore.getUnguardedErrorType() == ParsingProblem.ERROR)
                     throw new ParseException("Your recursive definitions are not guarded.", -1, -1);
-                if (!ccsProgram.isRegular())
+                if (!ccsProgram.isRegular()
+                        && MyPreferenceStore.getUnregularErrorType() == ParsingProblem.ERROR)
                     throw new ParseException("Your recursive definitions are not regular.", -1, -1);
                 monitor.worked(WORK_CHECKING);
 

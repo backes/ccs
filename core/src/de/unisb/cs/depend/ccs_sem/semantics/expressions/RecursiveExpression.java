@@ -3,12 +3,15 @@ package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.Range;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
@@ -105,6 +108,18 @@ public class RecursiveExpression extends Expression {
             return this;
 
         return ExpressionRepository.getExpression(new RecursiveExpression(referencedProcessVariable, newParameters));
+    }
+
+    @Override
+    public Set<Action> getAlphabet(Set<ProcessVariable> alreadyIncluded) {
+        if (alreadyIncluded.contains(referencedProcessVariable))
+            // no Collections.emptySet() here because it could be modified by the caller
+            return new HashSet<Action>();
+        alreadyIncluded.add(referencedProcessVariable);
+        final Set<Action> alphabet = referencedProcessVariable.getValue().getAlphabet(alreadyIncluded);
+        // we have to remove it afterwards, so that other branches evaluate the full alphabet
+        alreadyIncluded.remove(referencedProcessVariable);
+        return alphabet;
     }
 
     @Override

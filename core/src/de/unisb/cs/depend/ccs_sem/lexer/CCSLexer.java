@@ -16,7 +16,7 @@ public class CCSLexer extends AbstractLexer {
     protected int position;
 
     public List<Token> lex(Reader input) throws LexException {
-        final List<Token> tokens = new ArrayList<Token>();
+        final ArrayList<Token> tokens = new ArrayList<Token>();
 
         final PushbackReader pr = new PushbackReader(input, 1);
 
@@ -25,6 +25,7 @@ public class CCSLexer extends AbstractLexer {
         } catch (final IOException e) {
             throw new LexException("Error reading input stream", -1);
         }
+        tokens.trimToSize();
 
         assert !tokens.contains(null);
 

@@ -1,19 +1,64 @@
 package de.unisb.cs.depend.ccs_sem.plugin.preferencePage;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.FileFieldEditor;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
+import de.unisb.cs.depend.ccs_sem.parser.ParsingProblem;
 import de.unisb.cs.depend.ccs_sem.plugin.Global;
+import de.unisb.cs.depend.ccs_sem.plugin.MyPreferenceStore;
 
 public class CCSPreferencePage
     extends FieldEditorPreferencePage
     implements IWorkbenchPreferencePage {
 
+
+    public class RebuildAllCCSProjectsJob extends Job {
+
+        public RebuildAllCCSProjectsJob() {
+            super("RebuildAllCCSProjects");
+            setPriority(BUILD);
+            setUser(true);
+        }
+
+        @Override
+        protected IStatus run(IProgressMonitor monitor) {
+            try {
+                final IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+                for (final IProject project: projects) {
+                    if (monitor.isCanceled())
+                        return Status.CANCEL_STATUS;
+                    if (project.hasNature(Global.getNatureId())) {
+                        project.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
+                    }
+                }
+                return Status.OK_STATUS;
+            } catch (final CoreException e) {
+                return new Status(IStatus.ERROR, Global.getPluginID(), e.getMessage(), e);
+            }
+        }
+
+    }
+
+    private ComboFieldEditor ungardedErrorTypeEditor;
+    private ComboFieldEditor unregularErrorTypeEditor;
+    private int lastUnguardedErrorType;
+    private int lastUnregularErrorType;
+
     public CCSPreferencePage() {
         super(GRID);
-        setPreferenceStore(Global.getPreferenceStore());
+        setPreferenceStore(MyPreferenceStore.getStore());
         setDescription("Parameters for evaluating and visualizing CCS terms.");
     }
 
@@ -25,8 +70,34 @@ public class CCSPreferencePage
      */
     @Override
     public void createFieldEditors() {
-        addField(new FileFieldEditor(Global.getPreferenceKeyDot(), "Dot executable path",
-            getFieldEditorParent()));
+
+        // dot executable path
+        final FileFieldEditor dotFileFieldEditor = new ExecutableFieldEditor(
+            MyPreferenceStore.getDotKey(), "Dot executable path",
+            getFieldEditorParent());
+        dotFileFieldEditor.setEmptyStringAllowed(false);
+        addField(dotFileFieldEditor);
+
+        unregularErrorTypeEditor = new ComboFieldEditor(
+            MyPreferenceStore.getUnregularErrorTypeKey(),
+            "Unregular process definition",
+            new String[][] {
+                {"Ignore", Integer.toString(ParsingProblem.IGNORE)},
+                {"Error", Integer.toString(ParsingProblem.ERROR)},
+                {"Warning", Integer.toString(ParsingProblem.WARNING)}
+            },
+            getFieldEditorParent());
+        addField(unregularErrorTypeEditor);
+        ungardedErrorTypeEditor = new ComboFieldEditor(
+            MyPreferenceStore.getUnguardedErrorTypeKey(),
+            "Unguarded process definition",
+            new String[][] {
+                {"Ignore", Integer.toString(ParsingProblem.IGNORE)},
+                {"Error", Integer.toString(ParsingProblem.ERROR)},
+                {"Warning", Integer.toString(ParsingProblem.WARNING)}
+            },
+            getFieldEditorParent());
+        addField(ungardedErrorTypeEditor);
     }
 
     /* (non-Javadoc)
@@ -36,4 +107,28 @@ public class CCSPreferencePage
         // nothing to do
     }
 
+    @Override
+    public boolean performOk() {
+        initializeErrorWarning();
+        if (!super.performOk())
+            return false;
+        if (errorWarningChanged() &&
+                MessageDialog.openQuestion(getShell(), "Rebuild?",
+                "The Error/Warning settings have changed. "
+                + "A full rebuild of all CCS Projects is required "
+                + "for changes to take effect. Do the full build now?")) {
+            new RebuildAllCCSProjectsJob().schedule();
+        }
+        return true;
+    }
+
+    private void initializeErrorWarning() {
+        lastUnguardedErrorType = MyPreferenceStore.getUnguardedErrorType();
+        lastUnregularErrorType = MyPreferenceStore.getUnregularErrorType();
+    }
+
+    private boolean errorWarningChanged() {
+        return lastUnguardedErrorType != MyPreferenceStore.getUnguardedErrorType()
+            || lastUnregularErrorType != MyPreferenceStore.getUnregularErrorType();
+    }
 }

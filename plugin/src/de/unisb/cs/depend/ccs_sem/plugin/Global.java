@@ -1,14 +1,9 @@
 package de.unisb.cs.depend.ccs_sem.plugin;
 
-import org.eclipse.jface.preference.IPreferenceStore;
-
 
 public class Global {
 
     private static final String PLUGIN_ID = "de.unisb.cs.depend.ccs_sem.plugin";
-
-    private static final String PREFERENCE_KEY_DOT = "dotExecutable";
-    private static final String PREFERENCE_DEFAULT_DOT = "dot";
 
     private static final String GRAPH_VIEW_ID =
         "de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView";
@@ -25,9 +20,6 @@ public class Global {
     private static final String NEW_CCS_FILE_WIZARD_ID = "de.unisb.cs.depend.ccs_sem.plugin.wizards.NewCCSFileWizard";
     private static final String NEW_CCS_PROJECT_WIZARD_ID = "de.unisb.cs.depend.ccs_sem.plugin.wizards.NewCCSProjectWizard";
 
-    private static IPreferenceStore preferenceStore = null;
-
-
     private Global() {
         // this constructor is never called
         assert false;
@@ -35,14 +27,6 @@ public class Global {
 
     public static String getPluginID() {
         return PLUGIN_ID;
-    }
-
-    public static String getPreferenceDot() {
-        return getPreferenceStore().getString(getPreferenceKeyDot());
-    }
-
-    public static String getPreferenceKeyDot() {
-        return PREFERENCE_KEY_DOT;
     }
 
     public static String getGraphViewId() {
@@ -55,15 +39,6 @@ public class Global {
 
     public static String getActionSetId() {
         return ACTION_SET_ID;
-    }
-
-    public static IPreferenceStore getPreferenceStore() {
-        if (preferenceStore == null) {
-            preferenceStore = Activator.getDefault().getPreferenceStore();
-
-            preferenceStore.setDefault(PREFERENCE_KEY_DOT, PREFERENCE_DEFAULT_DOT);
-        }
-        return preferenceStore;
     }
 
     public static String getNatureId() {
@@ -85,6 +60,5 @@ public class Global {
     public static String getNewCCSProjectWizardId() {
         return NEW_CCS_PROJECT_WIZARD_ID;
     }
-
 
 }

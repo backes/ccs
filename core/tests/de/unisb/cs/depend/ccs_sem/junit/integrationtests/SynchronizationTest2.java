@@ -22,4 +22,9 @@ public class SynchronizationTest2 extends IntegrationTest {
     protected void addTransitions() {
         addTransition(0, 1, "x!");
     }
+
+    @Override
+    protected int getExpectedParsingErrors() {
+        return 1;
+    }
 }

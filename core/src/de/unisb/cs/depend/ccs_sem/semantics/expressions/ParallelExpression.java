@@ -14,6 +14,9 @@ import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.InputAction;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.OutputAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.TauAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
@@ -140,6 +143,7 @@ public class ParallelExpression extends Expression {
         // fill the map leftInput
         for (final Transition leftTrans: leftTransitions) {
             if (leftTrans.getAction().isInputAction()) {
+                // TODO handle quotes
                 final Channel channel = leftTrans.getAction().getChannel();
                 List<Transition> list = leftInput.get(channel);
                 if (list == null)
@@ -217,6 +221,33 @@ public class ParallelExpression extends Expression {
     @Override
     protected boolean isError0() {
         return left.isError() || right.isError();
+    }
+
+    @Override
+    public Set<Action> getAlphabet(Set<ProcessVariable> alreadyIncluded) {
+        final Set<Action> leftAlphabet = left.getAlphabet(alreadyIncluded);
+        final Set<Action> rightAlphabet = right.getAlphabet(alreadyIncluded);
+
+        leftAlphabet.addAll(rightAlphabet);
+
+        // if there is no "tau" action in the alphabet, search if we can produce one
+        if (!leftAlphabet.contains(TauAction.get())) {
+            // TODO handle quotes
+            searching:
+            for (final Action leftAct: leftAlphabet)
+                for (final Action rightAct: rightAlphabet) {
+                    if (((leftAct instanceof InputAction
+                                && rightAct instanceof OutputAction)
+                            || (rightAct instanceof InputAction
+                                    && leftAct instanceof OutputAction))
+                            && leftAct.getChannel().equals(rightAct.getChannel())) {
+                        leftAlphabet.add(TauAction.get());
+                        break searching;
+                    }
+                }
+        }
+
+        return leftAlphabet;
     }
 
     @Override

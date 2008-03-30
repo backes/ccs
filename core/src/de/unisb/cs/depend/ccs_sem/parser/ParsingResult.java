@@ -1,5 +1,6 @@
 package de.unisb.cs.depend.ccs_sem.parser;
 
+import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -10,6 +11,7 @@ import java.util.Map;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Identifier;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
 
 
 public class ParsingResult {
@@ -61,6 +63,7 @@ public class ParsingResult {
     public final List<Integer> lineStarts = new ArrayList<Integer>();
     public int inputLength;
     public final List<ParsingProblem> parsingProblems = new ArrayList<ParsingProblem>();
+    public final Map<Action, List<Point>> actions = new HashMap<Action, List<Point>>();
 
     public void addProcessVariable(ProcessVariable processVariable,
             int tokenIndexStart, int tokenIndexEnd) {
@@ -75,12 +78,20 @@ public class ParsingResult {
         identifiers.put(identifier, semantic);
     }
 
+    /**
+     * Computes the line number (1-relative) of the given offset
+     *
+     * @param offset
+     * @return line number
+     */
     public int getLineOfOffset(int offset) {
         // binary search
         int left = 0;
         int right = lineStarts.size();
         if (offset < 0 || offset >= inputLength)
             return -1;
+        if (lineStarts.size() == 0 || offset < lineStarts.get(0))
+            return 1;
         while (left < right) {
             final int mid = (left + right)/2;
             if (offset < lineStarts.get(mid))
@@ -88,7 +99,7 @@ public class ParsingResult {
             else if (mid+1 < lineStarts.size() && offset >= lineStarts.get(mid+1))
                 left = mid+1;
             else
-                return mid;
+                return mid+2;
         }
         assert false;
         return -1;

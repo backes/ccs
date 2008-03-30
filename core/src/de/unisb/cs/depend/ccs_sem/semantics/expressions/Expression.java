@@ -3,13 +3,16 @@ package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterReference;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
@@ -119,8 +122,21 @@ public abstract class Expression {
         return isError;
     }
 
-    // see isError()
+    /**
+     * @see #isError()
+     */
     protected abstract boolean isError0();
+
+    /**
+     * Computes the alphabet of this Expression.
+     *
+     * @return the alphabet of this Expression
+     */
+    public final Set<Action> getAlphabet() {
+        return getAlphabet(new HashSet<ProcessVariable>());
+    }
+
+    public abstract Set<Action> getAlphabet(Set<ProcessVariable> alreadyIncluded);
 
     // we store the hashCode so that we only compute it once
     @Override

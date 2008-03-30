@@ -2,12 +2,15 @@ package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 
@@ -42,6 +45,12 @@ public class StopExpression extends Expression {
     @Override
     protected boolean isError0() {
         return false;
+    }
+
+    @Override
+    public Set<Action> getAlphabet(Set<ProcessVariable> alreadyIncluded) {
+        // no Collections.emptySet() here because it could be modified by the caller
+        return new HashSet<Action>();
     }
 
     @Override

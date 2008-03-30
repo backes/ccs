@@ -1,12 +1,14 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types;
 
 import java.util.List;
+import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.evaluators.EvaluationMonitor;
 import de.unisb.cs.depend.ccs_sem.evaluators.Evaluator;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.adapters.MinimisingExpression;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
 
@@ -139,6 +141,53 @@ public class Program {
 
     public void minimizeTransitions() throws InterruptedException {
         minimizeTransitions(Globals.getDefaultEvaluator(), null, false);
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + (isMinimized ? 1231 : 1237);
+        result = prime * result + ((mainExpression == null) ? 0 :
+            mainExpression.hashCode());
+        result = prime * result + ((minimizedExpression == null) ? 0 :
+            minimizedExpression.hashCode());
+        result = prime * result + ((processVariables == null) ? 0 :
+            processVariables.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final Program other = (Program) obj;
+        if (isMinimized != other.isMinimized)
+            return false;
+        if (mainExpression == null) {
+            if (other.mainExpression != null)
+                return false;
+        } else if (!mainExpression.equals(other.mainExpression))
+            return false;
+        if (minimizedExpression == null) {
+            if (other.minimizedExpression != null)
+                return false;
+        } else if (!minimizedExpression.equals(other.minimizedExpression))
+            return false;
+        if (processVariables == null) {
+            if (other.processVariables != null)
+                return false;
+        } else if (!processVariables.equals(other.processVariables))
+            return false;
+        return true;
+    }
+
+    public Set<Action> getAlphabet() {
+        return getExpression().getAlphabet();
     }
 
 }

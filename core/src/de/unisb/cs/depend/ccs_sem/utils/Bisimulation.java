@@ -1,18 +1,6 @@
 package de.unisb.cs.depend.ccs_sem.utils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.PriorityQueue;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.Map.Entry;
 
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
@@ -26,7 +14,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.actions.TauAction;
  * weak or strong bisimulation (i.e. it computes the smalles weak/strong bisimilar LTS).
  *
  * It uses my very own algorithm and has a lot of strange optimisations to get
- * a very fast runtime.
+ * a hopefully relatively fast runtime.
  */
 public abstract class Bisimulation {
 

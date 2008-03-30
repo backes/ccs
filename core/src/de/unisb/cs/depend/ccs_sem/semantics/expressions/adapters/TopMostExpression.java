@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
@@ -47,8 +48,8 @@ public class TopMostExpression extends Expression {
                 if (param != null) {
                     final Range range = param.getRange();
                     if (range == null || !range.isRangeRestricted()) {
-                        // TODO
-                        System.err.println("Unbound and not range restricted input parameter at top level removed (action \"" + act + "\").");
+                        // this was already checked in the parser, so we
+                        // generate no warning here
                         continue;
                     }
                     for (final Value val: range.getPossibleValues()) {
@@ -95,6 +96,11 @@ public class TopMostExpression extends Expression {
     @Override
     protected boolean isError0() {
         return myExpr.isError();
+    }
+
+    @Override
+    public Set<Action> getAlphabet(Set<ProcessVariable> alreadyIncluded) {
+        return myExpr.getAlphabet(alreadyIncluded);
     }
 
     @Override

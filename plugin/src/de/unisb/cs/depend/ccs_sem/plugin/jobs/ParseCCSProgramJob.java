@@ -18,6 +18,7 @@ import de.unisb.cs.depend.ccs_sem.parser.ParsingProblem;
 import de.unisb.cs.depend.ccs_sem.parser.ParsingResult;
 import de.unisb.cs.depend.ccs_sem.parser.ParsingResult.ReadProcessVariable;
 import de.unisb.cs.depend.ccs_sem.plugin.Global;
+import de.unisb.cs.depend.ccs_sem.plugin.MyPreferenceStore;
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSDocument;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 
@@ -81,15 +82,15 @@ public class ParseCCSProgramJob extends Job {
         final List<Token> tokens = new LoggingCCSLexer(result).lex(input);
         monitor.worked(WORK_LEXING);
 
-        monitor.subTask("Parsing...");
-        ccsProgram = new LoggingCCSParser(result).parse(tokens);
-        monitor.worked(WORK_PARSING);
+        // only continue if lexing was successfull
+        if (tokens != null) {
+            monitor.subTask("Parsing...");
+            ccsProgram = new LoggingCCSParser(result).parse(tokens);
+            monitor.worked(WORK_PARSING);
 
-        if (!result.hasParsingErrors()) {
             monitor.subTask("Checking Expression");
-            // TODO let user decide if error or warning
-            final int unguardedProblemType = ParsingProblem.ERROR;
-            final int unregularProblemType = ParsingProblem.WARNING;
+            final int unguardedProblemType = MyPreferenceStore.getUnguardedErrorType();
+            final int unregularProblemType = MyPreferenceStore.getUnregularErrorType();
             assert result.processVariables.size() == ccsProgram.getProcessVariables().size();
             for (final ReadProcessVariable proc: result.processVariables) {
                 if (!proc.processVariable.isGuarded()) {
@@ -105,8 +106,10 @@ public class ParseCCSProgramJob extends Job {
                         "This process definition is not regular.", firstToken));
                 }
             }
+            monitor.worked(WORK_CHECKING);
         }
-        monitor.worked(WORK_CHECKING);
+
+        monitor.done();
 
         return new ParseStatus(IStatus.OK, "", ccsProgram, result);
     }

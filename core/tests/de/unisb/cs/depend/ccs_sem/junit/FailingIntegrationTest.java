@@ -128,7 +128,7 @@ public abstract class FailingIntegrationTest implements IParsingProblemListener 
     public void reportParsingProblem(ParsingProblem problem) {
         if (problem.getType() == ParsingProblem.ERROR)
             parsingErrors.add(problem);
-        if (problem.getType() == ParsingProblem.WARNING)
+        else if (problem.getType() == ParsingProblem.WARNING)
             parsingWarnings.add(problem);
     }
 

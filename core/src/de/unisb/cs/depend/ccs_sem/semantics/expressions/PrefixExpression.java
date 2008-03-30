@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
@@ -78,6 +79,13 @@ public class PrefixExpression extends Expression {
     @Override
     protected boolean isError0() {
         return false;
+    }
+
+    @Override
+    public Set<Action> getAlphabet(Set<ProcessVariable> alreadyIncluded) {
+        final Set<Action> successorAlphabet = target.getAlphabet(alreadyIncluded);
+        successorAlphabet.add(prefix);
+        return successorAlphabet;
     }
 
     @Override

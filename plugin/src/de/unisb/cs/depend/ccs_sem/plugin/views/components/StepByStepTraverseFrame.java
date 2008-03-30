@@ -1,10 +1,23 @@
 package de.unisb.cs.depend.ccs_sem.plugin.views.components;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.MenuAdapter;
+import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
@@ -15,6 +28,7 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
 
+import de.unisb.cs.depend.ccs_sem.evaluators.Evaluator;
 import de.unisb.cs.depend.ccs_sem.evaluators.SequentialEvaluator;
 import de.unisb.cs.depend.ccs_sem.parser.ParsingResult;
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSDocument;
@@ -58,20 +72,19 @@ public class StepByStepTraverseFrame extends Composite {
                             Expression newExpr = program.getExpression();
                             if (newExpr != currentExpression) {
                                 currentExpression = newExpr;
-                                try {
-                                    evaluator.evaluate(newExpr);
-                                } catch (InterruptedException e) {
-                                    // reset interruption flag
-                                    Thread.currentThread().interrupt();
-                                    return;
+                                if (evaluateProtected(newExpr)) {
+                                    tree.setEnabled(true);
+                                    tree.setItemCount(newExpr.getTransitions().size());
+                                } else {
+                                    tree.setEnabled(false);
+                                    tree.setItemCount(1);
                                 }
-                                tree.setEnabled(true);
-                                tree.setItemCount(newExpr.getTransitions().size());
                                 tree.clearAll(true);
                             }
                         }
                     }
                 }
+
             };
             if (result.isSyncExec())
                 getDisplay().syncExec(runnable);
@@ -84,25 +97,30 @@ public class StepByStepTraverseFrame extends Composite {
 
     protected CCSEditor activeEditor;
     protected volatile Expression currentExpression;
-    protected SequentialEvaluator evaluator = new SequentialEvaluator();
+    protected Evaluator evaluator = new SequentialEvaluator();
 
     protected Tree tree;
 
 
-    private final Listener treeListener = new Listener() {
+    private final Listener treeDataListener = new Listener() {
         public void handleEvent(Event event) {
             TreeItem item = (TreeItem)event.item;
             TreeItem parentItem = item.getParentItem();
             Expression expr = parentItem == null ? currentExpression
                 : (Expression)parentItem.getData();
-            try {
-                evaluator.evaluate(expr);
-            } catch (InterruptedException e) {
-                // reset interruption flag
-                Thread.currentThread().interrupt();
+            if (!evaluateProtected(expr)) {
+                item.setText(new String[] { "--ERROR--", "--ERROR--"});
+                item.setItemCount(0);
                 return;
             }
             List<Transition> transitions = expr.getTransitions();
+            if (!(transitions instanceof ArrayList))
+                transitions = new ArrayList<Transition>(transitions);
+            Collections.sort(transitions, new Comparator<Transition>() {
+                public int compare(Transition o1, Transition o2) {
+                    return o1.getAction().compareTo(o2.getAction());
+                }
+            });
             int index = parentItem == null ? tree.indexOf(item) : parentItem.indexOf(item);
             if (index < 0 || index >= transitions.size()) {
                 item.setText(new String[] { "--", "--" });
@@ -110,16 +128,14 @@ public class StepByStepTraverseFrame extends Composite {
             } else {
                 Transition trans = transitions.get(index);
                 Expression target = trans.getTarget();
-                try {
-                    evaluator.evaluate(target);
-                } catch (InterruptedException e) {
-                    // reset interruption flag
-                    Thread.currentThread().interrupt();
-                    return;
+                if (evaluateProtected(target)) {
+                    item.setText(new String[] { trans.getAction().getLabel(), target.toString() });
+                    item.setData(target);
+                    item.setItemCount(target.getTransitions().size());
+                } else {
+                    item.setText(new String[] { "--ERROR--", "--ERROR--"});
+                    item.setItemCount(0);
                 }
-                item.setText(new String[] { trans.getAction().getLabel(), target.toString() });
-                item.setData(target);
-                item.setItemCount(target.getTransitions().size());
             }
         }
     };
@@ -150,11 +166,36 @@ public class StepByStepTraverseFrame extends Composite {
         col2.setWidth(parentWidth*5/9);
         tree.setHeaderVisible(true);
 
-        tree.addListener(SWT.SetData, treeListener);
+        tree.addListener(SWT.SetData, treeDataListener);
 
         final Menu popupMenu = new Menu(tree);
         final MenuItem item = new MenuItem(popupMenu, SWT.NONE);
-        item.setText("Copy to clipboard");
+        item.setText("Copy target expression to clipboard");
+        popupMenu.addMenuListener(new MenuAdapter() {
+            @Override
+            public void menuShown(MenuEvent e) {
+                final TreeItem[] selection = tree.getSelection();
+                item.setEnabled(selection.length == 1);
+                if (selection.length == 1)
+                    item.setData(selection[0]);
+            }
+        });
+        item.addSelectionListener(new SelectionAdapter(){
+
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                if (!item.isEnabled() && !(item.getData() instanceof TreeItem))
+                    return;
+                final TreeItem selection = (TreeItem)item.getData();
+                final String text = selection.getText(1);
+                if (text == null || text.length() == 0)
+                    return;
+                final Clipboard clipboard = new Clipboard(getDisplay());
+                final TextTransfer textTransfer = TextTransfer.getInstance();
+                clipboard.setContents(new Object[] { text },
+                    new Transfer[] { textTransfer });
+            }
+        });
         tree.setMenu(popupMenu);
     }
 
@@ -185,4 +226,20 @@ public class StepByStepTraverseFrame extends Composite {
         super.dispose();
     }
 
+    protected boolean evaluateProtected(final Expression newExpr) {
+        final Callable<Boolean> evaluatorJob = new Callable<Boolean>() {
+            public Boolean call() throws Exception {
+                return evaluator.evaluate(newExpr);
+            }
+        };
+        final FutureTask<Boolean> task = new FutureTask<Boolean>(evaluatorJob);
+        try {
+            new Thread(task, "ProtectedEvaluatorForStepByStepTraverse").start();
+            return task.get(5, TimeUnit.SECONDS);
+        } catch (final Exception e) {
+            // catch any Exception (including InterruptedException)
+            task.cancel(true);
+            return false;
+        }
+    }
 }

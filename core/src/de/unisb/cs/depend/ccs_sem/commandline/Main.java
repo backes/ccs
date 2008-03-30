@@ -195,7 +195,7 @@ public class Main implements IParsingProblemListener {
                     System.exit(-1);
                 }
                 parseOutputFile(args[index++]);
-            } else if ("--policy".equals(arg)) {
+            } else if ("--policy".equals(arg) || "--threads".equals(arg)) {
                 if (index == args.length) {
                     System.err.println("Expecting argument for \"--policy\" switch.");
                     System.exit(-1);
@@ -242,9 +242,10 @@ public class Main implements IParsingProblemListener {
                         break;
 
                     case 'p':
+                    case 't':
                         if (arg.length() == 0) {
                             if (index == args.length) {
-                                System.err.println("Expecting argument for \"-p\" switch.");
+                                System.err.println("Expecting argument for \"-t\" switch.");
                                 System.exit(-1);
                             }
                             arg = args[index++];
@@ -347,7 +348,7 @@ public class Main implements IParsingProblemListener {
         out.println("       - gdl (for aiSee)");
         out.println("       - dot (for GraphViz)");
         out.println();
-        out.println("  -p, --policy=<integer>");
+        out.println("  -t, --threads=<integer>");
         out.println("     sets the number of threads used to evaluate the ccs expression.");
         out.println("     There are some special numbers:");
         out.println("     0 means: <number of available processors>+1");
@@ -369,6 +370,8 @@ public class Main implements IParsingProblemListener {
     public void reportParsingProblem(ParsingProblem problem) {
         if (problem.getType() == ParsingProblem.ERROR)
             errorsOccured = true;
+        else if (problem.getType() == ParsingProblem.IGNORE)
+            return;
 
         System.out.println();
         System.out.print(problem.getType() == ParsingProblem.ERROR

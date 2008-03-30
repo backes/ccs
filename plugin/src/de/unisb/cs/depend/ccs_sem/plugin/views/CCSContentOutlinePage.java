@@ -4,6 +4,7 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
 
@@ -49,31 +50,32 @@ public class CCSContentOutlinePage extends ContentOutlinePage
     }
 
     public void parsingDone(IDocument document, final ParseStatus result) {
-        if (getControl().isDisposed()) {
+        final Control control = getControl();
+        if (control.isDisposed()) {
             if (document instanceof CCSDocument)
                 ((CCSDocument)document).removeParsingListener(this);
             return;
         }
         final Runnable runnable = new Runnable() {
             public void run() {
-                if (getControl().isDisposed())
+                if (control.isDisposed())
                     return;
-                final TreeViewer treeViewer2 = getTreeViewer();
+                final TreeViewer treeViewer = getTreeViewer();
                 if (firstDisplay) {
                     firstDisplay = false;
-                    treeViewer2.setInput(result);
-                    treeViewer2.expandAll();
+                    treeViewer.setInput(result);
+                    treeViewer.expandAll();
                 } else {
-                    final Object[] expanded = treeViewer2.getExpandedElements();
-                    treeViewer2.setInput(result);
-                    treeViewer2.setExpandedElements(expanded);
+                    final Object[] expanded = treeViewer.getExpandedElements();
+                    treeViewer.setInput(result);
+                    treeViewer.setExpandedElements(expanded);
                 }
             }
         };
         if (result.isSyncExec())
-            getControl().getDisplay().syncExec(runnable);
+            control.getDisplay().syncExec(runnable);
         else
-            getControl().getDisplay().asyncExec(runnable);
+            control.getDisplay().asyncExec(runnable);
     }
 
     @Override

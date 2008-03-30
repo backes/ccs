@@ -16,7 +16,7 @@ import org.eclipse.ui.PlatformUI;
 import att.grappa.Graph;
 import att.grappa.Grappa;
 import att.grappa.GrappaSupport;
-import de.unisb.cs.depend.ccs_sem.plugin.Global;
+import de.unisb.cs.depend.ccs_sem.plugin.MyPreferenceStore;
 
 
 public class GraphHelper {
@@ -98,7 +98,7 @@ public class GraphHelper {
     }
 
     private static String getDotExecutablePath() {
-        final String dotExecutable = Global.getPreferenceDot();
+        final String dotExecutable = MyPreferenceStore.getDot();
         return dotExecutable;
     }
 
