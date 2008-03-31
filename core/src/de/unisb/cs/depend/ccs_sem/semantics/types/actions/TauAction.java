@@ -58,9 +58,6 @@ public class TauAction extends Action {
 
     @Override
     public Expression synchronizeWith(Action otherAction, Expression target) {
-        if (otherAction instanceof TauAction)
-            return target;
-
         return null;
     }
 

@@ -8,7 +8,6 @@ import org.eclipse.ui.PlatformUI;
 
 public class ExportToDotFile extends AbstractHandler {
 
-    @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         MessageDialog.openInformation(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
             "Dot export", "This feature is not available yet.");
