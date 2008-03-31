@@ -52,20 +52,16 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
     }
 
     public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
-        long waitMillis = unit.toMillis(timeout);
-        final long waitUntil = System.currentTimeMillis() + waitMillis;
-        while (waitMillis > 0) {
-            for (final Thread t: threadJobs.keySet()) {
-                if (t.isAlive()) {
-                    t.join(waitMillis);
-                    waitMillis = waitUntil - System.currentTimeMillis();
-                    continue;
-                }
+        final long waitUntil = System.currentTimeMillis() + unit.toMillis(timeout);
+        for (final Thread t: threadJobs.keySet()) {
+            if (t.isAlive()) {
+                final long waitMillis = waitUntil - System.currentTimeMillis();
+                if (waitMillis <= 0)
+                    return false;
+                t.join(waitMillis);
             }
-            // no more threads alive
-            return true;
         }
-        return false;
+        return true;
     }
 
     public boolean isShutdown() {
@@ -92,27 +88,6 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
             isShutdown = true;
             waitForNewJobs.notifyAll();
         }
-        // give other threads a (little) chance to terminate...
-        Thread.yield();
-        for (final Thread thread: threadJobs.keySet()) {
-            thread.interrupt();
-        }
-
-        // we don't wanna lose an interruption...
-        boolean interrupted = false;
-        for (final Thread thread: threadJobs.keySet()) {
-            while (thread.isAlive()) {
-                try {
-                    thread.join();
-                } catch (final InterruptedException e) {
-                    interrupted = true;
-                }
-            }
-        }
-        if (interrupted)
-            // funny: we interrupt ourself again :)
-            // (means, we set our interrupted flag)
-            Thread.currentThread().interrupt();
 
         final List<Runnable> list = new ArrayList<Runnable>();
         for (final Stack<Runnable> q: threadJobs.values()) {
@@ -161,21 +136,24 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
                 if (threadJobs.putIfAbsent(myThread, myJobs) != null)
                     myJobs = threadJobs.get(myThread);
             }
-            while (!forcedStop) {
-                Runnable nextJob = getNextJob();
-                if (nextJob == null) {
-                    if (isShutdown && !forcedStop) {
-                        // look a last time for a new job
-                        nextJob = getNextJob();
-                        if (nextJob == null)
-                            break;
-                    } else
-                        continue;
+            try {
+                while (!forcedStop) {
+                    Runnable nextJob = getNextJob();
+                    if (nextJob == null) {
+                        if (isShutdown && !forcedStop) {
+                            // look a last time for a new job
+                            nextJob = getNextJob();
+                            if (nextJob == null)
+                                break;
+                        } else
+                            continue;
+                    }
+                    nextJob.run();
                 }
-                nextJob.run();
+            } finally {
+                if (threadJobs != null)
+                    threadJobs.remove(myThread);
             }
-            if (threadJobs != null)
-                threadJobs.remove(myThread);
         }
 
         private Runnable getNextJob() {

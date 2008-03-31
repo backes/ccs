@@ -88,9 +88,10 @@ public class RestrictExpression extends Expression {
                 newRestricted.add(newRest);
         }
 
-        if (newRestricted == null) // this means no changes
+        if (newRestricted == null && innerExpr.equals(newExpr)) // this means no changes
             return this;
-        return ExpressionRepository.getExpression(new RestrictExpression(newExpr, newRestricted));
+        return ExpressionRepository.getExpression(new RestrictExpression(
+            newExpr, newRestricted == null ? restricted : newRestricted));
     }
 
     @Override

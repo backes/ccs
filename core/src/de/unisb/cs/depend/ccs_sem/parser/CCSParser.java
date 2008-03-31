@@ -331,16 +331,16 @@ public class CCSParser implements Parser {
             } else
                 return null;
         } catch (final ParseException e) {
+            if (myParameters == null)
+                myParameters = Collections.emptyList();
             reportProblem(new ParsingProblem(e));
         }
 
-        assert myParameters != null;
-        if (expr == null)
-            expr = StopExpression.get();
-
         if (!tokens.hasNext() || !(tokens.next() instanceof Semicolon)) {
-            reportProblem(new ParsingProblem(ParsingProblem.ERROR,
-                "Expected ';' after the declaration", tokens.peekPrevious()));
+            // only report the error if the expression was read correctly
+            if (expr != null)
+                reportProblem(new ParsingProblem(ParsingProblem.ERROR,
+                    "Expected ';' after the declaration", tokens.peekPrevious()));
             // move forward to the next semicolon
             while (tokens.hasNext())
                 if (tokens.next() instanceof Semicolon)
@@ -350,6 +350,10 @@ public class CCSParser implements Parser {
                 tokens.previous();
             // ... and continue parsing
         }
+
+        assert myParameters != null;
+        if (expr == null)
+            expr = StopExpression.get();
 
         final ProcessVariable proc = new ProcessVariable(identifier.getName(), myParameters, expr);
         // hook for logging:
@@ -398,7 +402,7 @@ public class CCSParser implements Parser {
         }
 
         // or a range of integer values
-        int posStart = tokens.peek().getStartPosition();
+        int posStart = nextToken.getStartPosition();
         final Value startValue = readArithmeticExpression(tokens);
         // are there '..'?
         if (tokens.peek() instanceof IntervalDots) {
@@ -552,6 +556,8 @@ public class CCSParser implements Parser {
      * Read the "main expression".
      */
     protected Expression readMainExpression(ExtendedListIterator<Token> tokens) throws ParseException {
+        if (!tokens.hasNext() || tokens.peek() instanceof EOFToken)
+            throw new ParseException("Missing main expression", tokens.hasNext() ? tokens.next() : tokens.peekPrevious());
         return readExpression(tokens);
     }
 
@@ -838,6 +844,7 @@ public class CCSParser implements Parser {
             }
         }
 
+        tokens.previous();
         throw new ParseException(nextToken instanceof EOFToken ? "Unexpected end of file" : "Syntax error (unexpected token)", nextToken);
     }
 
@@ -880,7 +887,7 @@ public class CCSParser implements Parser {
     private Value readArithmeticAndExpression(ExtendedListIterator<Token> tokens) throws ParseException {
         int posBefore = tokens.peek().getStartPosition();
         Value value = readArithmeticEqExpression(tokens);
-        while (tokens.hasNext() && tokens.peek() instanceof And) {
+        while (tokens.peek() instanceof And) {
             tokens.next();
             ensureBoolean(value, "Boolean expression required before '&&'.", posBefore, tokens.peekPrevious().getEndPosition());
             posBefore = tokens.peek().getStartPosition();

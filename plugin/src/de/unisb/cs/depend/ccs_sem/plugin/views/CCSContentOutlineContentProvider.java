@@ -85,6 +85,7 @@ public class CCSContentOutlineContentProvider implements ITreeContentProvider,
                 final int start = proc.getStartPosition();
                 final int end = proc.getEndPosition();
                 sourceViewer.setSelectedRange(start, end-start+1);
+                sourceViewer.getTextWidget().showSelection();
             } else if (first == mainExpressionItem
                     && sourceViewer != null) {
                 //ensureUpToDate();
@@ -98,6 +99,7 @@ public class CCSContentOutlineContentProvider implements ITreeContentProvider,
                     ? 0
                     : result.tokens.get(result.mainExpressionTokenIndexEnd).getEndPosition();
                 sourceViewer.setSelectedRange(start, end-start+1);
+                sourceViewer.getTextWidget().showSelection();
             }
         }
     }

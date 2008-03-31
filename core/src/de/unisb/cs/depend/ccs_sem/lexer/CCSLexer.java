@@ -128,8 +128,10 @@ public class CCSLexer extends AbstractLexer {
                 nextChar = input.read();
                 if (nextChar == '&')
                     tokens.add(new And(position, ++position));
-                else
-                    throw new LexException("Syntaxerror: Expected a second '&'", ++position);
+                else {
+                    ++position;
+                    throw new LexException("Syntaxerror: Expected a second '&'", position++);
+                }
                 break;
 
             case '\\':
@@ -273,7 +275,7 @@ public class CCSLexer extends AbstractLexer {
             default:
                 str = readString(nextChar, input);
                 if (str.length() == 0)
-                    throw new LexException("Syntaxerror (illegal character)", position);
+                    throw new LexException("Syntaxerror (illegal character)", position++);
                 if ("when".equals(str) || "if".equals(str))
                     tokens.add(new When(position, position += str.length() - 1));
                 else if ("then".equals(str))

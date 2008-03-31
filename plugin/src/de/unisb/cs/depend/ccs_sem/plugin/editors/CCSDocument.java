@@ -46,10 +46,20 @@ public class CCSDocument extends Document implements IDocumentListener {
         addDocumentListener(this);
     }
 
-    protected synchronized void parsedProgram(ParseStatus result) {
-        if (result.getDocModCount() >= modStampOfCachedResult) {
-            modStampOfCachedResult = result.getDocModCount();
-            lastResult = result;
+    protected void parsedProgram(ParseStatus result) {
+        lock();
+        boolean updated = false;
+        try {
+            // only update if the document didn't change!
+            if (result.getDocModCount() == getModificationStamp()) {
+                modStampOfCachedResult = result.getDocModCount();
+                lastResult = result;
+                updated = true;
+            }
+        } finally {
+            unlock();
+        }
+        if (updated) {
             final Object[] listeners = parsingListeners.getListeners();
             for (final Object o: listeners) {
                 ((IParsingListener)o).parsingDone(this, result);

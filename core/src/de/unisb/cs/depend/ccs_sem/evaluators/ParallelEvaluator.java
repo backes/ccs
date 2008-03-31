@@ -129,11 +129,11 @@ public class ParallelEvaluator implements Evaluator {
      * Delegates to the {@link ExecutorService} and awaits it's termination.
      */
     private void shutdown() {
-        if (errorOccured && executor != null)
-            executor.shutdownNow();
-
         if (executor != null) {
-            executor.shutdown();
+            if (errorOccured)
+                executor.shutdownNow();
+            else
+                executor.shutdown();
             try {
                 executor.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
             } catch (final InterruptedException e) {
