@@ -7,7 +7,7 @@ import static org.junit.Assert.fail;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -25,43 +25,30 @@ import de.unisb.cs.depend.ccs_sem.parser.ParsingProblem;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.ExpressionRepository;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
-import de.unisb.cs.depend.ccs_sem.semantics.types.actions.InputAction;
-import de.unisb.cs.depend.ccs_sem.semantics.types.actions.OutputAction;
-import de.unisb.cs.depend.ccs_sem.semantics.types.actions.SimpleAction;
-import de.unisb.cs.depend.ccs_sem.semantics.types.actions.TauAction;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstBooleanValue;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstIntegerValue;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstString;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstStringChannel;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.AbstractValue;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 import de.unisb.cs.depend.ccs_sem.utils.Bisimulation;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
 import de.unisb.cs.depend.ccs_sem.utils.StateNumerator;
 import de.unisb.cs.depend.ccs_sem.utils.TransitionCounter;
+import de.unisb.cs.depend.ccs_sem.utils.UniqueQueue;
 import de.unisb.cs.depend.ccs_sem.utils.Bisimulation.Partition;
 
 
 /**
- * This is a JUnit4 testcase that checks for any ccs expression if it creates
+ * This is a JUnit4 testcase that checks for any CCS expression if it creates
  * the correct transition system.
  *
  * @author Clemens Hammacher
  */
 public abstract class IntegrationTest implements IParsingProblemListener {
 
-    private static class SimpleTrans {
-        public String label;
-        int endNodeNo;
-
-        public SimpleTrans(String label, int endNodeNo) {
-            this.label = label;
-            this.endNodeNo = endNodeNo;
-        }
-    }
 
     private List<String> states;
     private List<List<SimpleTrans>> transitions;
@@ -196,12 +183,13 @@ public abstract class IntegrationTest implements IParsingProblemListener {
 
     private void checkBisimilarity(boolean strong) throws InterruptedException {
         final Expression expression = program.getExpression();
-        final RebuiltExpression rebuiltExpr = RebuiltExpression.create(states, transitions);
+        final RebuiltExpression got = RebuiltExpression.create(expression);
+        final RebuiltExpression expected = RebuiltExpression.create(states, transitions);
         final List<Expression> exprList = new ArrayList<Expression>(2);
-        exprList.add(expression);
-        exprList.add(rebuiltExpr);
+        exprList.add(got);
+        exprList.add(expected);
         final Map<Expression, Partition> partitions = Bisimulation.computePartitions(exprList, strong);
-        if (!partitions.get(expression).equals(partitions.get(rebuiltExpr)))
+        if (!partitions.get(got).equals(partitions.get(expected)))
             fail("The transition system is not "
                 + (strong ? "strong" : "weak") + " bisimilar to the expected one.");
     }
@@ -211,7 +199,7 @@ public abstract class IntegrationTest implements IParsingProblemListener {
         final Expression expression = program.getExpression();
 
         // the queue of expressions to check
-        final Queue<Integer> queue = new LinkedList<Integer>();
+        final Queue<Integer> queue = new UniqueQueue<Integer>();
         queue.add(0);
 
         // mapping from stateNo to expression in the program
@@ -224,20 +212,20 @@ public abstract class IntegrationTest implements IParsingProblemListener {
 
         while (!queue.isEmpty()) {
             final int stateNo = queue.poll();
-            final List<SimpleTrans> expectedTrans = transitions.get(stateNo);
+            final List<SimpleTrans> expectedTransitions = transitions.get(stateNo);
             final Expression foundExpr = generatedExpr.get(stateNo);
-            final List<Transition> foundTrans = foundExpr.getTransitions();
+            final List<Transition> foundTransitions = foundExpr.getTransitions();
 
             // now compare outTrans with the outgoing transitions of expr
-            if (expectedTrans.size() != foundTrans.size())
+            if (expectedTransitions.size() != foundTransitions.size())
                 failAtState(stateNo, foundExpr,
                     "Number of outgoing transitions does not match");
 
             outer:
-            for (final Transition trans: foundTrans) {
+            for (final Transition trans: foundTransitions) {
                 final String transLabel = trans.getAction().getLabel();
                 final String targetLabel = trans.getTarget().toString();
-                for (final SimpleTrans sTrans: expectedTrans) {
+                for (final SimpleTrans sTrans: expectedTransitions) {
                     boolean isError = false;
                     String label = states.get(sTrans.endNodeNo);
                     if (label.startsWith("error_")) {
@@ -249,9 +237,11 @@ public abstract class IntegrationTest implements IParsingProblemListener {
                     if (sTrans.label.equals(transLabel) &&
                             label.equals(targetLabel) &&
                             isError == trans.getTarget().isError()) {
+                        // found a matching transition
                         while (generatedExpr.size() <= sTrans.endNodeNo)
                             generatedExpr.add(null);
                         generatedExpr.set(sTrans.endNodeNo, trans.getTarget());
+                        queue.add(sTrans.endNodeNo);
                         continue outer;
                     }
                 }
@@ -266,8 +256,17 @@ public abstract class IntegrationTest implements IParsingProblemListener {
     public void checkProgramOutputAndReconstruction() {
         final String parsedExpressionString = program.toString(true);
         final Program reparsed = new CCSParser().parse(parsedExpressionString);
-        assertEquals("Reparsed expression string differs from original expression",
-            program.getMainExpression(), reparsed.getMainExpression());
+        if (reparsed == null)
+            fail("Program could not be reparsed!");
+        if (!program.getMainExpression().equals(reparsed.getMainExpression())) {
+            final String nl = Globals.getNewline();
+            final StringBuilder sb = new StringBuilder("Reparsed program differs from original.");
+            sb.append(nl).append(" --> Original:").append(nl);
+            sb.append(program);
+            sb.append(nl).append(nl).append(" --> Reparsed:").append(nl);
+            sb.append(reparsed);
+            fail(sb.toString());
+        }
     }
 
     private void failAtState(int stateNo, Expression foundExpr, String message) {
@@ -382,22 +381,47 @@ public abstract class IntegrationTest implements IParsingProblemListener {
 
     protected abstract void addTransitions();
 
+    private static class SimpleTrans {
+        public String label;
+        int endNodeNo;
+
+        public SimpleTrans(String label, int endNodeNo) {
+            this.label = label;
+            this.endNodeNo = endNodeNo;
+        }
+    }
+
     private static class RebuiltExpression extends Expression {
 
-        private List<Transition> transitions;
+        private final List<Transition> transitions = new ArrayList<Transition>(2);
         private final String label;
-        private boolean isError = false;
+        private final boolean isError;
 
-        private RebuiltExpression(String label) {
-            super();
-            if (label.startsWith("error_")) {
-                isError = true;
-                this.label = label.substring(6);
-            } else {
-                if ("ERROR".equals(label))
-                    isError = true;
-                this.label = label;
-            }
+        public RebuiltExpression(String label, boolean error) {
+            this.isError = error;
+            this.label = label;
+        }
+
+        public static RebuiltExpression create(Expression expression) {
+            return create(expression, new HashMap<Expression, RebuiltExpression>());
+        }
+
+        private static RebuiltExpression create(Expression expression,
+                Map<Expression,RebuiltExpression> map) {
+            RebuiltExpression rebuilt = map.get(expression);
+            if (rebuilt != null)
+                return rebuilt;
+            rebuilt = new RebuiltExpression(expression.toString(), expression.isError());
+            map.put(expression, rebuilt);
+            for (final Transition trans: expression.getTransitions())
+                rebuilt.addTransition(new RebuiltTransition(
+                    trans.getAction().getLabel(), create(trans.getTarget(), map)));
+            rebuilt.evaluate();
+            return rebuilt;
+        }
+
+        private void addTransition(RebuiltTransition rebuiltTransition) {
+            transitions.add(rebuiltTransition);
         }
 
         public static RebuiltExpression create(List<String> states,
@@ -406,17 +430,24 @@ public abstract class IntegrationTest implements IParsingProblemListener {
                 new ArrayList<RebuiltExpression>(states.size());
 
             // create all expressions
-            for (final String stateLabel: states)
-                createdExpressions.add(new RebuiltExpression(stateLabel));
+            for (String stateLabel: states) {
+                boolean isError = false;
+                if (stateLabel.startsWith("error_")) {
+                    isError = true;
+                    stateLabel = stateLabel.substring(6);
+                } else if ("ERROR".equals(stateLabel)) {
+                    isError = true;
+                }
+                createdExpressions.add(new RebuiltExpression(stateLabel, isError));
+            }
 
             // then, create the transitions
             for (int i = 0; i < states.size(); ++i) {
+                final RebuiltExpression expression = createdExpressions.get(i);
                 final List<SimpleTrans> myTransitions = transitions.get(i);
-                final List<Transition> newTransitions = new ArrayList<Transition>(myTransitions.size());
                 for (final SimpleTrans st: myTransitions)
-                    newTransitions.add(new RebuiltTransition(st.label, createdExpressions.get(st.endNodeNo)));
-                createdExpressions.get(i).transitions = newTransitions;
-                createdExpressions.get(i).evaluate();
+                    expression.addTransition(new RebuiltTransition(st.label, createdExpressions.get(st.endNodeNo)));
+                expression.evaluate();
             }
 
             return createdExpressions.get(0);
@@ -433,8 +464,15 @@ public abstract class IntegrationTest implements IParsingProblemListener {
         }
 
         @Override
-        protected int hashCode0() {
+        public int hashCode(
+                Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
             return System.identityHashCode(this);
+        }
+
+        @Override
+        public boolean equals(Object obj,
+                Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
+            return this == obj;
         }
 
         @Override
@@ -467,61 +505,105 @@ public abstract class IntegrationTest implements IParsingProblemListener {
     private static class RebuiltTransition extends Transition {
 
         public RebuiltTransition(String label, Expression target) {
-            super(createAction(label), target);
+            super(new RebuiltAction(label), target);
         }
 
-        private static Action createAction(String label) {
-            if ("i".equals(label))
-                return TauAction.get();
+    }
 
-            int index = label.indexOf('?');
-            if (index  != -1) {
-                final String firstPart = label.substring(0, index);
-                final String secondPart = label.substring(index+1);
-                if (firstPart.contains("?") || firstPart.contains("!")
-                        || secondPart.contains("?") || secondPart.contains("!"))
-                    throw new IllegalArgumentException("Illegal action: " + label);
-                return new InputAction(new ConstStringChannel(firstPart), createValue(secondPart));
-            }
+    public static class RebuiltAction extends Action {
 
-            index = label.indexOf('!');
-            if (index != -1) {
-                final String firstPart = label.substring(0, index);
-                final String secondPart = label.substring(index+1);
-                if (firstPart.contains("?") || firstPart.contains("!")
-                        || secondPart.contains("?") || secondPart.contains("!"))
-                    throw new IllegalArgumentException("Illegal action: " + label);
-                return new OutputAction(new ConstStringChannel(firstPart), createValue(secondPart));
-            }
+        private final String label;
+        private final RebuiltChannel channel;
 
-            return new SimpleAction(new ConstStringChannel(label));
+        public RebuiltAction(String label) {
+            this.label = label;
+            channel = new RebuiltChannel(label);
         }
 
-        private static Value createValue(String valueString) {
-            if (valueString.length() == 0)
-                return null;
-
-            try {
-                return new ConstIntegerValue(Integer.valueOf(valueString));
-            } catch (final NumberFormatException e) {
-                // ignore
-            }
-
-            if (valueString.startsWith("(") && valueString.endsWith(")")) {
-                try {
-                    return new ConstIntegerValue(Integer.valueOf(valueString.substring(1, valueString.length()-1)));
-                } catch (final NumberFormatException e) {
-                    // ignore
-                }
-            }
-
-            if ("true".equals(valueString))
-                return ConstBooleanValue.get(true);
-            if ("false".equals(valueString))
-                return ConstBooleanValue.get(false);
-
-            return new ConstString(valueString);
+        @Override
+        public boolean equals(
+                Object obj,
+                Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
+            if (obj instanceof RebuiltAction)
+                return label.equals(((RebuiltAction)obj).label);
+            return false;
         }
+
+        @Override
+        public Channel getChannel() {
+            return channel;
+        }
+
+        @Override
+        public String getLabel() {
+            return label;
+        }
+
+        @Override
+        public Value getValue() {
+            return null;
+        }
+
+        @Override
+        public int hashCode(
+                Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
+            return label.hashCode();
+        }
+
+        @Override
+        public Action instantiate(Map<Parameter, Value> parameters) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Expression synchronizeWith(Action otherAction, Expression target) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
+
+    }
+
+
+    private static class RebuiltChannel extends AbstractValue implements Channel {
+
+        private final String label;
+
+        public RebuiltChannel(String label) {
+            this.label = label;
+        }
+
+        public boolean sameChannel(Channel other) {
+            if (other instanceof RebuiltChannel)
+                return label.equals(((RebuiltChannel)other).label);
+            return false;
+        }
+
+        public boolean equals(
+                Object obj,
+                Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
+            if (obj instanceof RebuiltChannel)
+                return label.equals(((RebuiltChannel)obj).label);
+            return false;
+        }
+
+        public String getStringValue() {
+            return label;
+        }
+
+        public int hashCode(
+                Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
+            return label.hashCode();
+        }
+
+        @Override
+        public Channel instantiate(Map<Parameter, Value> parameters) {
+            throw new UnsupportedOperationException();
+        }
+
     }
 
 }

@@ -40,7 +40,10 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
 
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.False;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Identifier;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.IntegerToken;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.True;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.KeywordToken;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.OperatorToken;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token;
@@ -53,7 +56,6 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.Range;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstString;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterReference;
 
@@ -341,9 +343,9 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
                     backgroundRGB = Constants.PARAMETER_REFERENCE_BACKGROUND_RGB;
                     fontStyle = Constants.PARAMETER_REFERENCE_FONTSTYLE;
                 } else if (o instanceof ConstantValue) {
-                    // no style so far...
-                } else if (o instanceof ConstString) {
-                    // no style so far...
+                    foregroundRGB = Constants.CONSTANT_VALUE_FOREGROUND_RGB;
+                    backgroundRGB = Constants.CONSTANT_VALUE_BACKGROUND_RGB;
+                    fontStyle = Constants.CONSTANT_VALUE_FONTSTYLE;
                 } else if (o instanceof Range) {
                     // no style so far...
                 } else if (o instanceof UnknownRecursiveExpression) {
@@ -358,6 +360,11 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
                     // we should not get here, if o is set
                     assert o == null;
                 }
+            } else if (tok instanceof True || tok instanceof False ||
+                    tok instanceof IntegerToken) {
+                foregroundRGB = Constants.CONSTANT_VALUE_FOREGROUND_RGB;
+                backgroundRGB = Constants.CONSTANT_VALUE_BACKGROUND_RGB;
+                fontStyle = Constants.CONSTANT_VALUE_FONTSTYLE;
             }
 
             if (foregroundRGB != null || backgroundRGB != null || fontStyle != SWT.NORMAL) {

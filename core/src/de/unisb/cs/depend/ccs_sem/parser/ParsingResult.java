@@ -1,6 +1,5 @@
 package de.unisb.cs.depend.ccs_sem.parser;
 
-import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -12,6 +11,7 @@ import de.unisb.cs.depend.ccs_sem.lexer.tokens.Identifier;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
+import de.unisb.cs.depend.ccs_sem.utils.Pair;
 
 
 public class ParsingResult {
@@ -63,7 +63,8 @@ public class ParsingResult {
     public final List<Integer> lineStarts = new ArrayList<Integer>();
     public int inputLength;
     public final List<ParsingProblem> parsingProblems = new ArrayList<ParsingProblem>();
-    public final Map<Action, List<Point>> actions = new HashMap<Action, List<Point>>();
+    public final List<Pair<Action, Pair<Token, Token>>> actions =
+        new ArrayList<Pair<Action,Pair<Token,Token>>>();
 
     public void addProcessVariable(ProcessVariable processVariable,
             int tokenIndexStart, int tokenIndexEnd) {

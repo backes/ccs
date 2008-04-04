@@ -3,6 +3,7 @@ package de.unisb.cs.depend.ccs_sem.semantics.types.values;
 import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 
 
 public class NegativeValue extends AbstractValue implements IntegerValue {
@@ -45,13 +46,12 @@ public class NegativeValue extends AbstractValue implements IntegerValue {
         return false;
     }
 
-    @Override
-    public int hashCode() {
-        return 17*31 + negativeValue.hashCode();
+    public int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
+        return 17*31 + negativeValue.hashCode(parameterOccurences);
     }
 
-    @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj,
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
         if (this == obj)
             return true;
         if (obj == null)
@@ -59,7 +59,7 @@ public class NegativeValue extends AbstractValue implements IntegerValue {
         if (getClass() != obj.getClass())
             return false;
         final NegativeValue other = (NegativeValue) obj;
-        if (!negativeValue.equals(other.negativeValue))
+        if (!negativeValue.equals(other.negativeValue, parameterOccurences))
             return false;
         return true;
     }

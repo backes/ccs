@@ -13,6 +13,7 @@ import java.util.Map.Entry;
 
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
@@ -144,9 +145,16 @@ public class MinimisingExpression extends Expression {
     }
 
     @Override
-    protected int hashCode0() {
+    public int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
         // TODO fix, s.t. they can be cached
         return System.identityHashCode(this);
+    }
+
+    @Override
+    public boolean equals(Object obj,
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
+        // TODO Auto-generated method stub
+        return obj == this;
     }
 
 }

@@ -4,6 +4,7 @@ import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
@@ -48,12 +49,13 @@ public class SimpleAction extends Action {
     }
 
     @Override
-    public int hashCode() {
-        return channel.hashCode();
+    public int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
+        return channel.hashCode(parameterOccurences);
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj,
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
         if (this == obj)
             return true;
         if (obj == null)
@@ -61,9 +63,14 @@ public class SimpleAction extends Action {
         if (getClass() != obj.getClass())
             return false;
         final SimpleAction other = (SimpleAction) obj;
-        if (!channel.equals(other.channel))
+        if (!channel.equals(other.channel, parameterOccurences))
             return false;
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return channel.toString();
     }
 
 }

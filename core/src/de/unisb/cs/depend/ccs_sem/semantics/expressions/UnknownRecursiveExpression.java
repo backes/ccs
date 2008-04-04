@@ -9,8 +9,10 @@ import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ValueList;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
@@ -24,11 +26,11 @@ import de.unisb.cs.depend.ccs_sem.utils.Globals;
 public class UnknownRecursiveExpression extends Expression {
 
     private final String name;
-    private final List<Value> parameters;
+    private final ValueList parameters;
     private int startPos;
     private int endPos;
 
-    public UnknownRecursiveExpression(String name, List<Value> parameters, int startPos, int endPos) {
+    public UnknownRecursiveExpression(String name, ValueList parameters, int startPos, int endPos) {
         super();
         this.name = name;
         this.parameters = parameters;
@@ -39,7 +41,7 @@ public class UnknownRecursiveExpression extends Expression {
     public UnknownRecursiveExpression(String name) {
         super();
         this.name = name;
-        this.parameters = Collections.emptyList();
+        this.parameters = new ValueList(0);
     }
 
     @Override
@@ -116,18 +118,27 @@ public class UnknownRecursiveExpression extends Expression {
     }
 
     @Override
-    protected int hashCode0() {
+    public int hashCode(
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
+        final boolean empty = parameterOccurences.isEmpty();
+        if (empty && hash != 0)
+            return hash;
         final int PRIME = 31;
         int result = 1;
         result = PRIME * result + name.hashCode();
-        result = PRIME * result + parameters.hashCode();
-        result = PRIME * result + startPos;
-        result = PRIME * result + endPos;
+        result = PRIME * result + parameters.hashCode(parameterOccurences);
+        //result = PRIME * result + startPos;
+        //result = PRIME * result + endPos;
+        if (empty) {
+            assert hash == 0 || hash == result;
+            hash = result;
+        }
         return result;
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj,
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
         if (this == obj)
             return true;
         if (obj == null)
@@ -135,16 +146,13 @@ public class UnknownRecursiveExpression extends Expression {
         if (getClass() != obj.getClass())
             return false;
         final UnknownRecursiveExpression other = (UnknownRecursiveExpression) obj;
-        // hashCode is cached, so we compare it first (it's cheap)
-        if (hashCode() != other.hashCode())
-            return false;
         if (startPos != other.startPos)
             return false;
         if (endPos != other.endPos)
             return false;
         if (!name.equals(other.name))
             return false;
-        if (!parameters.equals(other.parameters))
+        if (!parameters.equals(other.parameters, parameterOccurences))
             return false;
         return true;
     }

@@ -9,8 +9,10 @@ import org.eclipse.jface.text.ITextHover;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
 
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.False;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.Identifier;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.IntegerToken;
+import de.unisb.cs.depend.ccs_sem.lexer.tokens.True;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token;
 import de.unisb.cs.depend.ccs_sem.parser.ParsingProblem;
 import de.unisb.cs.depend.ccs_sem.parser.ParsingResult;
@@ -20,6 +22,9 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.Range;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstBooleanValue;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstIntegerValue;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstString;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterReference;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.TauChannel;
@@ -97,6 +102,12 @@ public class CCSTextHover implements ITextHover {
                         + "\": " + param.getParam().getType();
                 } else if (o instanceof Channel) {
                     return o instanceof TauChannel ? "tau Channel" : "Channel: " + o;
+                } else if (o instanceof ConstIntegerValue) {
+                    return "Constant integer value \"" + ((ConstantValue)o).getStringValue() + "\"";
+                } else if (o instanceof ConstBooleanValue) {
+                    return "Constant boolean value \"" + ((ConstantValue)o).getStringValue() + "\"";
+                } else if (o instanceof ConstString) {
+                    return "Constant string \"" + ((ConstantValue)o).getStringValue() + "\"";
                 } else if (o instanceof ConstantValue) {
                     return "Constant value \"" + ((ConstantValue)o).getStringValue() + "\"";
                 } else if (o instanceof Range) {
@@ -111,6 +122,10 @@ public class CCSTextHover implements ITextHover {
                 }
             } else if (myRegion.token instanceof IntegerToken) {
                 return "Integer constant: " + ((IntegerToken)myRegion.token).getValue();
+            } else if (myRegion.token instanceof True) {
+                return "Boolean constant: true";
+            } else if (myRegion.token instanceof False) {
+                return "Boolean constant: false";
             }
         }
         return null;

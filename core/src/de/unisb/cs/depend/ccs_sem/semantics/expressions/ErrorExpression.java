@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
@@ -59,12 +60,13 @@ public class ErrorExpression extends Expression {
     }
 
     @Override
-    protected int hashCode0() {
-        return 11;
+    public int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
+        return 1;
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj,
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
         return obj instanceof ErrorExpression;
     }
 

@@ -3,19 +3,18 @@ package de.unisb.cs.depend.ccs_sem.semantics.types.values;
 import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 
 
 public class TauChannel extends AbstractValue implements Channel {
 
-    private static TauChannel instance = null;
+    private static TauChannel instance = new TauChannel();
 
     private TauChannel() {
         // private
     }
 
     public static TauChannel get() {
-        if (instance == null)
-            instance = new TauChannel();
         return instance;
     }
 
@@ -32,14 +31,17 @@ public class TauChannel extends AbstractValue implements Channel {
         return true;
     }
 
-    @Override
-    public int hashCode() {
+    public int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
         return 4711;
     }
 
-    @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj,
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
         return this == obj;
+    }
+
+    public boolean sameChannel(Channel other) {
+        return this == other;
     }
 
 }

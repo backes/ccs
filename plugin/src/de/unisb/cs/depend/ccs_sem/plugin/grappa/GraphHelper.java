@@ -9,14 +9,25 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.preference.PreferenceDialog;
+import org.eclipse.jface.preference.PreferenceManager;
+import org.eclipse.jface.preference.PreferenceNode;
+import org.eclipse.jface.window.Window;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 import att.grappa.Graph;
 import att.grappa.Grappa;
 import att.grappa.GrappaSupport;
 import de.unisb.cs.depend.ccs_sem.plugin.MyPreferenceStore;
+import de.unisb.cs.depend.ccs_sem.plugin.preferencePage.CCSPreferencePage;
 
 
 public class GraphHelper {
@@ -46,52 +57,87 @@ public class GraphHelper {
         final ProcessBuilder pb = new ProcessBuilder(command);
         Process dotFilter = null;
         boolean success = true;
+        String startingError = null;
 
         try {
             dotFilter = pb.start();
-            final Process finalDotFilter = dotFilter;
-
-            // graph filtering in another thread, for that we can control it and
-            // terminate it
-            final Callable<Boolean> filterGraphCall = new Callable<Boolean>() {
-                public Boolean call() {
-                    try {
-                        return GrappaSupport.filterGraph(graph, finalDotFilter);
-                    } catch (IOException e) {
-                        return false;
-                    }
-                }
-            };
-            final FutureTask<Boolean> filterGraphTask = new FutureTask<Boolean>(filterGraphCall);
-            new Thread(filterGraphTask, "filterGraph").start();
-
-            while (true) {
-                try {
-                    success &= filterGraphTask.get(100, TimeUnit.MILLISECONDS);
-                    break;
-                } catch (final ExecutionException e) {
-                    // should not occure (GrappaSupport.filterGraph does not
-                    // throw any Exception)
-                    throw new RuntimeException(e);
-                } catch (final TimeoutException e) {
-                    if (Thread.interrupted()) {
-                        filterGraphTask.cancel(true);
-                        throw new InterruptedException();
-                    }
-                }
-            }
-
-            if (!success && showDialogOnError) {
-                MessageDialog.openError(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-                    "Error layouting graph",
-                    "The graph could not be layout, most probably there was an error with starting the dot tool.\n" +
-                    "You can configure the path for this tool in your preferences on the \"CCS\" page.");
-            }
         } catch (final IOException e) {
+            startingError = e.getMessage();
             success = false;
-        } finally {
-            if (dotFilter != null)
-                dotFilter.destroy();
+        }
+
+        if (success) {
+            try {
+                final Process finalDotFilter = dotFilter;
+
+                // graph filtering in another thread, for that we can control it and
+                // terminate it
+                final Callable<Boolean> filterGraphCall = new Callable<Boolean>() {
+                    public Boolean call() {
+                        try {
+                            return GrappaSupport.filterGraph(graph, finalDotFilter);
+                        } catch (IOException e) {
+                            return false;
+                        }
+                    }
+                };
+                final FutureTask<Boolean> filterGraphTask = new FutureTask<Boolean>(filterGraphCall);
+                new Thread(filterGraphTask, "filterGraph").start();
+
+                while (true) {
+                    try {
+                        success &= filterGraphTask.get(100, TimeUnit.MILLISECONDS);
+                        break;
+                    } catch (final ExecutionException e) {
+                        // should not occure (GrappaSupport.filterGraph does not
+                        // throw any Exception)
+                        throw new RuntimeException(e);
+                    } catch (final TimeoutException e) {
+                        if (Thread.interrupted()) {
+                            filterGraphTask.cancel(true);
+                            throw new InterruptedException();
+                        }
+                    }
+                }
+            } finally {
+                if (dotFilter != null)
+                    dotFilter.destroy();
+            }
+        }
+
+        if (!success && showDialogOnError) {
+            final IWorkbench workbench = PlatformUI.getWorkbench();
+            final Display display = workbench == null ? null : workbench.getDisplay();
+            final String errorMessage;
+            if (startingError == null) {
+                errorMessage = "The graph could not be layout, most probably there was an error with starting the dot tool.\n" +
+                    "Do you want to configure the path for this tool now?";
+            } else {
+                errorMessage = "Could not start the dot-Tool.\n\n" +
+                    "Error Message: " + startingError + "\n\n" +
+                    "Do you want to configure the path for this tool now?";
+            }
+            if (display != null) {
+                final AtomicBoolean reparse = new AtomicBoolean(false);
+                display.syncExec(new Runnable() {
+                    public void run() {
+                        final IWorkbenchWindow activeWorkbenchWindow = workbench == null ? null :
+                            workbench.getActiveWorkbenchWindow();
+                        final Shell shell = activeWorkbenchWindow == null ? null :
+                            activeWorkbenchWindow.getShell();
+                        if (shell != null &&
+                                MessageDialog.openQuestion(shell, "Error layouting graph", errorMessage)) {
+                            final PreferenceManager preferenceManager = new PreferenceManager();
+                            preferenceManager.addToRoot(new PreferenceNode("CCS", new CCSPreferencePage()));
+                            final Dialog dialog = new PreferenceDialog(shell, preferenceManager);
+                            if (dialog.open() == Window.OK)
+                                reparse.set(true);
+                        }
+                    }
+                });
+                if (reparse.get())
+                    return filterGraph(graph, showDialogOnError);
+            }
         }
 
         return success;

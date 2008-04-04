@@ -22,35 +22,16 @@ public class Program {
 
     private final List<ProcessVariable> processVariables;
     private boolean isMinimized = false;
-    private Expression mainExpression = null;
+    private final Expression mainExpression;
     private Expression minimizedExpression = null;
 
     public Program(List<ProcessVariable> processVariables, Expression expr) throws ParseException {
-        this.mainExpression = expr.replaceRecursion(processVariables);
-        this.processVariables = processVariables;
+        assert processVariables != null && expr != null;
+
         for (final ProcessVariable proc: processVariables)
             proc.replaceRecursion(processVariables);
-    }
-
-    @Override
-    public String toString() {
-        return toString(false);
-    }
-
-    public String toString(boolean useUnminimizedExpression) {
-        final String newLine = Globals.getNewline();
-
-        final StringBuilder sb = new StringBuilder();
-        for (final ProcessVariable proc: processVariables) {
-            sb.append(proc).append(';').append(newLine);
-        }
-        if (processVariables.size() > 0)
-            sb.append(newLine);
-
-        sb.append(isMinimized && !useUnminimizedExpression
-            ? minimizedExpression : mainExpression);
-
-        return sb.toString();
+        this.mainExpression = expr.replaceRecursion(processVariables);
+        this.processVariables = processVariables;
     }
 
     public Expression getMainExpression() {
@@ -143,17 +124,40 @@ public class Program {
         minimizeTransitions(Globals.getDefaultEvaluator(), null, false);
     }
 
+    public Set<Action> getAlphabet() {
+        return getExpression().getAlphabet();
+    }
+
+    public String toString(boolean useUnminimizedExpression) {
+        final String newLine = Globals.getNewline();
+
+        final StringBuilder sb = new StringBuilder();
+        for (final ProcessVariable proc: processVariables) {
+            sb.append(proc).append(';').append(newLine);
+        }
+        if (processVariables.size() > 0)
+            sb.append(newLine);
+
+        sb.append(isMinimized && !useUnminimizedExpression
+            ? minimizedExpression : mainExpression);
+
+        return sb.toString();
+    }
+
+    @Override
+    public String toString() {
+        return toString(true);
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
         result = prime * result + (isMinimized ? 1231 : 1237);
-        result = prime * result + ((mainExpression == null) ? 0 :
-            mainExpression.hashCode());
+        result = prime * result + mainExpression.hashCode();
         result = prime * result + ((minimizedExpression == null) ? 0 :
             minimizedExpression.hashCode());
-        result = prime * result + ((processVariables == null) ? 0 :
-            processVariables.hashCode());
+        result = prime * result + processVariables.hashCode();
         return result;
     }
 
@@ -168,26 +172,16 @@ public class Program {
         final Program other = (Program) obj;
         if (isMinimized != other.isMinimized)
             return false;
-        if (mainExpression == null) {
-            if (other.mainExpression != null)
-                return false;
-        } else if (!mainExpression.equals(other.mainExpression))
+        if (!mainExpression.equals(other.mainExpression))
             return false;
         if (minimizedExpression == null) {
             if (other.minimizedExpression != null)
                 return false;
         } else if (!minimizedExpression.equals(other.minimizedExpression))
             return false;
-        if (processVariables == null) {
-            if (other.processVariables != null)
-                return false;
-        } else if (!processVariables.equals(other.processVariables))
+        if (!processVariables.equals(other.processVariables))
             return false;
         return true;
-    }
-
-    public Set<Action> getAlphabet() {
-        return getExpression().getAlphabet();
     }
 
 }

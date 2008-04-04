@@ -3,6 +3,7 @@ package de.unisb.cs.depend.ccs_sem.semantics.types.values;
 import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 
 
 public class ParameterReference extends AbstractValue {
@@ -31,13 +32,16 @@ public class ParameterReference extends AbstractValue {
         return false;
     }
 
-    @Override
-    public int hashCode() {
-        return param.hashCode();
+    public int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
+        final ParameterOrProcessEqualsWrapper myWrapper = new ParameterOrProcessEqualsWrapper(this.param);
+        final Integer myNum = parameterOccurences.get(myWrapper);
+        if (myNum != null)
+            return myNum;
+        return 1;
     }
 
-    @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj,
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
         if (this == obj)
             return true;
         if (obj == null)
@@ -45,12 +49,11 @@ public class ParameterReference extends AbstractValue {
         if (getClass() != obj.getClass())
             return false;
         final ParameterReference other = (ParameterReference) obj;
-        if (param == null) {
-            if (other.param != null)
-                return false;
-        } else if (!param.equals(other.param))
-            return false;
-        return true;
+        final ParameterOrProcessEqualsWrapper myWrapper = new ParameterOrProcessEqualsWrapper(this.param);
+        final ParameterOrProcessEqualsWrapper otherWrapper = new ParameterOrProcessEqualsWrapper(other.param);
+        final Integer myNum = parameterOccurences.get(myWrapper);
+        final Integer otherNum = parameterOccurences.get(otherWrapper);
+        return myNum != null && myNum.equals(otherNum);
     }
 
 }

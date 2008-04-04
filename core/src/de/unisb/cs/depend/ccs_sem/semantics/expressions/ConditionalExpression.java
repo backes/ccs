@@ -8,6 +8,7 @@ import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
@@ -98,16 +99,25 @@ public class ConditionalExpression extends Expression {
     }
 
     @Override
-    protected int hashCode0() {
+    public int hashCode(
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
+        final boolean empty = parameterOccurences.isEmpty();
+        if (empty && hash != 0)
+            return hash;
         final int prime = 31;
         int result = 1;
-        result = prime * result + condition.hashCode();
-        result = prime * result + consequence.hashCode();
+        result = prime * result + condition.hashCode(parameterOccurences);
+        result = prime * result + consequence.hashCode(parameterOccurences);
+        if (empty) {
+            assert hash == 0 || hash == result;
+            hash = result;
+        }
         return result;
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj,
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
         if (this == obj)
             return true;
         if (obj == null)
@@ -115,12 +125,9 @@ public class ConditionalExpression extends Expression {
         if (getClass() != obj.getClass())
             return false;
         final ConditionalExpression other = (ConditionalExpression) obj;
-        // hashCode is cached, so we compare it first (it's cheap)
-        if (hashCode() != other.hashCode())
+        if (!condition.equals(other.condition, parameterOccurences))
             return false;
-        if (!condition.equals(other.condition))
-            return false;
-        if (!consequence.equals(other.consequence))
+        if (!consequence.equals(other.consequence, parameterOccurences))
             return false;
         return true;
     }

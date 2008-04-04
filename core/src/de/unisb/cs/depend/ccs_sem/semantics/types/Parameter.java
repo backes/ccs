@@ -45,8 +45,7 @@ public class Parameter {
         }
     }
 
-    // the type is determined while parsing, Value.insertParameters() and
-    // UnknownString.replaceRecursion
+    // the type is determined while parsing and UnknownRecursiveExpression.replaceRecursion()
     private Type type = Type.UNKNOWN;
     private final String name;
     private List<Parameter> connectedParameters = null;
@@ -215,6 +214,88 @@ public class Parameter {
         return type;
     }
 
-    // hashCode and equals are not overridden (only identical Parameters are equal)
+    public int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
+        // first check if we have a recursion
+        final ParameterOrProcessEqualsWrapper myWrapper = new ParameterOrProcessEqualsWrapper(this);
+        Integer myNum = parameterOccurences.get(myWrapper);
+        if (myNum != null)
+            return myNum;
+
+        myNum = parameterOccurences.size() + 1;
+        parameterOccurences.put(myWrapper, myNum);
+
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + name.hashCode();
+        result = prime * result + (range == null ? 0 : range.hashCode(parameterOccurences));
+        //result = prime * result + (type == null ? 0 : type.hashCode());
+        return result;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + name.hashCode();
+        result = prime * result + (range == null ? 0 : range.hashCode());
+        //result = prime * result + (type == null ? 0 : type.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final Parameter other = (Parameter) obj;
+        if (!type.equals(other.type))
+            return false;
+        if (!name.equals(other.name))
+            return false;
+        if (range == null) {
+            if (other.range != null)
+                return false;
+        } else if (!range.equals(other.range))
+            return false;
+        return true;
+    }
+
+    public boolean equals(Object obj, Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final Parameter other = (Parameter) obj;
+        if (!type.equals(other.type))
+            return false;
+        if (!name.equals(other.name))
+            return false;
+        if (range == null) {
+            if (other.range != null)
+                return false;
+        } else if (!range.equals(other.range, parameterOccurences))
+            return false;
+
+        // ok, now the difficulty...
+        final ParameterOrProcessEqualsWrapper myWrapper = new ParameterOrProcessEqualsWrapper(this);
+        final ParameterOrProcessEqualsWrapper otherWrapper = new ParameterOrProcessEqualsWrapper(other);
+        Integer myNum = parameterOccurences.get(myWrapper);
+        final Integer otherNum = parameterOccurences.get(otherWrapper);
+        if (myNum != null)
+            return myNum.equals(otherNum);
+        if (otherNum != null)
+            return false;
+
+        myNum = parameterOccurences.size()+1;
+        parameterOccurences.put(myWrapper, myNum);
+        parameterOccurences.put(otherWrapper, myNum);
+
+        return true;
+    }
 
 }

@@ -60,6 +60,7 @@ public class CCSPreferencePage
         super(GRID);
         setPreferenceStore(MyPreferenceStore.getStore());
         setDescription("Parameters for evaluating and visualizing CCS terms.");
+        setTitle("CCS");
     }
 
     /**

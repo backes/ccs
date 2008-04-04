@@ -1,9 +1,11 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types.actions;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
@@ -17,30 +19,11 @@ public abstract class Action implements Comparable<Action> {
 
     public abstract Value getValue();
 
-    /**
-     * Overwritten by all Actions that can act as input action.
-     * @return <code>true</code> if this action is an input action,
-     *         <code>false</code> otherwise
-     */
-    public boolean isInputAction() {
-        return false;
-    }
-
-    /**
-     * Overwritten by all Actions that can act as output action.
-     * @return <code>true</code> if this action is an output action,
-     *         <code>false</code> otherwise
-     */
-    public boolean isOutputAction() {
-        return false;
-    }
-
     public abstract Action instantiate(Map<Parameter, Value> parameters);
 
+    // toString() has to be overwritten in subclasses!
     @Override
-    public String toString() {
-        return getLabel();
-    }
+    public abstract String toString();
 
     /**
      * See {@link Transition#synchronizeWith(Action)}
@@ -54,4 +37,20 @@ public abstract class Action implements Comparable<Action> {
     public int compareTo(Action o) {
         return getLabel().compareTo(o.getLabel());
     }
+
+    @Override
+    public final boolean equals(Object obj) {
+        return equals(obj, new HashMap<ParameterOrProcessEqualsWrapper, Integer>(4));
+    }
+
+    public abstract boolean equals(Object obj,
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences);
+
+    @Override
+    public final int hashCode() {
+        return hashCode(new HashMap<ParameterOrProcessEqualsWrapper, Integer>(4));
+    }
+
+    public abstract int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences);
+
 }

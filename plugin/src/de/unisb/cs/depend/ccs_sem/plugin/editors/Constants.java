@@ -26,6 +26,10 @@ public class Constants {
     public static final RGB PROCESS_REFERENCE_BACKGROUND_RGB = null;
     public static final int PROCESS_REFERENCE_FONTSTYLE = SWT.BOLD;
 
+    public static final RGB CONSTANT_VALUE_FOREGROUND_RGB = new RGB(42, 0, 255);
+    public static final RGB CONSTANT_VALUE_BACKGROUND_RGB = null;
+    public static final int CONSTANT_VALUE_FONTSTYLE = SWT.NORMAL;
+
     public static final String MARKER_PROBLEM = "de.unisb.cs.depend.ccs_sem.ccsproblemmarker";
 
 }

@@ -13,7 +13,20 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
  */
 public interface Channel extends Value {
 
-    // the instantiation of a Channel must again be a Channel
+    /**
+     * {@inheritDoc}
+     *
+     * (the instantiation of a Channel must again be a Channel)
+     */
     public Channel instantiate(Map<Parameter, Value> parameters);
+
+    /**
+     * Compares this channel to another channel.
+     *
+     * @param other the other channel
+     * @return <code>true</code> if the two Channel objects represent the same
+     *         channel
+     */
+    public boolean sameChannel(Channel other);
 
 }

@@ -67,8 +67,9 @@ public abstract class Bisimulation {
             // now, add all transitions to the expression wrappers
             final Map<Transition, TransWrapper> transMap = new HashMap<Transition, TransWrapper>();
             for (final Entry<Expression, ExprWrapper> entry: exprMap.entrySet()) {
-                final List<TransWrapper> newTransitions = new ArrayList<TransWrapper>();
-                for (final Transition trans: entry.getKey().getTransitions()) {
+                final List<Transition> transitions = entry.getKey().getTransitions();
+                final List<TransWrapper> newTransitions = new ArrayList<TransWrapper>(transitions.size());
+                for (final Transition trans: transitions) {
                     TransWrapper tw = transMap.get(trans);
                     if (tw == null)
                         transMap.put(trans, tw = new TransWrapper(trans.getAction(),
@@ -232,6 +233,9 @@ public abstract class Bisimulation {
 
         private static boolean fulfillsWeak(ExprWrapper otherExpr, TransitionToPartition trans) {
             if (trans.act instanceof TauAction) {
+                // first, check explicitely the simple case
+                if (otherExpr.part.equals(trans.targetPart))
+                    return true;
                 final Queue<ExprWrapper> tauReachable = new UniqueQueue<ExprWrapper>();
                 tauReachable.add(otherExpr);
                 ExprWrapper e;
@@ -254,6 +258,9 @@ public abstract class Bisimulation {
                             tauReachable.add(t.target);
                         } else {
                             if (t.act.equals(trans.act)) {
+                                // first, check explicitely the simple case
+                                if (t.target.part.equals(trans.targetPart))
+                                    return true;
                                 // now check all tau-reachable successor states for a match
                                 final Queue<ExprWrapper> reachableAfter = new UniqueQueue<ExprWrapper>();
                                 reachableAfter.add(t.target);

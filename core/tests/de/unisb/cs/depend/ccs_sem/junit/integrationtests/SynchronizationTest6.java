@@ -16,7 +16,7 @@ public class SynchronizationTest6 extends IntegrationTest {
         addState("0 | read!1.0 \\ {out}");
         addState("out!3.0 | out?x.read!x.0 \\ {out}");
         addState("0 | read!3.0 \\ {out}");
-        addState("0 | 0");
+        addState("0 | 0 \\ {out}");
     }
 
     @Override

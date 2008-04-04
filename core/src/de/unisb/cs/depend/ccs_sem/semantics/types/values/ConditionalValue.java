@@ -3,6 +3,7 @@ package de.unisb.cs.depend.ccs_sem.semantics.types.values;
 import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 
 
 public class ConditionalValue extends AbstractValue {
@@ -65,18 +66,17 @@ public class ConditionalValue extends AbstractValue {
         return false;
     }
 
-    @Override
-    public int hashCode() {
+    public int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
         final int prime = 31;
         int result = 16;
-        result = prime * result + condition.hashCode();
-        result = prime * result + elseValue.hashCode();
-        result = prime * result + thenValue.hashCode();
+        result = prime * result + condition.hashCode(parameterOccurences);
+        result = prime * result + elseValue.hashCode(parameterOccurences);
+        result = prime * result + thenValue.hashCode(parameterOccurences);
         return result;
     }
 
-    @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj,
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
         if (this == obj)
             return true;
         if (obj == null)
@@ -84,11 +84,11 @@ public class ConditionalValue extends AbstractValue {
         if (getClass() != obj.getClass())
             return false;
         final ConditionalValue other = (ConditionalValue) obj;
-        if (!condition.equals(other.condition))
+        if (!condition.equals(other.condition, parameterOccurences))
             return false;
-        if (!elseValue.equals(other.elseValue))
+        if (!elseValue.equals(other.elseValue, parameterOccurences))
             return false;
-        if (!thenValue.equals(other.thenValue))
+        if (!thenValue.equals(other.thenValue, parameterOccurences))
             return false;
         return true;
     }

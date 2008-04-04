@@ -3,6 +3,7 @@ package de.unisb.cs.depend.ccs_sem.semantics.types.values;
 import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 
 
 public class AddValue extends AbstractValue implements IntegerValue {
@@ -63,18 +64,18 @@ public class AddValue extends AbstractValue implements IntegerValue {
         return false;
     }
 
-    @Override
-    public int hashCode() {
+    public int hashCode(
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
         final int prime = 31;
-        int result = 19;
+        int result = 1;
         result = prime * result + (isSubtraction ? 1231 : 1237);
-        result = prime * result + left.hashCode();
-        result = prime * result + right.hashCode();
+        result = prime * result + left.hashCode(parameterOccurences);
+        result = prime * result + right.hashCode(parameterOccurences);
         return result;
     }
 
-    @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj,
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
         if (this == obj)
             return true;
         if (obj == null)
@@ -84,9 +85,9 @@ public class AddValue extends AbstractValue implements IntegerValue {
         final AddValue other = (AddValue) obj;
         if (isSubtraction != other.isSubtraction)
             return false;
-        if (!left.equals(other.left))
+        if (!left.equals(other.left, parameterOccurences))
             return false;
-        if (!right.equals(other.right))
+        if (!right.equals(other.right, parameterOccurences))
             return false;
         return true;
     }

@@ -3,6 +3,7 @@ package de.unisb.cs.depend.ccs_sem.semantics.types.values;
 import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 
 
 public class ParameterRefChannel extends ParameterReference implements Channel {
@@ -18,7 +19,7 @@ public class ParameterRefChannel extends ParameterReference implements Channel {
             return (Channel)newValue;
         if (newValue instanceof ConstString) {
             final ConstString str = (ConstString)newValue;
-            return new ConstStringChannel(str.getValue());
+            return new ConstStringChannel(str.getStringValue(), str.isQuoted());
         }
         if (newValue instanceof ParameterReference)
             return new ParameterRefChannel(((ParameterReference)newValue).getParam());
@@ -29,8 +30,18 @@ public class ParameterRefChannel extends ParameterReference implements Channel {
     }
 
     @Override
-    public int hashCode() {
-        return super.hashCode() + 29;
+    public int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
+        return super.hashCode(parameterOccurences) + 29;
+    }
+
+    public boolean sameChannel(Channel other) {
+        if (this == other)
+            return true;
+        if (other == null)
+            return false;
+        if (getClass() != other.getClass())
+            return false;
+        return getStringValue().equals(other.getStringValue());
     }
 
 }

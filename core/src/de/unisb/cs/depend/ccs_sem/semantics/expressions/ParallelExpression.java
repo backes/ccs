@@ -12,13 +12,13 @@ import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.InputAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.OutputAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.TauAction;
-import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
@@ -62,7 +62,7 @@ public class ParallelExpression extends Expression {
 
         // we have to use a set here so that we don't add the same transition twice
         final Set<Transition> transitions = new HashSet<Transition>(
-                (leftTransitions.size() + rightTransitions.size()) * 3);
+                (leftTransitions.size() + rightTransitions.size()) * 4);
 
         // either left alone:
         for (final Transition trans: leftTransitions) {
@@ -80,8 +80,8 @@ public class ParallelExpression extends Expression {
             transitions.add(newTrans);
         }
 
-        boolean useComplexWay = leftTransitions.size() > 3
-                && rightTransitions.size() > 3;
+        boolean useComplexWay = leftTransitions.size() > 5
+                && rightTransitions.size() > 5;
 
         // in debug mode switch between the two modes
         assert (useComplexWay = new Random().nextBoolean()) || !useComplexWay;
@@ -102,24 +102,17 @@ public class ParallelExpression extends Expression {
             for (final Transition rightTrans: rightTransitions) {
                 Expression newFromLeft = null;
                 Expression newFromRight = null;
-                if (leftTrans.getAction().isInputAction()
-                        && rightTrans.getAction().isOutputAction())
+                if (leftTrans.getAction() instanceof InputAction &&
+                        rightTrans.getAction() instanceof OutputAction)
                     newFromLeft = leftTrans.synchronizeWith(rightTrans.getAction());
-                if (rightTrans.getAction().isInputAction()
-                        && leftTrans.getAction().isOutputAction())
+                if (rightTrans.getAction() instanceof InputAction &&
+                        leftTrans.getAction() instanceof OutputAction)
                     newFromRight = rightTrans.synchronizeWith(leftTrans.getAction());
 
+                // at most one of them can be not-null
+                assert newFromLeft == null || newFromRight == null;
+
                 if (newFromLeft != null) {
-                    if (newFromRight != null) {
-                        // take care that we don't add the same transition twice
-                        if (!newFromLeft.equals(leftTrans.getTarget())
-                                || !newFromRight.equals(rightTrans.getTarget())) {
-                            // in this case, we have to add this new transition too
-                            final Expression newTarget = create(leftTrans.getTarget(), newFromRight);
-                            final Transition newTransition = new Transition(TauAction.get(), newTarget);
-                            transitions.add(newTransition);
-                        }
-                    }
                     final Expression newTarget = create(newFromLeft, rightTrans.getTarget());
                     final Transition newTransition = new Transition(TauAction.get(), newTarget);
                     transitions.add(newTransition);
@@ -135,35 +128,34 @@ public class ParallelExpression extends Expression {
             final List<Transition> rightTransitions,
             final Set<Transition> transitions) {
         // we use maps that list for each channel the correspoding input actions
-        final Map<Channel, List<Transition>> leftInput =
-            new HashMap<Channel, List<Transition>>(leftTransitions.size());
-        final Map<Channel, List<Transition>> rightInput =
-            new HashMap<Channel, List<Transition>>(rightTransitions.size());
+        final Map<String, List<Transition>> leftInput =
+            new HashMap<String, List<Transition>>(leftTransitions.size());
+        final Map<String, List<Transition>> rightInput =
+            new HashMap<String, List<Transition>>(rightTransitions.size());
 
         // fill the map leftInput
         for (final Transition leftTrans: leftTransitions) {
-            if (leftTrans.getAction().isInputAction()) {
-                // TODO handle quotes
-                final Channel channel = leftTrans.getAction().getChannel();
-                List<Transition> list = leftInput.get(channel);
+            if (leftTrans.getAction() instanceof InputAction) {
+                final String channelString = leftTrans.getAction().getChannel().getStringValue();
+                List<Transition> list = leftInput.get(channelString);
                 if (list == null)
-                    leftInput.put(channel, list = new ArrayList<Transition>(2));
+                    leftInput.put(channelString, list = new ArrayList<Transition>(2));
                 list.add(leftTrans);
             }
         }
         // fill the map rightInput and check for matches with leftInput
         for (final Transition rightTrans: rightTransitions) {
-            if (rightTrans.getAction().isInputAction()) {
-                final Channel channel = rightTrans.getAction().getChannel();
-                List<Transition> list = rightInput.get(channel);
+            if (rightTrans.getAction() instanceof InputAction) {
+                final String channelString = rightTrans.getAction().getChannel().getStringValue();
+                List<Transition> list = rightInput.get(channelString);
                 if (list == null)
-                    rightInput.put(channel, list = new ArrayList<Transition>(2));
+                    rightInput.put(channelString, list = new ArrayList<Transition>(2));
                 list.add(rightTrans);
             }
-            if (rightTrans.getAction().isOutputAction()) {
+            if (rightTrans.getAction() instanceof OutputAction) {
                 // search for corresponding input action
-                final Channel channel = rightTrans.getAction().getChannel();
-                final List<Transition> inputTransitions = leftInput.get(channel);
+                final List<Transition> inputTransitions = leftInput.get(
+                    rightTrans.getAction().getChannel().getStringValue());
                 if (inputTransitions != null) {
                     for (final Transition inputTrans: inputTransitions) {
                         final Expression newLeftTarget = inputTrans.synchronizeWith(rightTrans.getAction());
@@ -179,11 +171,11 @@ public class ParallelExpression extends Expression {
         }
         // search for matching pairs vice-versa
         for (final Transition leftTrans: leftTransitions) {
-            if (!leftTrans.getAction().isOutputAction())
+            if (!(leftTrans.getAction() instanceof OutputAction))
                 continue;
             // search for corresponding input action
-            final Channel channel = leftTrans.getAction().getChannel();
-            final List<Transition> inputTransitions = rightInput.get(channel);
+            final List<Transition> inputTransitions = rightInput.get(
+                leftTrans.getAction().getChannel().getStringValue());
             if (inputTransitions != null) {
                 for (final Transition inputTrans: inputTransitions) {
                     final Expression newRightTarget = inputTrans.synchronizeWith(leftTrans.getAction());
@@ -225,14 +217,19 @@ public class ParallelExpression extends Expression {
 
     @Override
     public Set<Action> getAlphabet(Set<ProcessVariable> alreadyIncluded) {
-        final Set<Action> leftAlphabet = left.getAlphabet(alreadyIncluded);
-        final Set<Action> rightAlphabet = right.getAlphabet(alreadyIncluded);
+        Set<Action> leftAlphabet = left.getAlphabet(alreadyIncluded);
+        Set<Action> rightAlphabet = right.getAlphabet(alreadyIncluded);
+
+        if (leftAlphabet.size() < rightAlphabet.size()) {
+            final Set<Action> tmp = leftAlphabet;
+            leftAlphabet = rightAlphabet;
+            rightAlphabet = tmp;
+        }
 
         leftAlphabet.addAll(rightAlphabet);
 
         // if there is no "tau" action in the alphabet, search if we can produce one
         if (!leftAlphabet.contains(TauAction.get())) {
-            // TODO handle quotes
             searching:
             for (final Action leftAct: leftAlphabet)
                 for (final Action rightAct: rightAlphabet) {
@@ -240,7 +237,7 @@ public class ParallelExpression extends Expression {
                                 && rightAct instanceof OutputAction)
                             || (rightAct instanceof InputAction
                                     && leftAct instanceof OutputAction))
-                            && leftAct.getChannel().equals(rightAct.getChannel())) {
+                            && leftAct.getChannel().sameChannel(rightAct.getChannel())) {
                         leftAlphabet.add(TauAction.get());
                         break searching;
                     }
@@ -269,16 +266,24 @@ public class ParallelExpression extends Expression {
     }
 
     @Override
-    protected int hashCode0() {
+    public int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
+        final boolean empty = parameterOccurences.isEmpty();
+        if (empty && hash != 0)
+            return hash;
         final int PRIME = 31;
         int result = 1;
-        result = PRIME * result + left.hashCode();
-        result = PRIME * result + right.hashCode();
+        result = PRIME * result + left.hashCode(parameterOccurences);
+        result = PRIME * result + right.hashCode(parameterOccurences);
+        if (empty) {
+            assert hash == 0 || hash == result;
+            hash = result;
+        }
         return result;
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj,
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
         if (this == obj)
             return true;
         if (obj == null)
@@ -286,12 +291,9 @@ public class ParallelExpression extends Expression {
         if (getClass() != obj.getClass())
             return false;
         final ParallelExpression other = (ParallelExpression) obj;
-        // hashCode is cached, so we compare it first (it's cheap)
-        if (hashCode() != other.hashCode())
+        if (!left.equals(other.left, parameterOccurences))
             return false;
-        if (!left.equals(other.left))
-            return false;
-        if (!right.equals(other.right))
+        if (!right.equals(other.right, parameterOccurences))
             return false;
         return true;
     }

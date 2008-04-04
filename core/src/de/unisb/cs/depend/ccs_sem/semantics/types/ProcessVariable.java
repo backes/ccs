@@ -20,16 +20,19 @@ import de.unisb.cs.depend.ccs_sem.utils.UniqueQueue;
 
 public class ProcessVariable {
 
+    private final int hash;
     private final String name;
-    private final List<Parameter> parameters;
+    private final ParameterList parameters;
     private Expression value;
 
-    public ProcessVariable(String name, List<Parameter> parameters,
+    public ProcessVariable(String name, ParameterList parameters,
             Expression value) {
         super();
+        assert parameters != null;
         this.name = name;
         this.parameters = parameters;
         this.value = value;
+        this.hash = computeHashCode();
     }
 
     /**
@@ -201,6 +204,65 @@ public class ProcessVariable {
         return true;
     }
 
-    // NO HASHCODE COMPUTATION HERE. ONLY THE SAME DECLARATIONS ARE EQUAL!!
-    // TODO really? then caching doesn't make much sense
+    @Override
+    public int hashCode() {
+        return hash;
+    }
+
+    public int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
+        return hash;
+    }
+
+    private int computeHashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + name.hashCode();
+        final Map<ParameterOrProcessEqualsWrapper,Integer> parameterOccurences =
+                new HashMap<ParameterOrProcessEqualsWrapper, Integer>(4);
+        result = prime * result + parameters.hashCode(parameterOccurences);
+        result = prime * result + value.hashCode(parameterOccurences);
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return equals(obj, new HashMap<ParameterOrProcessEqualsWrapper, Integer>(4));
+    }
+
+    public boolean equals(Object obj, Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final ProcessVariable other = (ProcessVariable) obj;
+        if (hashCode() != other.hashCode())
+            return false;
+        if (!name.equals(other.name))
+            return false;
+        if (!parameters.equals(other.parameters, parameterOccurences))
+            return false;
+
+        // ok, now the difficulty...
+        final ParameterOrProcessEqualsWrapper myWrapper = new ParameterOrProcessEqualsWrapper(this);
+        final ParameterOrProcessEqualsWrapper otherWrapper = new ParameterOrProcessEqualsWrapper(other);
+        Integer myNum = parameterOccurences.get(myWrapper);
+        final Integer otherNum = parameterOccurences.get(otherWrapper);
+        if (myNum != null)
+            return myNum.equals(otherNum);
+
+        // myNum is null, so otherNum has to be null, too
+        if (otherNum != null)
+            return false;
+        myNum = parameterOccurences.size()+1;
+        assert parameterOccurences.size() % 2 == 0;
+        parameterOccurences.put(myWrapper, myNum);
+        parameterOccurences.put(otherWrapper, myNum);
+
+        if (!value.equals(other.value, parameterOccurences))
+            return false;
+        return true;
+    }
+
 }

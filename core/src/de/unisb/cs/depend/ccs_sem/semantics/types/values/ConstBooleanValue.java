@@ -3,6 +3,7 @@ package de.unisb.cs.depend.ccs_sem.semantics.types.values;
 import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 
 
 public class ConstBooleanValue extends AbstractValue
@@ -35,13 +36,12 @@ public class ConstBooleanValue extends AbstractValue
         return Boolean.toString(value);
     }
 
-    @Override
-    public int hashCode() {
+    public int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
         return value ? 41*31 : 42*31;
     }
 
-    @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj,
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
         return this == obj;
     }
 

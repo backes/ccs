@@ -43,7 +43,7 @@ public class ClockExample extends IntegrationTest {
         addState(decode("FREEZED[3, 2] | T %92 {tick}"));
         addState(decode("STOPPED[3] | T %92 {tick}"));
         addState(decode("FREEZED[3, 3] | T %92 {tick}"));
-        addState(decode("T %92 {tick}"));
+        addState(decode("0 | T %92 {tick}"));
     }
 
     @Override

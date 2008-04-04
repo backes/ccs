@@ -4,6 +4,7 @@ import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstIntegerValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
@@ -24,27 +25,33 @@ public class OutputAction extends Action {
 
     @Override
     public String getLabel() {
-        final String channelString = channel.getStringValue();
-        String valueString;
-        if (value == null)
-            valueString = "";
-        else {
+        final String valueString = value == null ? null : value.getStringValue();
+        return makeLabel(channel.getStringValue(), valueString);
+    }
+
+    private String makeLabel(String channelString, String valueString) {
+        if (value != null) {
             final boolean noParenthesis = (value instanceof ConstantValue
                     && !(value instanceof ConstIntegerValue
                             && ((ConstIntegerValue)value).getValue() < 0))
                 || value instanceof ParameterReference;
-            if (noParenthesis)
-                valueString = value.getStringValue();
-            else
-                valueString = '('+value.getStringValue()+')';
+            if (!noParenthesis)
+                valueString = '(' + valueString + ')';
         }
 
         final int size = channelString.length() + 1 +
             (valueString == null ? 0 : valueString.length());
         final StringBuilder sb = new StringBuilder(size);
         sb.append(channelString).append('!');
-        sb.append(valueString);
+        if (valueString != null)
+            sb.append(valueString);
         return sb.toString();
+    }
+
+    @Override
+    public String toString() {
+        final String valueString = value == null ? null : value.toString();
+        return makeLabel(channel.toString(), valueString);
     }
 
     @Override
@@ -55,11 +62,6 @@ public class OutputAction extends Action {
     @Override
     public Value getValue() {
         return value;
-    }
-
-    @Override
-    public boolean isOutputAction() {
-        return true;
     }
 
     @Override
@@ -89,16 +91,17 @@ public class OutputAction extends Action {
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
         final int PRIME = 31;
         int result = 1;
-        result = PRIME * result + channel.hashCode();
-        result = PRIME * result + ((value == null) ? 0 : value.hashCode());
+        result = PRIME * result + channel.hashCode(parameterOccurences);
+        result = PRIME * result + (value == null ? 0 : value.hashCode(parameterOccurences));
         return result;
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj,
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
         if (this == obj)
             return true;
         if (obj == null)
@@ -106,12 +109,12 @@ public class OutputAction extends Action {
         if (getClass() != obj.getClass())
             return false;
         final OutputAction other = (OutputAction) obj;
-        if (!channel.equals(other.channel))
+        if (!channel.equals(other.channel, parameterOccurences))
             return false;
         if (value == null) {
             if (other.value != null)
                 return false;
-        } else if (!value.equals(other.value))
+        } else if (!value.equals(other.value, parameterOccurences))
             return false;
         return true;
     }

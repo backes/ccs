@@ -9,6 +9,7 @@ import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
@@ -102,16 +103,25 @@ public class PrefixExpression extends Expression {
     }
 
     @Override
-    protected int hashCode0() {
+    public int hashCode(
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
+        final boolean empty = parameterOccurences.isEmpty();
+        if (empty && hash != 0)
+            return hash;
         final int PRIME = 31;
         int result = 1;
-        result = PRIME * result + target.hashCode();
-        result = PRIME * result + prefix.hashCode();
+        result = PRIME * result + prefix.hashCode(parameterOccurences);
+        result = PRIME * result + target.hashCode(parameterOccurences);
+        if (empty) {
+            assert hash == 0 || hash == result;
+            hash = result;
+        }
         return result;
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj,
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
         if (this == obj)
             return true;
         if (obj == null)
@@ -119,12 +129,9 @@ public class PrefixExpression extends Expression {
         if (getClass() != obj.getClass())
             return false;
         final PrefixExpression other = (PrefixExpression) obj;
-        // hashCode is cached, so we compare it first (it's cheap)
-        if (hashCode() != other.hashCode())
+        if (!prefix.equals(other.prefix, parameterOccurences))
             return false;
-        if (!prefix.equals(other.prefix))
-            return false;
-        if (!target.equals(other.target))
+        if (!target.equals(other.target, parameterOccurences))
             return false;
         return true;
     }

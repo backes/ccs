@@ -36,4 +36,14 @@ public class Identifier extends AbstractToken {
         return name;
     }
 
+    public boolean isUpperCase() {
+        assert name.length() > 0;
+        return Character.isUpperCase(name.charAt(0));
+    }
+
+    public boolean isLowerCase() {
+        assert name.length() > 0;
+        return Character.isLowerCase(name.charAt(0));
+    }
+
 }

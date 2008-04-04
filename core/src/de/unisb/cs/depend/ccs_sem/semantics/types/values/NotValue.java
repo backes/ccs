@@ -3,6 +3,7 @@ package de.unisb.cs.depend.ccs_sem.semantics.types.values;
 import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 
 
 public class NotValue extends AbstractValue implements BooleanValue {
@@ -45,13 +46,12 @@ public class NotValue extends AbstractValue implements BooleanValue {
         return false;
     }
 
-    @Override
-    public int hashCode() {
-        return 13*31 + negatedValue.hashCode();
+    public int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
+        return 13*31 + negatedValue.hashCode(parameterOccurences);
     }
 
-    @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj,
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
         if (this == obj)
             return true;
         if (obj == null)
@@ -59,7 +59,7 @@ public class NotValue extends AbstractValue implements BooleanValue {
         if (getClass() != obj.getClass())
             return false;
         final NotValue other = (NotValue) obj;
-        if (!negatedValue.equals(other.negatedValue))
+        if (!negatedValue.equals(other.negatedValue, parameterOccurences))
             return false;
         return true;
     }

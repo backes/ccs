@@ -11,6 +11,7 @@ import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.ExpressionRepository;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
@@ -109,12 +110,13 @@ public class TopMostExpression extends Expression {
     }
 
     @Override
-    protected int hashCode0() {
-        return myExpr.hashCode() + 89;
+    public int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
+        return myExpr.hashCode(parameterOccurences);
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj,
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
         if (this == obj)
             return true;
         if (obj == null)
@@ -122,7 +124,7 @@ public class TopMostExpression extends Expression {
         if (getClass() != obj.getClass())
             return false;
         final TopMostExpression other = (TopMostExpression) obj;
-        return myExpr.equals(other.myExpr);
+        return myExpr.equals(other.myExpr, parameterOccurences);
     }
 
 }

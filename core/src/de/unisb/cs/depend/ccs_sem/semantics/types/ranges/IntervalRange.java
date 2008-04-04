@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstIntegerValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
@@ -69,6 +70,30 @@ public class IntervalRange extends AbstractRange {
     @Override
     public String toString() {
         return start + ".." + end;
+    }
+
+    public int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + end.hashCode(parameterOccurences);
+        result = prime * result + start.hashCode(parameterOccurences);
+        return result;
+    }
+
+    public boolean equals(Object obj,
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final IntervalRange other = (IntervalRange) obj;
+        if (!end.equals(other.end, parameterOccurences))
+            return false;
+        if (!start.equals(other.start, parameterOccurences))
+            return false;
+        return true;
     }
 
 }

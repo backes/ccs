@@ -3,7 +3,7 @@ package de.unisb.cs.depend.ccs_sem.junit.integrationtests;
 import de.unisb.cs.depend.ccs_sem.junit.IntegrationTest;
 
 
-public class QuotesRestriction extends IntegrationTest {
+public class QuotesRestriction1 extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {

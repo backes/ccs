@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
@@ -59,5 +60,10 @@ public interface Range {
      * @return either <code>this</code> or a new Range
      */
     Range instantiate(Map<Parameter, Value> parameters);
+
+    int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences);
+
+    boolean equals(Object obj,
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences);
 
 }

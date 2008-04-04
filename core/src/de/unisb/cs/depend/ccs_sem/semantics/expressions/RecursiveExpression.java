@@ -1,6 +1,5 @@
 package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -9,8 +8,10 @@ import java.util.Map;
 import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ValueList;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.Range;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
@@ -20,10 +21,10 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 public class RecursiveExpression extends Expression {
 
     private final ProcessVariable referencedProcessVariable;
-    private final List<Value> parameterValues;
+    private final ValueList parameterValues;
     private Expression instantiatedExpression = null;
 
-    public RecursiveExpression(ProcessVariable referencedProcessVariable, List<Value> parameters) {
+    public RecursiveExpression(ProcessVariable referencedProcessVariable, ValueList parameters) {
         super();
         this.referencedProcessVariable = referencedProcessVariable;
         this.parameterValues = parameters;
@@ -95,7 +96,7 @@ public class RecursiveExpression extends Expression {
 
     @Override
     public Expression instantiate(Map<Parameter, Value> params) {
-        final List<Value> newParameters = new ArrayList<Value>(parameterValues.size());
+        final ValueList newParameters = new ValueList(parameterValues.size());
         boolean changed = false;
         for (final Value param: parameterValues) {
             final Value newParam = param.instantiate(params);
@@ -114,7 +115,7 @@ public class RecursiveExpression extends Expression {
     public Set<Action> getAlphabet(Set<ProcessVariable> alreadyIncluded) {
         if (alreadyIncluded.contains(referencedProcessVariable))
             // no Collections.emptySet() here because it could be modified by the caller
-            return new HashSet<Action>();
+            return new HashSet<Action>(0);
         alreadyIncluded.add(referencedProcessVariable);
         final Set<Action> alphabet = referencedProcessVariable.getValue().getAlphabet(alreadyIncluded);
         // we have to remove it afterwards, so that other branches evaluate the full alphabet
@@ -136,16 +137,25 @@ public class RecursiveExpression extends Expression {
     }
 
     @Override
-    protected int hashCode0() {
+    public int hashCode(
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
+        final boolean empty = parameterOccurences.isEmpty();
+        if (empty && hash != 0)
+            return hash;
         final int PRIME = 31;
         int result = 1;
-        result = PRIME * result + referencedProcessVariable.hashCode();
-        result = PRIME * result + parameterValues.hashCode();
+        result = PRIME * result + referencedProcessVariable.hashCode(parameterOccurences);
+        result = PRIME * result + parameterValues.hashCode(parameterOccurences);
+        if (empty) {
+            assert hash == 0 || hash == result;
+            hash = result;
+        }
         return result;
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj,
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
         if (this == obj)
             return true;
         if (obj == null)
@@ -153,12 +163,9 @@ public class RecursiveExpression extends Expression {
         if (getClass() != obj.getClass())
             return false;
         final RecursiveExpression other = (RecursiveExpression) obj;
-        // hashCode is cached, so we compare it first (it's cheap)
-        if (hashCode() != other.hashCode())
+        if (!referencedProcessVariable.equals(other.referencedProcessVariable, parameterOccurences))
             return false;
-        if (!referencedProcessVariable.equals(other.referencedProcessVariable))
-            return false;
-        if (!parameterValues.equals(other.parameterValues))
+        if (!parameterValues.equals(other.parameterValues, parameterOccurences))
             return false;
         return true;
     }

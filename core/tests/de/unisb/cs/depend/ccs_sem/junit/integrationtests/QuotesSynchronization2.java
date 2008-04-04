@@ -13,9 +13,9 @@ public class QuotesSynchronization2 extends IntegrationTest {
 
     @Override
     protected void addStates() {
-        addState("X[\"a\"] | a?n.b!n.0");
-        addState("0 | b!1.0");
-        addState("0 | 0");
+        addState("X[\"a\"] | a?n.b!n.0 \\ {a}");
+        addState("0 | b!1.0 \\ {a}");
+        addState("0 | 0 \\ {a}");
     }
 
     @Override

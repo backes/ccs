@@ -1,8 +1,6 @@
 package de.unisb.cs.depend.ccs_sem.parser;
 
-import java.awt.Point;
 import java.io.Reader;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +17,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.Range;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstString;
+import de.unisb.cs.depend.ccs_sem.utils.Pair;
 
 
 
@@ -96,16 +95,13 @@ public class LoggingCCSParser extends CCSParser implements IParsingProblemListen
     }
 
     @Override
-    protected Action readAction(ExtendedListIterator<Token> tokens,
-            boolean tauAllowed) throws ParseException {
-        final int firstTokenPosition = tokens.nextIndex();
-        final Action readAction = super.readAction(tokens, tauAllowed);
+    protected Action readAction(ExtendedListIterator<Token> tokens) throws ParseException {
+        final Token firstToken = tokens.peek();
+        final Action readAction = super.readAction(tokens);
         if (readAction != null) {
-            final int endTokenPosition = tokens.previousIndex();
-            List<Point> locations = result.actions.get(readAction);
-            if (locations == null)
-                result.actions.put(readAction, locations = new ArrayList<Point>(2));
-            locations.add(new Point(firstTokenPosition, endTokenPosition));
+            final Token endToken = tokens.peekPrevious();
+            result.actions.add(new Pair<Action, Pair<Token, Token>>(
+                    readAction, new Pair<Token, Token>(firstToken, endToken)));
         }
         return readAction;
     }
@@ -127,14 +123,15 @@ public class LoggingCCSParser extends CCSParser implements IParsingProblemListen
 
     @Override
     protected void reportUnboundInputParameter(Action act) {
-        final List<Point> locations = result.actions.get(act);
-        for (final Point loc: locations) {
-            reportProblem(new ParsingProblem(ParsingProblem.ERROR,
-                "This action is not restricted and without a range. "
-                    + "This would leed to infinitely many transitions.",
-                result.tokens.get(loc.x).getStartPosition(),
-                result.tokens.get(loc.y).getEndPosition()
-                ));
+        for (final Pair<Action, Pair<Token, Token>> readAct: result.actions) {
+            if (readAct.getFirst().equals(act)) {
+                reportProblem(new ParsingProblem(ParsingProblem.ERROR,
+                    "This action is not restricted and without a range. "
+                        + "This would leed to infinitely many transitions.",
+                    readAct.getSecond().getFirst().getStartPosition(),
+                    readAct.getSecond().getSecond().getEndPosition()
+                    ));
+            }
         }
     }
 

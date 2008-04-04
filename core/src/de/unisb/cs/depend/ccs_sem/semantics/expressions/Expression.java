@@ -3,6 +3,7 @@ package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +11,7 @@ import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
@@ -22,7 +24,7 @@ public abstract class Expression {
     private volatile List<Transition> transitions = null;
 
     // stores the hashcode of this expression
-    private volatile int hash = 0;
+    protected int hash = 0;
 
     // cache for isError()
     private Boolean isError = null;
@@ -104,10 +106,12 @@ public abstract class Expression {
     public abstract Expression replaceRecursion(List<ProcessVariable> processVariables) throws ParseException;
 
     /**
-     * Is called in the constructor of a {@link RecursiveExpression}.
+     * Is called i.e. by a {@link RecursiveExpression} to get the instantiated
+     * Expression from a {@link ProcessVariable}.
      * Replaces all {@link ParameterReference}s that occure in the expression by
      * the corresponding {@link Value} from the parameter list.
      * Typically delegates to its subterms.
+     *
      * @param parameters the parameters to replace by concrete values
      * @return either <code>this</code> or a new created Expression
      */
@@ -141,24 +145,34 @@ public abstract class Expression {
     // we store the hashCode so that we only compute it once
     @Override
     public final int hashCode() {
-        int h = this.hash; // volatile-read
+        int h = this.hash;
         if (h == 0) {
-            synchronized (this) {
-                // double-checking (hm...)
-                if ((h = this.hash) == 0)
-                    h = hashCode0();
-                // we don't allow "0" as hashCode
-                if (h == 0)
-                    h = 1;
-                this.hash = h; // volatile-write
-            }
+            h = hashCode(new HashMap<ParameterOrProcessEqualsWrapper, Integer>(4));
+            this.hash = h;
         }
 
-        assert h == hashCode0() || (h == 1 && hashCode0() == 0);
+        assert h == hashCode(new HashMap<ParameterOrProcessEqualsWrapper, Integer>(4));
 
         return h;
     }
 
-    protected abstract int hashCode0();
+    public abstract int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences);
+
+    @Override
+    public final boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        // hashCode is cached, so we compare it first (it's cheap)
+        if (hashCode() != ((Expression)obj).hashCode())
+            return false;
+        return equals(obj, new HashMap<ParameterOrProcessEqualsWrapper, Integer>(4));
+    }
+
+    public abstract boolean equals(Object obj,
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences);
 
 }

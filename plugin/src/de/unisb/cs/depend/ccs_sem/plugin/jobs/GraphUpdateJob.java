@@ -138,10 +138,11 @@ public class GraphUpdateJob extends Job {
                 return new GraphUpdateStatus(IStatus.CANCEL, "cancelled");
 
             monitor.subTask("Layouting graph...");
-            if (!GraphHelper.filterGraph(graph, false))
+            if (!GraphHelper.filterGraph(graph, true)) {
                 return new GraphUpdateStatus(IStatus.ERROR,
                     "The graph could not be layout, most probably there was an error starting the dot tool.\n" +
                     "You can configure the path for this tool in your preferences on the \"CCS\" page.");
+            }
             monitor.worked(WORK_LAYOUT_GRAPH);
 
             if (monitor.isCanceled())

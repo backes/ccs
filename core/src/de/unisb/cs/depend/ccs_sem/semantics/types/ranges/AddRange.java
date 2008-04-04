@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
@@ -82,5 +83,33 @@ public class AddRange extends AbstractRange {
 
         return sb.toString();
     }
+
+    public int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + (isSub ? 1231 : 1237);
+        result = prime * result + left.hashCode(parameterOccurences);
+        result = prime * result + right.hashCode(parameterOccurences);
+        return result;
+    }
+
+    public boolean equals(Object obj,
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final AddRange other = (AddRange) obj;
+        if (isSub != other.isSub)
+            return false;
+        if (!left.equals(other.left, parameterOccurences))
+            return false;
+        if (!right.equals(other.right, parameterOccurences))
+            return false;
+        return true;
+    }
+
 
 }

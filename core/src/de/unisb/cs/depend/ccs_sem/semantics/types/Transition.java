@@ -4,6 +4,7 @@ import java.util.List;
 
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.InputAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.TauAction;
 
 
@@ -61,7 +62,7 @@ public class Transition {
      */
     public Expression synchronizeWith(Action otherAction) {
         // this method should only be called on input actions
-        assert action.isInputAction();
+        assert action instanceof InputAction;
 
         return action.synchronizeWith(otherAction, target);
     }

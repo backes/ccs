@@ -3,16 +3,7 @@ package att.grappa;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.StringWriter;
+import java.io.*;
 import java.util.Enumeration;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -738,6 +729,7 @@ implements GrappaConstants
         } catch (final IOException ioex) {
             if (!Grappa.displayException(ioex))
                 throw ioex;
+            return false;
         }
         final BufferedWriter toFilter =
                 new BufferedWriter(new OutputStreamWriter(toFilterRaw));
@@ -753,6 +745,7 @@ implements GrappaConstants
         } catch (final IOException ioex) {
             if (!Grappa.displayException(ioex))
                 throw ioex;
+            return false;
         } finally {
             graph.filterMode = false;
         }
@@ -767,6 +760,7 @@ implements GrappaConstants
         } catch (final IOException ioex) {
             if (!Grappa.displayException(ioex))
                 throw ioex;
+            return false;
         }
         InputStream fromFilterRaw = null;
         try {
@@ -782,6 +776,7 @@ implements GrappaConstants
         } catch (final IOException ioex) {
             if (!Grappa.displayException(ioex))
                 throw ioex;
+            return false;
         }
         final BufferedReader fromFilter =
                 new BufferedReader(new InputStreamReader(fromFilterRaw));

@@ -9,6 +9,7 @@ import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
@@ -121,21 +122,35 @@ public class ChoiceExpression extends Expression {
     public Set<Action> getAlphabet(Set<ProcessVariable> alreadyIncluded) {
         final Set<Action> leftAlphabet = left.getAlphabet(alreadyIncluded);
         final Set<Action> rightAlphabet = right.getAlphabet(alreadyIncluded);
-        leftAlphabet.addAll(rightAlphabet);
-        return leftAlphabet;
+        if (leftAlphabet.size() < rightAlphabet.size()) {
+            rightAlphabet.addAll(leftAlphabet);
+            return rightAlphabet;
+        } else {
+            leftAlphabet.addAll(rightAlphabet);
+            return leftAlphabet;
+        }
     }
 
     @Override
-    protected int hashCode0() {
+    public int hashCode(
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
+        final boolean empty = parameterOccurences.isEmpty();
+        if (empty && hash != 0)
+            return hash;
         final int PRIME = 31;
-        int result = 2;
-        result = PRIME * result + left.hashCode();
-        result = PRIME * result + right.hashCode();
+        int result = 1;
+        result = PRIME * result + left.hashCode(parameterOccurences);
+        result = PRIME * result + right.hashCode(parameterOccurences);
+        if (empty) {
+            assert hash == 0 || hash == result;
+            hash = result;
+        }
         return result;
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj,
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
         if (this == obj)
             return true;
         if (obj == null)
@@ -143,12 +158,9 @@ public class ChoiceExpression extends Expression {
         if (getClass() != obj.getClass())
             return false;
         final ChoiceExpression other = (ChoiceExpression) obj;
-        // hashCode is cached, so we compare it first (it's cheap)
-        if (hashCode() != other.hashCode())
+        if (!left.equals(other.left, parameterOccurences))
             return false;
-        if (!left.equals(other.left))
-            return false;
-        if (!right.equals(other.right))
+        if (!right.equals(other.right, parameterOccurences))
             return false;
         return true;
     }

@@ -7,10 +7,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ChannelSet;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
+import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
@@ -21,9 +22,9 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 public class RestrictExpression extends Expression {
 
     private final Expression innerExpr;
-    private final Set<Channel> restricted;
+    private final ChannelSet restricted;
 
-    public RestrictExpression(Expression innerExpr, Set<Channel> restricted) {
+    public RestrictExpression(Expression innerExpr, ChannelSet restricted) {
         super();
         this.innerExpr = innerExpr;
         this.restricted = restricted;
@@ -71,12 +72,12 @@ public class RestrictExpression extends Expression {
     @Override
     public Expression instantiate(Map<Parameter, Value> parameters) {
         final Expression newExpr = innerExpr.instantiate(parameters);
-        Set<Channel> newRestricted = null;
+        ChannelSet newRestricted = null;
         for (final Channel rest: restricted) {
             final Channel newRest = rest.instantiate(parameters);
             if (newRestricted == null) {
                 if (!rest.equals(newRest)) {
-                    newRestricted = new TreeSet<Channel>();
+                    newRestricted = new ChannelSet();
                     for (final Channel ch: restricted) {
                         if (ch == rest)
                             break;
@@ -124,16 +125,24 @@ public class RestrictExpression extends Expression {
     }
 
     @Override
-    protected int hashCode0() {
+    public int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
+        final boolean empty = parameterOccurences.isEmpty();
+        if (empty && hash != 0)
+            return hash;
         final int PRIME = 31;
         int result = 1;
-        result = PRIME * result + innerExpr.hashCode();
-        result = PRIME * result + restricted.hashCode();
+        result = PRIME * result + innerExpr.hashCode(parameterOccurences);
+        result = PRIME * result + restricted.hashCode(parameterOccurences);
+        if (empty) {
+            assert hash == 0 || hash == result;
+            hash = result;
+        }
         return result;
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj,
+            Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
         if (this == obj)
             return true;
         if (obj == null)
@@ -141,12 +150,9 @@ public class RestrictExpression extends Expression {
         if (getClass() != obj.getClass())
             return false;
         final RestrictExpression other = (RestrictExpression) obj;
-        // hashCode is cached, so we compare it first (it's cheap)
-        if (hashCode() != other.hashCode())
+        if (!innerExpr.equals(other.innerExpr, parameterOccurences))
             return false;
-        if (!innerExpr.equals(other.innerExpr))
-            return false;
-        if (!restricted.equals(other.restricted))
+        if (!restricted.equals(other.restricted, parameterOccurences))
             return false;
         return true;
     }
