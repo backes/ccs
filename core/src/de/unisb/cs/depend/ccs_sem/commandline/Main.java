@@ -183,29 +183,47 @@ public class Main implements IParsingProblemListener {
 
     private void parseCommandLine(String[] args) {
         int index = 0;
-        while (index < args.length) {
-            String arg = args[index++];
+        String arg = null;
+        String next = null;
+        while (index < args.length || next != null) {
+            if (next == null) {
+                arg = args[index++];
+            } else {
+                arg = next;
+                next = null;
+            }
+            if (arg.startsWith("--")) {
+                final int indexOfEquals = arg.indexOf('=');
+                if (indexOfEquals != -1) {
+                    next = arg.substring(indexOfEquals+1);
+                    arg = arg.substring(0, indexOfEquals);
+                }
+            }
+            if (next == null && index < args.length)
+                next = args[index++];
 
             if ("--help".equals(arg)) {
                 printHelp(System.out);
                 System.exit(0);
             } else if ("--output".equals(arg)) {
-                if (index == args.length) {
+                if (next == null) {
                     System.err.println("Expecting argument for \"--output\" switch.");
                     System.exit(-1);
                 }
-                parseOutputFile(args[index++]);
+                parseOutputFile(next);
+                next = null;
             } else if ("--policy".equals(arg) || "--threads".equals(arg)) {
-                if (index == args.length) {
-                    System.err.println("Expecting argument for \"--policy\" switch.");
+                if (next == null) {
+                    System.err.println("Expecting argument for \"--threads\" switch.");
                     System.exit(-1);
                 }
                 try {
-                    setPolicy(Integer.valueOf(args[index++]));
+                    setPolicy(Integer.valueOf(next));
                 } catch (final NumberFormatException e) {
-                    System.err.println("Integer expected after \"--policy\" switch.");
+                    System.err.println("Integer expected after \"--threads\" switch.");
                     System.exit(-1);
                 }
+                next = null;
             } else if ("--minimize".equals(arg) || "--minimizeWeak".equals(arg)) {
                 minimizeWeak = true;
             } else if ("--minimizeStrong".equals(arg)) {
@@ -231,11 +249,12 @@ public class Main implements IParsingProblemListener {
 
                     case 'o':
                         if (arg.length() == 0) {
-                            if (index == args.length) {
+                            if (next == null) {
                                 System.err.println("Expecting argument for \"-o\" switch.");
                                 System.exit(-1);
                             }
-                            arg = args[index++];
+                            arg = next;
+                            next = null;
                         }
                         parseOutputFile(arg);
                         arg = "";
@@ -244,16 +263,17 @@ public class Main implements IParsingProblemListener {
                     case 'p':
                     case 't':
                         if (arg.length() == 0) {
-                            if (index == args.length) {
+                            if (next == null) {
                                 System.err.println("Expecting argument for \"-t\" switch.");
                                 System.exit(-1);
                             }
-                            arg = args[index++];
+                            arg = next;
+                            next = null;
                         }
                         try {
                             setPolicy(Integer.valueOf(arg));
                         } catch (final NumberFormatException e) {
-                            System.err.println("Integer expected after \"-p\" switch.");
+                            System.err.println("Integer expected after \"-t\" switch.");
                             System.exit(-1);
                         }
                         arg = "";
