@@ -184,6 +184,7 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
                 if (myJobs.isEmpty() && !isShutdown) {
                     try {
                         waitForNewJobs.wait();
+                        // it doesn't matter if we continue without having been notified...
                     } catch (final InterruptedException e) {
                         // hm, then go on... (seems like we are forced to shut down)
                     }

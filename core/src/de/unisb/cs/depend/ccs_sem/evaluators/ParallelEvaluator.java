@@ -71,7 +71,8 @@ public class ParallelEvaluator implements Evaluator {
                 new EvaluatorJob(expr, evaluateSuccessors);
 
                 try {
-                    readyLock.wait();
+                    while (!currentlyEvaluating.isEmpty())
+                        readyLock.wait();
                 } catch (final InterruptedException e) {
                     errorOccured = true;
                     throw e;
