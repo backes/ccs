@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+
+<project name="CCS Updatesite" default="signall" basedir=".">
+
+	<path id="files">
+        <fileset dir="features" includes="*.jar" />
+        <fileset dir="plugins" includes="*.jar" />
+	</path>
+	
+	<property name="signcertificate" value="F:\Eigene Dateien\Zertifikate\CAcert\2008-04\clemens@hammacher.name_codesign.p12" />
+	<property name="signalias" value="cacert inc. id von clemens hammacher" />
+	
+	<taskdef resource="net/sf/antcontrib/antlib.xml" />
+	
+	<target name="signall">
+        <input
+            message="Please enter keystore password:"
+            addproperty="keypass" />
+		<for param="file">
+			<path refid="files" />
+			<sequential>
+    	        <signjar
+    	            storetype="pkcs12"
+    	            keystore="${signcertificate}"
+    	            jar="@{file}"
+    	            alias="${signalias}"
+    	            storepass="${keypass}" />
+			</sequential>
+		</for>
+	</target>
+
+</project>
