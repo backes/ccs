@@ -8,23 +8,32 @@
 	</path>
 	
 	<property name="signcertificate" value="F:\Eigene Dateien\Zertifikate\CAcert\2008-04\clemens@hammacher.name_codesign.p12" />
-	<property name="signalias" value="cacert inc. id von clemens hammacher" />
+	<property name="signalias" value="cl-hamm" />
 	
 	<taskdef resource="net/sf/antcontrib/antlib.xml" />
 	
 	<target name="signall">
-        <input
-            message="Please enter keystore password:"
-            addproperty="keypass" />
 		<for param="file">
 			<path refid="files" />
 			<sequential>
+				<if>
+					<and>
+						<not><issigned file="@{file}" name="${signalias}" /></not>
+						<isset property="keypass" />
+					</and>
+    				<then>
+        		        <input
+        		            message="Please enter keystore password:"
+        		            addproperty="keypass" />
+    				</then>
+				</if>
     	        <signjar
     	            storetype="pkcs12"
     	            keystore="${signcertificate}"
     	            jar="@{file}"
     	            alias="${signalias}"
-    	            storepass="${keypass}" />
+    	            storepass="${keypass}"
+    	        	lazy="true" />
 			</sequential>
 		</for>
 	</target>
