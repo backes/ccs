@@ -19,24 +19,22 @@ import de.unisb.cs.depend.ccs_sem.utils.StateNumerator;
 
 public class BCGExporter implements Exporter {
 
-    final File bcgFile;
     private static final String DEFAULT_COMMENT = "created from a CCS term";
     private final String comment;
 
-    public BCGExporter(File bcgFile) throws ExportException {
-        this(bcgFile, DEFAULT_COMMENT);
+    public BCGExporter() throws ExportException {
+        this(DEFAULT_COMMENT);
     }
 
-    public BCGExporter(File bcgFile, String comment) throws ExportException {
+    public BCGExporter(String comment) throws ExportException {
         super();
-        this.bcgFile = bcgFile;
         this.comment = comment;
         if (!BCGWriter.initialize()) {
             throw new ExportException("Could not initialize BCG library.");
         }
     }
 
-    public void export(Program program) throws ExportException {
+    public void export(File bcgFile, Program program) throws ExportException {
         final Expression expr = program.getExpression();
         // ensure that only one BCG file is written concurrently
         synchronized (BCGWriter.class) {
@@ -81,7 +79,7 @@ public class BCGExporter implements Exporter {
     }
 
     public String getIdentifier() {
-        return "BCG file export to " + bcgFile.getPath();
+        return "BCG file export";
     }
 
 }

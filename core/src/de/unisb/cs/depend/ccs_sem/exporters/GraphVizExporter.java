@@ -16,14 +16,12 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.utils.StateNumerator;
 
 public class GraphVizExporter implements Exporter {
-    private final File dotFile;
 
-    public GraphVizExporter(File nFile) {
+    public GraphVizExporter() {
         super();
-        dotFile = nFile;
     }
 
-    public void export(Program program) throws ExportException {
+    public void export(File dotFile, Program program) throws ExportException {
         final Expression expr = program.getExpression();
 
         final PrintWriter writer;
@@ -92,7 +90,7 @@ public class GraphVizExporter implements Exporter {
     }
 
     public String getIdentifier() {
-        return "dot File export to " + dotFile.getPath();
+        return "dot File export";
     }
 
 

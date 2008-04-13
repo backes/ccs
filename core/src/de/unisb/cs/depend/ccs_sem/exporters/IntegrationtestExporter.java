@@ -20,19 +20,6 @@ import de.unisb.cs.depend.ccs_sem.utils.StateNumerator;
 
 public class IntegrationtestExporter implements Exporter {
 
-    final File javaFile;
-    private final String className;
-
-    public IntegrationtestExporter(File javaFile) {
-        this(javaFile, extractClassName(javaFile));
-    }
-
-    public IntegrationtestExporter(File javaFile, String className) {
-        super();
-        this.javaFile = javaFile;
-        this.className = className;
-    }
-
     private static String extractClassName(File javaFilename) {
         final String filename = javaFilename.getName();
         if (filename.length() == 0)
@@ -63,7 +50,7 @@ public class IntegrationtestExporter implements Exporter {
         return "Unnamed_" + (new Random().nextInt(1000000));
     }
 
-    public void export(Program program) throws ExportException {
+    public void export(File javaFile, Program program) throws ExportException {
         final PrintWriter javaWriter;
         try {
             javaWriter = new PrintWriter(javaFile);
@@ -78,6 +65,7 @@ public class IntegrationtestExporter implements Exporter {
                 StateNumerator.numerateStates(expr);
 
         // write header
+        final String className = extractClassName(javaFile);
         javaWriter.println("package de.unisb.cs.depend.ccs_sem.junit.integrationtests;");
         javaWriter.println();
         javaWriter.println("import de.unisb.cs.depend.ccs_sem.junit.IntegrationTest;");
@@ -218,7 +206,7 @@ public class IntegrationtestExporter implements Exporter {
     }
 
     public String getIdentifier() {
-        return "Integration test export to " + javaFile.getPath();
+        return "Integration test export";
     }
 
 }

@@ -18,14 +18,7 @@ import de.unisb.cs.depend.ccs_sem.utils.StateNumerator;
 
 public class AiSeeGraphExporter implements Exporter {
 
-    final File aiSeeFile;
-
-    public AiSeeGraphExporter(File aiSeeFile) {
-        super();
-        this.aiSeeFile = aiSeeFile;
-    }
-
-    public void export(Program program) throws ExportException {
+    public void export(File aiSeeFile, Program program) throws ExportException {
         final Expression expr = program.getExpression();
 
         final PrintWriter aiSeeWriter;
@@ -103,7 +96,7 @@ public class AiSeeGraphExporter implements Exporter {
     }
 
     public String getIdentifier() {
-        return "aiSee Graph File export to " + aiSeeFile.getPath();
+        return "aiSee Graph File export";
     }
 
 }

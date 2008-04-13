@@ -21,14 +21,7 @@ import de.unisb.cs.depend.ccs_sem.utils.TransitionCounter;
 
 public class ETMCCExporter implements Exporter {
 
-    final File traFile;
-
-    public ETMCCExporter(File traFile) {
-        super();
-        this.traFile = traFile;
-    }
-
-    public void export(Program program) throws ExportException {
+    public void export(File traFile, Program program) throws ExportException {
         final Expression expr = program.getExpression();
 
         final PrintWriter traWriter;
@@ -85,7 +78,7 @@ public class ETMCCExporter implements Exporter {
     }
 
     public String getIdentifier() {
-        return "ETMCC file export to " + traFile.getPath();
+        return "ETMCC file export";
     }
 
 }

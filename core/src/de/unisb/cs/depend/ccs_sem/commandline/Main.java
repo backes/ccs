@@ -20,10 +20,10 @@ import de.unisb.cs.depend.ccs_sem.exceptions.ExportException;
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
 import de.unisb.cs.depend.ccs_sem.exporters.AiSeeGraphExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.ETMCCExporter;
-import de.unisb.cs.depend.ccs_sem.exporters.Exporter;
 import de.unisb.cs.depend.ccs_sem.exporters.GraphVizExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.IntegrationtestExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.bcg.BCGExporter;
+import de.unisb.cs.depend.ccs_sem.exporters.helpers.FileWrapperExporter;
 import de.unisb.cs.depend.ccs_sem.lexer.CCSLexer;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token;
 import de.unisb.cs.depend.ccs_sem.parser.CCSParser;
@@ -38,7 +38,7 @@ public class Main implements IParsingProblemListener {
     private static long startTime;
     private File inputFile = null;
     private Evaluator evaluator = null;
-    private final List<Exporter> exporters = new ArrayList<Exporter>(2);
+    private final List<FileWrapperExporter> exporters = new ArrayList<FileWrapperExporter>(2);
     private boolean minimizeWeak = false;
     private boolean minimizeStrong = false;
     private int[] lineOffsets = null;
@@ -147,7 +147,7 @@ public class Main implements IParsingProblemListener {
 
         log("Exporting...");
         boolean errors = false;
-        for (final Exporter exporter: exporters) {
+        for (final FileWrapperExporter exporter: exporters) {
             log("  - " + exporter.getIdentifier());
             try {
                 exporter.export(program);
@@ -326,16 +326,16 @@ public class Main implements IParsingProblemListener {
             System.exit(-1);
         }
         if ("aisee".equalsIgnoreCase(format) || "gdl".equalsIgnoreCase(format)) {
-            exporters.add(new AiSeeGraphExporter(new File(filename)));
+            exporters.add(new FileWrapperExporter(new File(filename), new AiSeeGraphExporter()));
         } else if ("etmcc".equalsIgnoreCase(format) || "tra".equalsIgnoreCase(format)) {
-            exporters.add(new ETMCCExporter(new File(filename)));
+            exporters.add(new FileWrapperExporter(new File(filename), new ETMCCExporter()));
         } else if ("integrationtest".equalsIgnoreCase(format) || "junit".equalsIgnoreCase(format)) {
-            exporters.add(new IntegrationtestExporter(new File(filename)));
+            exporters.add(new FileWrapperExporter(new File(filename), new IntegrationtestExporter()));
         } else if ("graphviz".equalsIgnoreCase(format) || "dot".equalsIgnoreCase(format)) {
-            exporters.add(new GraphVizExporter(new File(filename)));
+            exporters.add(new FileWrapperExporter(new File(filename), new GraphVizExporter()));
         } else if ("bcg".equalsIgnoreCase(format)) {
             try {
-                exporters.add(new BCGExporter(new File(filename)));
+                exporters.add(new FileWrapperExporter(new File(filename), new BCGExporter()));
             } catch (final ExportException e) {
                 System.err.println("Error initializing exporter for '"
                     + filename + "': " + e.getMessage());
