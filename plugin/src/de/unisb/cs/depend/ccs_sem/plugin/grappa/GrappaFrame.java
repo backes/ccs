@@ -4,8 +4,6 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.Graphics;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -21,9 +19,6 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
 import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.events.ControlAdapter;
-import org.eclipse.swt.events.ControlEvent;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -44,6 +39,12 @@ import de.unisb.cs.depend.ccs_sem.plugin.jobs.GraphUpdateJob.GraphUpdateStatus;
 
 
 public class GrappaFrame extends Composite {
+
+    static {
+        Grappa.antiAliasText = true;
+        Grappa.useAntiAliasing = true;
+        Grappa.elementSelection = GrappaConstants.NODE | GrappaConstants.EDGE;
+    }
 
     protected volatile GrappaPanel grappaPanel;
     private final CCSEditor ccsEditor;
@@ -102,28 +103,6 @@ public class GrappaFrame extends Composite {
         bridgeFrame = SWT_AWT.new_Frame(embeddedComposite);
         grappaPanel = createGrappaPanel(graph);
         bridgeFrame.add(grappaPanel);
-
-        scrollComposite.addControlListener(new ControlAdapter() {
-            @Override
-            public void controlResized(ControlEvent e) {
-                graphLock.lock();
-                try {
-                    final Rectangle rect = scrollComposite.getClientArea();
-                    Dimension dim = new Dimension(rect.width, rect.height);
-
-                    grappaPanel.overrideParentSize(dim);
-                    dim = grappaPanel.getDesiredSize();
-                    grappaPanel.setSize(dim);
-                    grappaPanel.setPreferredSize(dim);
-                } finally {
-                    graphLock.unlock();
-                }
-            }
-        });
-
-        Grappa.antiAliasText = true;
-        Grappa.useAntiAliasing = true;
-        Grappa.elementSelection = GrappaConstants.NODE | GrappaConstants.EDGE;
     }
 
     private Graph createGraph() {
@@ -147,37 +126,22 @@ public class GrappaFrame extends Composite {
                 }
             }
 
+            @Override
+            protected void setSizeNeeded(Dimension newSizeNeeded) {
+                super.setSizeNeeded(newSizeNeeded);
+                final Dimension minSize = newSizeNeeded == null
+                    ? new Dimension(1, 1) : newSizeNeeded;
+                getDisplay().syncExec(new Runnable() {
+                    public void run() {
+                        scrollComposite.setMinSize(minSize.width, minSize.height);
+                    }
+                });
+            }
+
         };
         newGrappaPanel.addGrappaListener(new GrappaAdapter());
         newGrappaPanel.setScaleToFit(scaleToFit);
         newGraph.addPanel(newGrappaPanel);
-        newGrappaPanel.addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentResized(ComponentEvent e) {
-                getDisplay().asyncExec(new Runnable() {
-                    public void run() {
-                        graphLock.lock();
-                        try {
-                            final Dimension dim = scaleToFit ? new Dimension(1, 1)
-                                : grappaPanel.getDesiredSize();
-                            scrollComposite.setMinSize(dim.width, dim.height);
-                        } finally {
-                            graphLock.unlock();
-                        }
-                    }
-                });
-            }
-        });
-
-        // set the parent size
-        getDisplay().asyncExec(new Runnable() {
-            public void run() {
-                if (newGrappaPanel.getOverriddenParentSize() == null) {
-                    final Rectangle rect = scrollComposite.getClientArea();
-                    newGrappaPanel.overrideParentSize(new Dimension(rect.width, rect.height));
-                }
-            }
-        });
 
         return newGrappaPanel;
     }
@@ -413,6 +377,14 @@ public class GrappaFrame extends Composite {
     public void redraw() {
         grappaPanel.repaint();
         super.redraw();
+    }
+
+    public Dimension getGrappaPanelSize() {
+        return grappaPanel.getSize();
+    }
+
+    public Graph getGraph() {
+        return graph;
     }
 
 }

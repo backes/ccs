@@ -5,6 +5,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -12,6 +15,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.ISelectionListener;
@@ -21,6 +25,18 @@ import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.part.PageBook;
 import org.eclipse.ui.part.ViewPart;
 
+import att.grappa.Graph;
+import de.unisb.cs.depend.ccs_sem.exporters.AiSeeGraphExporter;
+import de.unisb.cs.depend.ccs_sem.exporters.ETMCCExporter;
+import de.unisb.cs.depend.ccs_sem.exporters.GraphVizExporter;
+import de.unisb.cs.depend.ccs_sem.plugin.actions.Evaluate;
+import de.unisb.cs.depend.ccs_sem.plugin.actions.ExportGraph;
+import de.unisb.cs.depend.ccs_sem.plugin.actions.ExportProgram;
+import de.unisb.cs.depend.ccs_sem.plugin.actions.StepByStepTraverse;
+import de.unisb.cs.depend.ccs_sem.plugin.dotExporters.GifDotExporter;
+import de.unisb.cs.depend.ccs_sem.plugin.dotExporters.PNGDotExporter;
+import de.unisb.cs.depend.ccs_sem.plugin.dotExporters.PostscriptDotExporter;
+import de.unisb.cs.depend.ccs_sem.plugin.dotExporters.SVGDotExporter;
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor;
 import de.unisb.cs.depend.ccs_sem.plugin.views.components.CCSFrame;
 
@@ -61,6 +77,44 @@ public class CCSGraphView extends ViewPart implements ISelectionListener, IPartL
         final IEditorPart activeEditor = page.getActiveEditor();
         if (activeEditor != null)
             selectionChanged(activeEditor, null);
+
+        final IActionBars bars = getViewSite().getActionBars();
+        fillToolbar(bars.getToolBarManager());
+        fillMenu(bars.getMenuManager());
+    }
+
+    private void fillToolbar(IToolBarManager toolBarManager) {
+        toolBarManager.add(new Evaluate());
+        toolBarManager.add(new StepByStepTraverse());
+    }
+
+    private void fillMenu(IMenuManager menuManager) {
+        final IMenuManager exportMenu = new MenuManager("Export");
+        exportMenu.add(new ExportProgram("Export to dot file", new GraphVizExporter(),
+            new String[] { "*.dot", "Dot File (*.dot)" }));
+        exportMenu.add(new ExportProgram("Export to aiSee graph file", new AiSeeGraphExporter(),
+            new String[] { "*.gdl", "AiSee Graph File (*.gdl)" }));
+        exportMenu.add(new ExportProgram("Export to ETMCC format", new ETMCCExporter(),
+            new String[] { "*.tra", "ETMCC File (*.tra)" }));
+
+        exportMenu.add(new ExportGraph("Export to postscript (using dot)",
+            new PostscriptDotExporter(),
+            this,
+            new String[] { "*.ps", "Postscript File (*.ps)" }));
+        exportMenu.add(new ExportGraph("Export to SVG (using dot)",
+            new SVGDotExporter(),
+            this,
+            new String[] { "*.svg", "SVG File (*.svg)" }));
+        exportMenu.add(new ExportGraph("Export to PNG (using dot)",
+            new PNGDotExporter(),
+            this,
+            new String[] { "*.png", "PNG File (*.png)" }));
+        exportMenu.add(new ExportGraph("Export to GIF (using dot)",
+            new GifDotExporter(),
+            this,
+            new String[] { "*.gif", "GIF File (*.gif)" }));
+
+        menuManager.add(exportMenu);
     }
 
     @Override
@@ -132,6 +186,20 @@ public class CCSGraphView extends ViewPart implements ISelectionListener, IPartL
 
     public void partOpened(IWorkbenchPart part) {
         // ignore
+    }
+
+    public boolean isMinimize() {
+        final Control page = currentPage;
+        if (page instanceof CCSFrame)
+            return ((CCSFrame)page).isMinimize();
+        return false;
+    }
+
+    public Graph getGraph() {
+        final Control page = currentPage;
+        if (page instanceof CCSFrame)
+            return ((CCSFrame)page).getGraph();
+        return null;
     }
 
 }

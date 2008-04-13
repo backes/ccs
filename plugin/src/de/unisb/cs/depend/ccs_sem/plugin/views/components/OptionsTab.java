@@ -1,5 +1,7 @@
 package de.unisb.cs.depend.ccs_sem.plugin.views.components;
 
+import java.awt.Dimension;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -20,6 +22,10 @@ import de.unisb.cs.depend.ccs_sem.plugin.jobs.EvaluationJob.EvaluationStatus;
 public class OptionsTab extends CTabItem {
 
     protected GrappaFrame gFrame;
+    protected Button buttonZoomIn;
+    protected Button buttonZoomOut;
+
+    protected boolean scaleToFit = true;
 
     public OptionsTab(CTabFolder parent, int style, GrappaFrame grappaFrame, final CCSFrame ccsFrame) {
         super(parent, style);
@@ -48,12 +54,12 @@ public class OptionsTab extends CTabItem {
         buttonScaleToFitGridData.horizontalSpan = 2;
         buttonScaleToFit.setLayoutData(buttonScaleToFitGridData);
 
-        final Button buttonZoomIn = new Button(scalingGroup, SWT.PUSH);
+        buttonZoomIn = new Button(scalingGroup, SWT.PUSH);
         buttonZoomIn.setEnabled(false);
         buttonZoomIn.setText("Zoom in");
         buttonZoomIn.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
 
-        final Button buttonZoomOut = new Button(scalingGroup, SWT.PUSH);
+        buttonZoomOut = new Button(scalingGroup, SWT.PUSH);
         buttonZoomOut.setEnabled(false);
         buttonZoomOut.setText("Zoom out");
         buttonZoomOut.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
@@ -93,10 +99,9 @@ public class OptionsTab extends CTabItem {
         buttonScaleToFit.addListener(SWT.Selection, new Listener() {
 
             public void handleEvent(Event event) {
-                boolean scaleToFit = buttonScaleToFit.getSelection();
-                buttonZoomIn.setEnabled(!scaleToFit);
-                buttonZoomOut.setEnabled(!scaleToFit);
+                scaleToFit = buttonScaleToFit.getSelection();
                 gFrame.setScaleToFit(scaleToFit);
+                updateZoomInButtonStates();
             }
 
         });
@@ -104,6 +109,7 @@ public class OptionsTab extends CTabItem {
 
             public void handleEvent(Event event) {
                 gFrame.zoomIn();
+                updateZoomInButtonStates();
             }
 
         });
@@ -111,6 +117,7 @@ public class OptionsTab extends CTabItem {
 
             public void handleEvent(Event event) {
                 gFrame.zoomOut();
+                updateZoomInButtonStates();
             }
 
         });
@@ -158,9 +165,15 @@ public class OptionsTab extends CTabItem {
         });
     }
 
-    public void update(EvaluationStatus evalStatus) {
-        // TODO Auto-generated method stub
+    protected void updateZoomInButtonStates() {
+        final Dimension size = gFrame.getGrappaPanelSize();
+        final boolean allowZoomIn = size.height * size.width < 10000000; // 1e7
+        buttonZoomIn.setEnabled(allowZoomIn && !scaleToFit);
+        buttonZoomOut.setEnabled(!scaleToFit);
+    }
 
+    public void update(EvaluationStatus evalStatus) {
+        // we don't have to update
     }
 
 }

@@ -19,7 +19,7 @@
 				<if>
 					<and>
 						<not><issigned file="@{file}" name="${signalias}" /></not>
-						<isset property="keypass" />
+						<not><isset property="keypass" /></not>
 					</and>
     				<then>
         		        <input

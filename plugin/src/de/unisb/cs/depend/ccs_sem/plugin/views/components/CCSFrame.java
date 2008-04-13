@@ -8,6 +8,7 @@ import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.widgets.Composite;
 
+import att.grappa.Graph;
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor;
 import de.unisb.cs.depend.ccs_sem.plugin.grappa.GrappaFrame;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.EvaluationJob;
@@ -80,6 +81,14 @@ public class CCSFrame extends SashForm {
         this.minimize = minimize;
         if (update)
             updateEvaluation();
+    }
+
+    public boolean isMinimize() {
+        return minimize;
+    }
+
+    public Graph getGraph() {
+        return gFrame.getGraph();
     }
 
 }

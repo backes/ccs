@@ -61,4 +61,9 @@ public class Global {
         return NEW_CCS_PROJECT_WIZARD_ID;
     }
 
+    public static boolean isWindows() {
+        final String os = System.getProperty("os.name");
+        return os != null && os.toLowerCase().contains("win");
+    }
+
 }

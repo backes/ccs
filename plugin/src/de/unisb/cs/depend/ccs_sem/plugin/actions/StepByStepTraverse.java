@@ -2,7 +2,9 @@ package de.unisb.cs.depend.ccs_sem.plugin.actions;
 
 import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.SafeRunner;
+import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.util.SafeRunnable;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IEditorActionDelegate;
@@ -19,8 +21,8 @@ import de.unisb.cs.depend.ccs_sem.plugin.Global;
 import de.unisb.cs.depend.ccs_sem.plugin.views.StepByStepTraverseView;
 
 
-public class StepByStepTraverse implements IWorkbenchWindowActionDelegate,
-        IEditorActionDelegate, IViewActionDelegate {
+public class StepByStepTraverse extends Action implements
+        IWorkbenchWindowActionDelegate, IEditorActionDelegate, IViewActionDelegate {
 
     public static final ISafeRunnable safeRunnable = new SafeRunnable() {
 
@@ -38,8 +40,14 @@ public class StepByStepTraverse implements IWorkbenchWindowActionDelegate,
                 ((StepByStepTraverseView)view).changeEditor(activeEditor);
             }
         }
-
     };
+
+    public StepByStepTraverse() {
+        super("Step by step traverse");
+        setImageDescriptor(ImageDescriptor.createFromURL(getClass().getResource("/icons/step.gif")));
+        setDisabledImageDescriptor(ImageDescriptor.createFromURL(getClass().getResource("/icons/step_dis.gif")));
+        setToolTipText("Step by step traverse");
+    }
 
     public void dispose() {
         // nothing to do
@@ -49,8 +57,13 @@ public class StepByStepTraverse implements IWorkbenchWindowActionDelegate,
         // nothing to do
     }
 
-    public void run(IAction action) {
+    @Override
+    public void run() {
         SafeRunner.run(safeRunnable);
+    }
+
+    public void run(IAction action) {
+        run();
     }
 
     public void selectionChanged(IAction action, ISelection selection) {

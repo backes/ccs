@@ -189,7 +189,7 @@ public class EvaluationJob extends Job {
 
                 if (errorsOccured.get() || ccsProgram == null) {
                     monitor.done();
-                    return new EvaluationStatus(IStatus.OK, "", "There are errors in your code", null);
+                    return new EvaluationStatus(IStatus.INFO, "", "There are errors in your code", null);
                 }
 
                 monitor.subTask("Checking expression...");

@@ -1,5 +1,6 @@
 package de.unisb.cs.depend.ccs_sem.plugin.actions;
 
+import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IEditorActionDelegate;
@@ -16,7 +17,7 @@ import de.unisb.cs.depend.ccs_sem.plugin.Global;
 import de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView;
 
 
-public class ShowGraph implements IWorkbenchWindowActionDelegate, IEditorActionDelegate {
+public class ShowGraph extends Action implements IWorkbenchWindowActionDelegate, IEditorActionDelegate {
 
     public void dispose() {
         // nothing to do
@@ -26,7 +27,8 @@ public class ShowGraph implements IWorkbenchWindowActionDelegate, IEditorActionD
         // nothing to do
     }
 
-    public void run(IAction action) {
+    @Override
+    public void run() {
         try {
             final IWorkbench workbench = PlatformUI.getWorkbench();
             final IWorkbenchWindow activeWorkbenchWindow = workbench == null ? null
@@ -43,6 +45,10 @@ public class ShowGraph implements IWorkbenchWindowActionDelegate, IEditorActionD
         } catch (final PartInitException e) {
             e.printStackTrace();
         }
+    }
+
+    public void run(IAction action) {
+        run();
     }
 
     public void selectionChanged(IAction action, ISelection selection) {

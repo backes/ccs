@@ -70,33 +70,6 @@
       </wizard>
    </extension>
    <extension
-         point="org.eclipse.ui.viewActions">
-      <viewContribution
-            id="de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView.Contribution"
-            targetID="de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView">
-         <action
-               class="de.unisb.cs.depend.ccs_sem.plugin.actions.Evaluate"
-               disabledIcon="resources/icons/refresh_dis.gif"
-               icon="resources/icons/refresh.gif"
-               id="de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView.actions.refresh"
-               label="Evaluate"
-               menubarPath="graphFunctions"
-               toolbarPath="graphFunctions"
-               tooltip="Evaluate (refresh this graph and other informations)">
-         </action>
-         <action
-               class="de.unisb.cs.depend.ccs_sem.plugin.actions.StepByStepTraverse"
-               disabledIcon="resources/icons/step_dis.gif"
-               icon="resources/icons/step.gif"
-               id="de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView.actions.stepByStepTraverse"
-               label="Step by step traverse"
-               menubarPath="graphFunctions"
-               toolbarPath="graphFunctions"
-               tooltip="Step by step traverse">
-         </action>
-      </viewContribution>
-   </extension>
-   <extension
          point="org.eclipse.ui.editorActions">
       <editorContribution
             id="de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor.editorActions"
@@ -129,26 +102,7 @@
             <groupMarker
                   name="ccsGroup">
             </groupMarker>
-            <groupMarker
-                  name="exportGroup">
-            </groupMarker>
          </menu>
-         <menu
-               id="ccsExportMenu"
-               label="Export"
-               path="/ccsMenu/exportGroup">
-            <groupMarker
-                  name="group1">
-            </groupMarker>
-         </menu>
-         <action
-               class="de.unisb.cs.depend.ccs_sem.plugin.actions.ExportToDotFile"
-               definitionId="de.unisb.cs.depend.ccs_sem.plugin.commands.exportToDotFile"
-               id="de.unisb.cs.depend.ccs_sem.plugin.actions.exportToDotFile"
-               label="Export to Dot File"
-               menubarPath="ccsMenu/exportGroup"
-               style="push">
-         </action>
       </editorContribution>
    </extension>
    <extension
@@ -209,34 +163,6 @@
                tooltip="Create a new CCS File">
          </action>
       </actionSet>
-   </extension>
-   <extension
-         point="org.eclipse.ui.menus">
-      <menuContribution
-            locationURI="menu:de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView?after=additions">
-         <menu
-               id="ccsExport"
-               label="Export">
-            <command
-                  commandId="de.unisb.cs.depend.ccs_sem.plugin.commands.exportToDotFile"
-                  id="ExportToDotFile"
-                  mnemonic="d">
-            </command>
-         </menu>
-      </menuContribution>
-   </extension>
-   <extension
-         point="org.eclipse.ui.commands">
-      <command
-            categoryId="de.unisb.cs.depend.ccs_sem.plugin.commandCategories.export"
-            defaultHandler="de.unisb.cs.depend.ccs_sem.plugin.commands.ExportToDotFile"
-            id="de.unisb.cs.depend.ccs_sem.plugin.commands.exportToDotFile"
-            name="Export to Dot File">
-      </command>
-      <category
-            id="de.unisb.cs.depend.ccs_sem.plugin.commandCategories.export"
-            name="CCS Exporters">
-      </category>
    </extension>
 
 

@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.jface.dialogs.Dialog;
@@ -52,7 +50,7 @@ public class GraphHelper {
     public static boolean filterGraph(final Graph graph, boolean showDialogOnError) throws InterruptedException {
         // start dot
         final List<String> command = new ArrayList<String>();
-        command.add(getDotExecutablePath());
+        command.add(MyPreferenceStore.getDot());
 
         final ProcessBuilder pb = new ProcessBuilder(command);
         Process dotFilter = null;
@@ -84,19 +82,15 @@ public class GraphHelper {
                 final FutureTask<Boolean> filterGraphTask = new FutureTask<Boolean>(filterGraphCall);
                 new Thread(filterGraphTask, "filterGraph").start();
 
-                while (true) {
-                    try {
-                        success &= filterGraphTask.get(100, TimeUnit.MILLISECONDS);
-                        break;
-                    } catch (final ExecutionException e) {
-                        // should not occure (GrappaSupport.filterGraph does not
-                        // throw any Exception)
+                try {
+                    success &= filterGraphTask.get();
+                } catch (final ExecutionException e) {
+                    if (e.getCause() instanceof IOException)
+                        success = false;
+                    else {
+                        // should not occure (GrappaSupport.filterGraph does only
+                        // throw IOException)
                         throw new RuntimeException(e);
-                    } catch (final TimeoutException e) {
-                        if (Thread.interrupted()) {
-                            filterGraphTask.cancel(true);
-                            throw new InterruptedException();
-                        }
                     }
                 }
             } finally {
@@ -141,11 +135,6 @@ public class GraphHelper {
         }
 
         return success;
-    }
-
-    private static String getDotExecutablePath() {
-        final String dotExecutable = MyPreferenceStore.getDot();
-        return dotExecutable;
     }
 
 }
