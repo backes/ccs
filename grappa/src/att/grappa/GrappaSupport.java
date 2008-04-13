@@ -807,6 +807,8 @@ implements GrappaConstants
                 content = null;
             }
         }
+        if (newGraph.length() == 0)
+            return false;
         try {
             fromFilter.close();
         } catch (final IOException ioex) {

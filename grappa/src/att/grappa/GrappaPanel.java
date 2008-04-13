@@ -1,12 +1,9 @@
 package att.grappa;
 
 import java.awt.Color;
-import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Shape;
@@ -42,22 +39,21 @@ import javax.swing.event.PopupMenuListener;
 public class GrappaPanel extends javax.swing.JPanel implements
         att.grappa.GrappaConstants, ComponentListener, AncestorListener,
         PopupMenuListener, MouseListener, MouseMotionListener, Printable,
-        Runnable, Scrollable {
+        Scrollable {
 
     private static final long serialVersionUID = -5985995332514870244L;
 
-    Graph graph;
-    Subgraph subgraph;
-    GrappaBacker backer;
-    boolean nodeLabels, edgeLabels, subgLabels;
-    AffineTransform transform = null;
-    AffineTransform oldTransform = null;
-    AffineTransform inverseTransform = null;
+    private final Graph graph;
+    private final Subgraph subgraph;
+    private final GrappaBacker backer;
+    private boolean nodeLabels, edgeLabels, subgLabels;
+    private AffineTransform transform = null;
+    private AffineTransform oldTransform = null;
+    private AffineTransform inverseTransform = null;
 
-    int nextElement = -1;
-    boolean scaleToFit = false;
-    GrappaSize scaleToSize = null;
-    GrappaListener grappaListener = null;
+    private boolean scaleToFit = false;
+    private GrappaSize scaleToSize = null;
+    private GrappaListener grappaListener = null;
 
     private Element pressedElement = null;
     private GrappaPoint pressedPoint = null;
@@ -65,17 +61,14 @@ public class GrappaPanel extends javax.swing.JPanel implements
     private GrappaStyle selectionStyle = null;
     private GrappaStyle deletionStyle = null;
     private double scaleFactor = 1;
-    private double scaleInfo = 1;
     private GrappaBox outline = null;
     private GrappaBox savedOutline = null;
     private GrappaBox zoomBox = null;
     private boolean inMenu = false;
-    private boolean scaleChanged = false;
-    private Dimension prevsz = null;
 
     private Point2D panelcpt = null;
 
-    private Dimension overriddenParentSize = null;
+    private Dimension sizeNeeded;
 
     /**
      * Constructs a new canvas associated with a particular subgraph. Keep in
@@ -180,20 +173,13 @@ public class GrappaPanel extends javax.swing.JPanel implements
 
     @Override
     public void paintComponent(Graphics g) {
-        Point2D cpt = null;
-
         if (Grappa.synchronizePaint || graph.getSynchronizePaint()) {
             if (graph.setPaint(true)) {
-                cpt = componentPaint(g);
+                componentPaint(g);
                 graph.setPaint(false);
             }
         } else {
-            cpt = componentPaint(g);
-        }
-
-        if (cpt != null) {
-            setCPT(cpt);
-            EventQueue.invokeLater(this);
+            componentPaint(g);
         }
     }
 
@@ -202,107 +188,14 @@ public class GrappaPanel extends javax.swing.JPanel implements
     }
 
     Point2D getCPT() {
-        return (panelcpt);
+        return panelcpt;
     }
 
-    public Dimension getDesiredSize() {
+    private void componentPaint(Graphics g) {
         if (subgraph == null || !subgraph.reserve())
-            return null;
+            return;
 
-        final Rectangle2D rect = subgraph.getBoundingBox();
-        double width = rect.getWidth();
-        double height = rect.getHeight();
-
-        final GrappaSize margins =
-                (GrappaSize) (subgraph.getAttributeValue(MARGIN_ATTR));
-
-        if (margins != null) {
-            width += 2.0 * PointsPerInch * margins.width;
-            height += 2.0 * PointsPerInch * margins.height;
-        }
-
-        if (scaleToFit || scaleToSize != null) {
-            double scaleToWidth = 0;
-            double scaleToHeight = 0;
-            if (scaleToFit) {
-                if (overriddenParentSize == null) {
-                    Container prnt = getParent();
-                    Container tprnt = prnt;
-                    while (tprnt != null
-                            && !(tprnt instanceof javax.swing.JViewport))
-                        tprnt = tprnt.getParent();
-                    if (tprnt != null)
-                        prnt = tprnt;
-                    if (prnt instanceof javax.swing.JViewport) {
-                        final Dimension sz = ((javax.swing.JViewport) prnt).getSize();
-                        scaleToWidth = sz.width;
-                        scaleToHeight = sz.height;
-                    } else {
-                        final Rectangle scaleTo = getVisibleRect();
-                        scaleToWidth = scaleTo.width;
-                        scaleToHeight = scaleTo.height;
-                    }
-                } else {
-                    scaleToWidth = overriddenParentSize.getWidth();
-                    scaleToHeight = overriddenParentSize.getHeight();
-                }
-            } else {
-                scaleToWidth = scaleToSize.width;
-                scaleToHeight = scaleToSize.height;
-            }
-            return new Dimension((int) Math.ceil(scaleToWidth),
-                (int) Math.ceil(scaleToHeight));
-        } else if (zoomBox != null) {
-            Rectangle r;
-            if (overriddenParentSize == null) {
-                Container prnt = getParent();
-                Container tprnt = prnt;
-                while (tprnt != null && !(tprnt instanceof javax.swing.JViewport))
-                    tprnt = tprnt.getParent();
-                if (tprnt != null)
-                    prnt = tprnt;
-                if (prnt instanceof javax.swing.JViewport) {
-                    final Dimension sz = ((javax.swing.JViewport) prnt).getSize();
-                    r = new Rectangle(0, 0, sz.width, sz.height);
-                } else
-                    r = getVisibleRect();
-            } else {
-                r = new Rectangle(overriddenParentSize);
-            }
-            if (zoomBox.width != 0 && zoomBox.height != 0) {
-                double scaleToWidth = r.width;
-                double scaleToHeight = r.height;
-                final double widthRatio = scaleToWidth / zoomBox.width;
-                final double heightRatio = scaleToHeight / zoomBox.height;
-                if (widthRatio < heightRatio) {
-                    scaleFactor = widthRatio;
-                } else {
-                    scaleFactor = heightRatio;
-                }
-                scaleToWidth = width * scaleFactor;
-                scaleToHeight = height * scaleFactor;
-                return new Dimension((int) Math.ceil(scaleToWidth),
-                    (int) Math.ceil(scaleToHeight));
-            }
-            zoomBox = null;
-
-            scaleFactor = scaleInfo;
-        }
-
-        return new Dimension((int) Math.ceil(width * scaleFactor),
-                (int) Math.ceil(height * scaleFactor));
-    }
-
-    private Point2D componentPaint(Graphics g) {
-        if (subgraph == null || !subgraph.reserve())
-            return null;
         final Graphics2D g2d = (Graphics2D) g;
-
-        Container prnt = null;
-        Container tprnt = null;
-        Dimension nsz;
-
-        Point2D cpt = null;
 
         final GrappaBox bbox = new GrappaBox(subgraph.getBoundingBox());
 
@@ -344,36 +237,12 @@ public class GrappaPanel extends javax.swing.JPanel implements
 
         oldTransform = transform;
         transform = new AffineTransform();
+        double scaleInfo = 1;
         if (scaleToFit || scaleToSize != null) {
             scaleFactor = 1;
             zoomBox = null;
-            double scaleToWidth = 0;
-            double scaleToHeight = 0;
-            if (scaleToFit) {
-                if (overriddenParentSize == null) {
-                    tprnt = prnt = getParent();
-                    while (tprnt != null
-                            && !(tprnt instanceof javax.swing.JViewport))
-                        tprnt = tprnt.getParent();
-                    if (tprnt != null)
-                        prnt = tprnt;
-                    if (prnt instanceof javax.swing.JViewport) {
-                        final Dimension sz = ((javax.swing.JViewport) prnt).getSize();
-                        scaleToWidth = sz.width;
-                        scaleToHeight = sz.height;
-                    } else {
-                        final Rectangle scaleTo = getVisibleRect();
-                        scaleToWidth = scaleTo.width;
-                        scaleToHeight = scaleTo.height;
-                    }
-                } else {
-                    scaleToWidth = overriddenParentSize.getWidth();
-                    scaleToHeight = overriddenParentSize.getHeight();
-                }
-            } else {
-                scaleToWidth = scaleToSize.width;
-                scaleToHeight = scaleToSize.height;
-            }
+            final double scaleToWidth = scaleToFit ? getWidth() : scaleToSize.width;
+            final double scaleToHeight = scaleToFit ? getHeight() : scaleToSize.height;
             final double widthRatio = scaleToWidth / bbox.getWidth();
             final double heightRatio = scaleToHeight / bbox.getHeight();
             double xTranslate = 0;
@@ -397,40 +266,15 @@ public class GrappaPanel extends javax.swing.JPanel implements
                 transform.scale(heightRatio, heightRatio);
                 scaleInfo = heightRatio;
             }
-            transform.translate(xTranslate, yTranslate);
-            nsz =
-                    new Dimension((int) Math.ceil(scaleToWidth), (int) Math
-                        .ceil(scaleToHeight));
-            if (prevsz == null || prevsz.getWidth() != nsz.getWidth()
-                    || prevsz.getHeight() != nsz.getHeight()) {
-                setSize(nsz);
-                setPreferredSize(nsz);
-                prevsz = new Dimension(nsz);
-            }
-            transform.translate(-bbox.getMinX(), -bbox.getMinY());
+            transform.translate(xTranslate-bbox.getMinX(), yTranslate-bbox.getMinY());
             scaleFactor = scaleInfo;
         } else if (zoomBox != null) {
-            Rectangle r;
-            if (overriddenParentSize == null) {
-                tprnt = prnt = getParent();
-                while (tprnt != null && !(tprnt instanceof javax.swing.JViewport))
-                    tprnt = tprnt.getParent();
-                if (tprnt != null)
-                    prnt = tprnt;
-                if (prnt instanceof javax.swing.JViewport) {
-                    final Dimension sz = ((javax.swing.JViewport) prnt).getSize();
-                    r = new Rectangle(0, 0, sz.width, sz.height);
-                } else
-                    r = getVisibleRect();
-            } else {
-                r = new Rectangle(overriddenParentSize);
-            }
             scaleFactor = 1;
             if (zoomBox.width != 0 && zoomBox.height != 0
                     && oldTransform != null) {
 
-                double scaleToWidth = r.width;
-                double scaleToHeight = r.height;
+                double scaleToWidth = getWidth();
+                double scaleToHeight = getHeight();
 
                 final double widthRatio = scaleToWidth / zoomBox.width;
                 final double heightRatio = scaleToHeight / zoomBox.height;
@@ -441,113 +285,28 @@ public class GrappaPanel extends javax.swing.JPanel implements
                     scaleFactor = heightRatio;
                 }
                 transform.scale(scaleFactor, scaleFactor);
+                transform.translate(-bbox.getMinX(), -bbox.getMinY());
                 scaleInfo = scaleFactor;
                 //transform.translate(xTranslate, yTranslate);
                 scaleToWidth = bbox.getWidth() * scaleFactor;
                 scaleToHeight = bbox.getHeight() * scaleFactor;
-                nsz =
-                        new Dimension((int) Math.ceil(scaleToWidth), (int) Math
-                            .ceil(scaleToHeight));
-                if (prevsz == null || prevsz.getWidth() != nsz.getWidth()
-                        || prevsz.getHeight() != nsz.getHeight()) {
-                    setSize(nsz);
-                    setPreferredSize(nsz);
-                    prevsz = new Dimension(nsz.width, nsz.height);
-                }
-                transform.translate(-bbox.getMinX(), -bbox.getMinY());
-                cpt =
-                        new Point2D.Double(zoomBox.getCenterX(), zoomBox
-                            .getCenterY());
             }
             zoomBox = null;
 
             scaleFactor = scaleInfo;
+            setSizeNeeded(null);
         } else if (scaleFactor != 1) {
-            final Rectangle r;
-            if (overriddenParentSize == null)
-                r = getVisibleRect();
-            else
-                r = new Rectangle(overriddenParentSize);
-
-            if (scaleChanged) {
-                tprnt = prnt = getParent();
-                while (tprnt != null
-                        && !(tprnt instanceof javax.swing.JViewport))
-                    tprnt = tprnt.getParent();
-                if (tprnt != null)
-                    prnt = tprnt;
-                if (prnt instanceof javax.swing.JViewport
-                        && inverseTransform != null) {
-                    final Point2D pt = new Point2D.Double(r.x, r.y);
-                    cpt = new Point2D.Double(r.x + r.width, r.y + r.height);
-                    inverseTransform.transform(pt, pt);
-                    inverseTransform.transform(cpt, cpt);
-                    cpt.setLocation(pt.getX() + (cpt.getX() - pt.getX()) / 2.,
-                        pt.getY() + (cpt.getY() - pt.getY()) / 2.);
-                } else {
-                    // to save checking again below
-                    prnt = null;
-                }
-            }
-
             transform.scale(scaleFactor, scaleFactor);
+            transform.translate(-bbox.getMinX(), -bbox.getMinY());
             scaleInfo = scaleFactor;
-            int w = (int) Math.ceil(bbox.getWidth() * scaleFactor);
-            int h = (int) Math.ceil(bbox.getHeight() * scaleFactor);
-            w = w < r.width ? r.width : w;
-            h = h < r.height ? r.height : h;
-            nsz = new Dimension(w, h);
-            if (prevsz == null || prevsz.getWidth() != nsz.getWidth()
-                    || prevsz.getHeight() != nsz.getHeight()) {
-                setSize(nsz);
-                setPreferredSize(nsz);
-                prevsz = new Dimension(nsz.width, nsz.height);
-            }
-            transform.translate(-bbox.getMinX(), -bbox.getMinY());
+            setSizeNeeded(new Dimension((int)Math.ceil(bbox.getWidth()*scaleFactor),
+                (int)Math.ceil(bbox.getHeight()*scaleFactor)));
         } else {
-
-            if (scaleChanged) {
-                if (overriddenParentSize == null) {
-                    tprnt = prnt = getParent();
-                    while (tprnt != null
-                            && !(tprnt instanceof javax.swing.JViewport))
-                        tprnt = tprnt.getParent();
-                    if (tprnt != null)
-                        prnt = tprnt;
-                    if (prnt instanceof javax.swing.JViewport
-                            && inverseTransform != null) {
-                        final Rectangle r = getVisibleRect();
-                        final Point2D pt = new Point2D.Double(r.x, r.y);
-                        cpt = new Point2D.Double(r.x + r.width, r.y + r.height);
-                        inverseTransform.transform(pt, pt);
-                        inverseTransform.transform(cpt, cpt);
-                        cpt.setLocation(pt.getX() + (cpt.getX() - pt.getX()) / 2.,
-                            pt.getY() + (cpt.getY() - pt.getY()) / 2.);
-                    } else {
-                        // to save checking again below
-                        prnt = null;
-                    }
-                } else {
-                    cpt = new Point2D.Double(overriddenParentSize.getWidth(), overriddenParentSize.getHeight());
-                    inverseTransform.transform(cpt, cpt);
-                    cpt.setLocation(cpt.getX() / 2., cpt.getY() / 2.);
-                }
-            }
             scaleInfo = 1;
-            nsz =
-                    new Dimension((int) Math.ceil(bbox.getWidth()), (int) Math
-                        .ceil(bbox.getHeight()));
-            if (prevsz == null || prevsz.getWidth() != nsz.getWidth()
-                    || prevsz.getHeight() != nsz.getHeight()) {
-                setSize(nsz);
-                setPreferredSize(nsz);
-                prevsz = new Dimension(nsz.width, nsz.height);
-            }
             transform.translate(-bbox.getMinX(), -bbox.getMinY());
-
+            setSizeNeeded(new Dimension((int)Math.ceil(bbox.getWidth()),
+                (int)Math.ceil(bbox.getHeight())));
         }
-
-        scaleChanged = false;
 
         if (scaleInfo < Grappa.nodeLabelsScaleCutoff) {
             nodeLabels = false;
@@ -568,13 +327,9 @@ public class GrappaPanel extends javax.swing.JPanel implements
         }
         g2d.transform(transform);
 
-        final Rectangle clip = g2d.getClipBounds();
-        // grow bounds to account for Java's frugal definition of what
-        // constitutes the intersectable area of a shape
-        clip.x--;
-        clip.y--;
-        clip.width += 2;
-        clip.height += 2;
+        final Shape clip = g2d.getClip();
+        if (clip == null)
+            return;
 
         synchronized (graph) {
 
@@ -585,10 +340,8 @@ public class GrappaPanel extends javax.swing.JPanel implements
                 Color bkgdColor = null;
 
                 // do fill now in case there is a Backer supplied
-                g2d
-                    .setPaint(bkgdColor =
-                            (Color) (graph
-                                .getGrappaAttributeValue(GRAPPA_BACKGROUND_COLOR_ATTR)));
+                g2d.setPaint(bkgdColor = (Color) (graph
+                        .getGrappaAttributeValue(GRAPPA_BACKGROUND_COLOR_ATTR)));
                 g2d.fill(clip);
                 if (grappaNexus.style.filled || grappaNexus.image != null) {
                     if (grappaNexus.style.filled) {
@@ -627,7 +380,7 @@ public class GrappaPanel extends javax.swing.JPanel implements
         }
 
         //g2d.setBackground(origBackground);
-        ////g2d.setComposite(origComposite);
+        //g2d.setComposite(origComposite);
         //g2d.setPaint(origPaint);
         //g2d.setRenderingHints(origRenderingHints);
         //g2d.setStroke(origStroke);
@@ -636,37 +389,14 @@ public class GrappaPanel extends javax.swing.JPanel implements
 
 
         subgraph.release();
-
-        return (cpt);
     }
 
 
-    /**
-     * Centers the panel at the supplied point.
-     *
-     * @param cpt
-     *            requested center point
-     *
-     */
-    public void centerPanelAtPoint(Point2D cpt) {
-        Container prnt, tprnt;
-        javax.swing.JViewport viewport;
-
-        //System.err.println("cpt="+cpt);
-
-        tprnt = prnt = getParent();
-        while (tprnt != null && !(tprnt instanceof javax.swing.JViewport))
-            tprnt = tprnt.getParent();
-        if (tprnt != null)
-            prnt = tprnt;
-        if (prnt instanceof javax.swing.JViewport) {
-            viewport = (javax.swing.JViewport) prnt;
-            transform.transform(cpt, cpt);
-            final Dimension viewsize = viewport.getExtentSize();
-            viewport.setViewPosition(new Point(
-                    (int) (cpt.getX() - (viewsize.width) / 2.),
-                    (int) (cpt.getY() - (viewsize.height) / 2.)));
-        } // else ...
+    protected void setSizeNeeded(Dimension newSizeNeeded) {
+        if (newSizeNeeded == null ? sizeNeeded != null : !newSizeNeeded.equals(sizeNeeded)) {
+            sizeNeeded = newSizeNeeded;
+            revalidate();
+        }
     }
 
     /**
@@ -730,22 +460,27 @@ public class GrappaPanel extends javax.swing.JPanel implements
      *            otherwise the graph is drawn full-size.
      */
     public void setScaleToFit(boolean setting) {
-        prevsz = null;
         scaleToFit = setting;
+        if (setting) {
+            zoomBox = null;
+            setSizeNeeded(null);
+        }
+        revalidate();
     }
 
     /**
      * Scale the graph drawing to a specific size.
      */
     public void setScaleToSize(Dimension2D scaleSize) {
-
-        prevsz = null;
         if (scaleSize == null) {
             scaleToSize = null;
         } else {
+            zoomBox = null;
+            setSizeNeeded(null);
             scaleToSize =
                     new GrappaSize(scaleSize.getWidth(), scaleSize.getHeight());
         }
+        revalidate();
     }
 
     /**
@@ -761,9 +496,9 @@ public class GrappaPanel extends javax.swing.JPanel implements
      * Reset the scale factor to one.
      */
     public void resetZoom() {
-        scaleChanged = scaleFactor != 1;
         scaleFactor = 1;
         zoomBox = null;
+        revalidate();
     }
 
     /**
@@ -827,8 +562,8 @@ public class GrappaPanel extends javax.swing.JPanel implements
         scaleFactor *= multiplier;
         if (scaleFactor == 0)
             scaleFactor = old;
-        scaleChanged = scaleFactor != old;
-        return (old);
+        revalidate();
+        return old;
     }
 
 
@@ -1315,6 +1050,11 @@ public class GrappaPanel extends javax.swing.JPanel implements
 
     // --- Scrollable interface ----------------------------------------
 
+    @Override
+    public Dimension getPreferredSize() {
+        return sizeNeeded != null ? sizeNeeded : super.getPreferredSize();
+    }
+
     /**
      * Returns the size of the bounding box of the graph augmented by the margin
      * attribute and any scaling.
@@ -1323,8 +1063,6 @@ public class GrappaPanel extends javax.swing.JPanel implements
      * @see JViewport#getPreferredSize()
      */
     public Dimension getPreferredScrollableViewportSize() {
-
-        // preferred size is set above as needed, so just return it
         return getPreferredSize();
     }
 
@@ -1344,7 +1082,7 @@ public class GrappaPanel extends javax.swing.JPanel implements
      */
     public int getScrollableUnitIncrement(Rectangle visibleRect,
             int orientation, int direction) {
-        return (1);
+        return 1;
     }
 
     /**
@@ -1376,7 +1114,7 @@ public class GrappaPanel extends javax.swing.JPanel implements
         if (block < 1)
             block = 1;
 
-        return (block);
+        return block;
     }
 
     /**
@@ -1386,7 +1124,7 @@ public class GrappaPanel extends javax.swing.JPanel implements
      * @return false
      */
     public boolean getScrollableTracksViewportWidth() {
-        return (false);
+        return false;
     }
 
     /**
@@ -1396,23 +1134,57 @@ public class GrappaPanel extends javax.swing.JPanel implements
      * @return false
      */
     public boolean getScrollableTracksViewportHeight() {
-        return (false);
+        return false;
     }
 
-    public void run() {
-        final Point2D cpt = getCPT();
+    public boolean isScaleToFit() {
+        return scaleToFit;
+    }
 
-        if (cpt != null) {
-            centerPanelAtPoint(cpt);
+    public double getCurrentScaleFactor() {
+        if (subgraph == null)
+            return 1.0;
+
+        final GrappaBox bbox = new GrappaBox(subgraph.getBoundingBox());
+
+        final GrappaSize margins =
+                (GrappaSize) (subgraph.getAttributeValue(MARGIN_ATTR));
+
+        if (margins != null) {
+            final double x_margin = PointsPerInch * margins.width;
+            final double y_margin = PointsPerInch * margins.height;
+
+            bbox.x -= x_margin;
+            bbox.y -= y_margin;
+            bbox.width += 2.0 * x_margin;
+            bbox.height += 2.0 * y_margin;
+        }
+
+        if (scaleToFit || scaleToSize != null) {
+            final double scaleToWidth = scaleToFit ? getWidth() : scaleToSize.width;
+            final double scaleToHeight = scaleToFit ? getHeight() : scaleToSize.height;
+            final double widthRatio = scaleToWidth / bbox.getWidth();
+            final double heightRatio = scaleToHeight / bbox.getHeight();
+            return Math.min(widthRatio, heightRatio);
+        } else if (zoomBox != null && zoomBox.width != 0 && zoomBox.height != 0) {
+
+                final double scaleToWidth = getWidth();
+                final double scaleToHeight = getHeight();
+
+                final double widthRatio = scaleToWidth / zoomBox.width;
+                final double heightRatio = scaleToHeight / zoomBox.height;
+                return Math.min(widthRatio, heightRatio);
+        } else if (scaleFactor != 1) {
+            return scaleFactor;
+        } else {
+            return 1.0;
         }
     }
 
-    public void overrideParentSize(Dimension dim) {
-        overriddenParentSize = dim;
-    }
-
-    public Dimension getOverriddenParentSize() {
-        return overriddenParentSize;
+    public void setScaleFactor(double scaleFactor) {
+        setScaleToFit(false);
+        this.scaleFactor = scaleFactor;
+        revalidate();
     }
 
 }
