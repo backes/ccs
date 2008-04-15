@@ -157,6 +157,8 @@ public class ExportProgram extends Action {
         saveDialog.setFilterNames(preferredExtensionDescriptions);
         saveDialog.setFilterExtensions(preferredExtensions);
         final String filename = saveDialog.open();
+        if (filename == null)
+            return;
 
         final EvaluationJob evalJob = new EvaluationJob(ccsDoc.get(), minimize);
         evalJob.addJobChangeListener(new JobChangeAdapter() {

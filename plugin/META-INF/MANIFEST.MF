@@ -18,7 +18,14 @@ Bundle-ClassPath: .,
  lib/grappa.jar,
  lib/ccs_core.jar
 Export-Package: de.unisb.cs.depend.ccs_sem.plugin.actions;
-  uses:="org.eclipse.jface.action,
-   org.eclipse.core.runtime,
+  uses:="org.eclipse.core.runtime,
+   de.unisb.cs.depend.ccs_sem.plugin.views,
+   att.grappa,
    org.eclipse.ui,
-   org.eclipse.jface.viewers"
+   de.unisb.cs.depend.ccs_sem.plugin.dotExporters,
+   org.eclipse.jface.action,
+   de.unisb.cs.depend.ccs_sem.exporters,
+   org.eclipse.core.runtime.jobs,
+   org.eclipse.jface.viewers,
+   de.unisb.cs.depend.ccs_sem.plugin.jobs,
+   org.eclipse.swt.widgets"
