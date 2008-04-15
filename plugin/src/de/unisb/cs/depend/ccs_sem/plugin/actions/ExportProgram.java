@@ -146,7 +146,7 @@ public class ExportProgram extends Action {
 
         final CCSDocument ccsDoc = (CCSDocument) doc;
 
-        final IWorkbenchPart graphFrame = activePage.getActivePart();
+        final IWorkbenchPart graphFrame = activePage.findView(Global.getGraphViewId());
         boolean minimize = false;
         if (graphFrame instanceof CCSGraphView)
             minimize = ((CCSGraphView)graphFrame).isMinimize();

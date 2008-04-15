@@ -149,7 +149,7 @@ public class ExportGraph extends Action {
         saveDialog.setFilterExtensions(preferredExtensions);
         final String filename = saveDialog.open();
 
-        final Graph graph = graphView.getGraph();
+        final Graph graph = graphView == null ? null : graphView.getGraph();
         if (graph == null)
             getGraphAndExport(filename);
         else {
@@ -172,7 +172,7 @@ public class ExportGraph extends Action {
 
         final CCSDocument ccsDoc = (CCSDocument) doc;
 
-        final IWorkbenchPart graphFrame = activePage.getActivePart();
+        final IWorkbenchPart graphFrame = activePage.findView(Global.getGraphViewId());
         boolean minimize = false;
         if (graphFrame instanceof CCSGraphView)
             minimize = ((CCSGraphView)graphFrame).isMinimize();
@@ -214,6 +214,7 @@ public class ExportGraph extends Action {
                                 exporterJob.schedule();
                             }
                         });
+                        graphJob.schedule();
                     }
                 }
             }

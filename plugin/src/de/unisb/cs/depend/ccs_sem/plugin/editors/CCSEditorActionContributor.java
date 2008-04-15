@@ -1,23 +1,76 @@
 package de.unisb.cs.depend.ccs_sem.plugin.editors;
 
-import org.eclipse.ui.IEditorPart;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.ui.texteditor.BasicTextEditorActionContributor;
+
+import de.unisb.cs.depend.ccs_sem.exporters.AiSeeGraphExporter;
+import de.unisb.cs.depend.ccs_sem.exporters.ETMCCExporter;
+import de.unisb.cs.depend.ccs_sem.exporters.GraphVizExporter;
+import de.unisb.cs.depend.ccs_sem.plugin.actions.Evaluate;
+import de.unisb.cs.depend.ccs_sem.plugin.actions.ExportGraph;
+import de.unisb.cs.depend.ccs_sem.plugin.actions.ExportProgram;
+import de.unisb.cs.depend.ccs_sem.plugin.actions.StepByStepTraverse;
+import de.unisb.cs.depend.ccs_sem.plugin.dotExporters.GifDotExporter;
+import de.unisb.cs.depend.ccs_sem.plugin.dotExporters.PNGDotExporter;
+import de.unisb.cs.depend.ccs_sem.plugin.dotExporters.PostscriptDotExporter;
+import de.unisb.cs.depend.ccs_sem.plugin.dotExporters.SVGDotExporter;
 
 
 public class CCSEditorActionContributor extends BasicTextEditorActionContributor {
 
-    //private final ResourceBundle myBundle = ResourceBundle.getBundle("CCSEditorActions");
-    //private final RetargetTextEditorAction showGraphAction;
-
     public CCSEditorActionContributor() {
         super();
-        //showGraphAction = new RetargetTextEditorAction(myBundle , "CCS.showGraph");
-        // TODO Auto-generated constructor stub
     }
-    // TODO
 
     @Override
-    public void setActiveEditor(IEditorPart part) {
-        super.setActiveEditor(part);
+    public void contributeToMenu(IMenuManager menu) {
+        super.contributeToMenu(menu);
+
+        final IMenuManager ccsMenu = new MenuManager("CCS");
+        ccsMenu.add(new Evaluate());
+        ccsMenu.add(new StepByStepTraverse());
+
+        final IMenuManager exportMenu = new MenuManager("Export");
+        exportMenu.add(new ExportProgram("Export to dot file", new GraphVizExporter(),
+            new String[] { "*.dot", "Dot File (*.dot)" }));
+        exportMenu.add(new ExportProgram("Export to aiSee graph file", new AiSeeGraphExporter(),
+            new String[] { "*.gdl", "AiSee Graph File (*.gdl)" }));
+        exportMenu.add(new ExportProgram("Export to ETMCC format", new ETMCCExporter(),
+            new String[] { "*.tra", "ETMCC File (*.tra)" }));
+
+        exportMenu.add(new Separator());
+
+        exportMenu.add(new ExportGraph("Export to postscript (using dot)",
+            new PostscriptDotExporter(),
+            null,
+            new String[] { "*.ps", "Postscript File (*.ps)" }));
+        exportMenu.add(new ExportGraph("Export to SVG (using dot)",
+            new SVGDotExporter(),
+            null,
+            new String[] { "*.svg", "SVG File (*.svg)" }));
+        exportMenu.add(new ExportGraph("Export to PNG (using dot)",
+            new PNGDotExporter(),
+            null,
+            new String[] { "*.png", "PNG File (*.png)" }));
+        exportMenu.add(new ExportGraph("Export to GIF (using dot)",
+            new GifDotExporter(),
+            null,
+            new String[] { "*.gif", "GIF File (*.gif)" }));
+
+        ccsMenu.add(exportMenu);
+
+        menu.add(ccsMenu);
+
     }
+
+    @Override
+    public void contributeToToolBar(IToolBarManager toolBarManager) {
+        super.contributeToToolBar(toolBarManager);
+        toolBarManager.add(new Evaluate());
+        toolBarManager.add(new StepByStepTraverse());
+    }
+
 }

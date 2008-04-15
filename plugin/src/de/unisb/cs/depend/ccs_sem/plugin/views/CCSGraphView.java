@@ -8,6 +8,7 @@ import java.util.Set;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -96,6 +97,8 @@ public class CCSGraphView extends ViewPart implements ISelectionListener, IPartL
             new String[] { "*.gdl", "AiSee Graph File (*.gdl)" }));
         exportMenu.add(new ExportProgram("Export to ETMCC format", new ETMCCExporter(),
             new String[] { "*.tra", "ETMCC File (*.tra)" }));
+
+        exportMenu.add(new Separator());
 
         exportMenu.add(new ExportGraph("Export to postscript (using dot)",
             new PostscriptDotExporter(),

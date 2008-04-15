@@ -70,42 +70,6 @@
       </wizard>
    </extension>
    <extension
-         point="org.eclipse.ui.editorActions">
-      <editorContribution
-            id="de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor.editorActions"
-            targetID="de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor">
-         <action
-               class="de.unisb.cs.depend.ccs_sem.plugin.actions.ShowGraph"
-               disabledIcon="resources/icons/refresh_dis.gif"
-               icon="resources/icons/refresh.gif"
-               id="de.unisb.cs.depend.ccs_sem.plugin.actions.ShowGraphAction"
-               label="Evaluate"
-               menubarPath="ccsMenu/ccsGroup"
-               style="push"
-               toolbarPath="ccsGroup"
-               tooltip="Evaluate (opens the Graph view)">
-         </action>
-         <action
-               class="de.unisb.cs.depend.ccs_sem.plugin.actions.StepByStepTraverse"
-               disabledIcon="resources/icons/step_dis.gif"
-               icon="resources/icons/step.gif"
-               id="de.unisb.cs.depend.ccs_sem.plugin.actions.StepByStepTraverse"
-               label="Step by step traverse"
-               menubarPath="ccsMenu/ccsGroup"
-               style="push"
-               toolbarPath="ccsGroup"
-               tooltip="Step by step traverse">
-         </action>
-         <menu
-               id="ccsMenu"
-               label="&amp;CCS">
-            <groupMarker
-                  name="ccsGroup">
-            </groupMarker>
-         </menu>
-      </editorContribution>
-   </extension>
-   <extension
          point="org.eclipse.ui.preferencePages">
       <page
             class="de.unisb.cs.depend.ccs_sem.plugin.preferencePage.CCSPreferencePage"

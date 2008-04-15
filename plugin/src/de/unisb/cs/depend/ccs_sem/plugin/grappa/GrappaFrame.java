@@ -131,7 +131,7 @@ public class GrappaFrame extends Composite {
                 super.setSizeNeeded(newSizeNeeded);
                 final Dimension minSize = newSizeNeeded == null
                     ? new Dimension(1, 1) : newSizeNeeded;
-                getDisplay().syncExec(new Runnable() {
+                getDisplay().asyncExec(new Runnable() {
                     public void run() {
                         scrollComposite.setMinSize(minSize.width, minSize.height);
                     }
@@ -141,6 +141,7 @@ public class GrappaFrame extends Composite {
         };
         newGrappaPanel.addGrappaListener(new GrappaAdapter());
         newGrappaPanel.setScaleToFit(scaleToFit);
+        newGrappaPanel.setToolTipText("");
         newGraph.addPanel(newGrappaPanel);
 
         return newGrappaPanel;
