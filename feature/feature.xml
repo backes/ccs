@@ -2,7 +2,8 @@
 <feature
       id="de.unisb.cs.depend.ccs_sem.feature"
       label="CCS Evaluator"
-      version="0.9.03">
+      version="0.9.03"
+      plugin="de.unisb.cs.depend.ccs_sem.plugin">
 
    <description>
       This tool is able to evaluate a value-passing CCS term into a labelled transition system, and to visualize and export it.
@@ -116,8 +117,8 @@ This Agreement is governed by the laws of the State of New York and the intellec
 
    <plugin
          id="de.unisb.cs.depend.ccs_sem.plugin"
-         download-size="0"
-         install-size="0"
+         download-size="600"
+         install-size="900"
          version="0.0.0"/>
 
 </feature>

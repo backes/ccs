@@ -20,8 +20,8 @@ public class Evaluate extends Action implements IViewActionDelegate {
 
     public Evaluate() {
         super("Evaluate");
-        setImageDescriptor(ImageDescriptor.createFromURL(getClass().getResource("/icons/refresh.gif")));
-        setDisabledImageDescriptor(ImageDescriptor.createFromURL(getClass().getResource("/icons/refresh_dis.gif")));
+        setImageDescriptor(ImageDescriptor.createFromURL(getClass().getResource("/resources/icons/refresh.gif")));
+        setDisabledImageDescriptor(ImageDescriptor.createFromURL(getClass().getResource("/resources/icons/refresh_dis.gif")));
         setToolTipText("Evaluate (refresh this graph and other informations)");
     }
 

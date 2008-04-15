@@ -9,9 +9,9 @@ import org.eclipse.ui.texteditor.BasicTextEditorActionContributor;
 import de.unisb.cs.depend.ccs_sem.exporters.AiSeeGraphExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.ETMCCExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.GraphVizExporter;
-import de.unisb.cs.depend.ccs_sem.plugin.actions.Evaluate;
 import de.unisb.cs.depend.ccs_sem.plugin.actions.ExportGraph;
 import de.unisb.cs.depend.ccs_sem.plugin.actions.ExportProgram;
+import de.unisb.cs.depend.ccs_sem.plugin.actions.ShowGraph;
 import de.unisb.cs.depend.ccs_sem.plugin.actions.StepByStepTraverse;
 import de.unisb.cs.depend.ccs_sem.plugin.dotExporters.GifDotExporter;
 import de.unisb.cs.depend.ccs_sem.plugin.dotExporters.PNGDotExporter;
@@ -30,7 +30,7 @@ public class CCSEditorActionContributor extends BasicTextEditorActionContributor
         super.contributeToMenu(menu);
 
         final IMenuManager ccsMenu = new MenuManager("CCS");
-        ccsMenu.add(new Evaluate());
+        ccsMenu.add(new ShowGraph());
         ccsMenu.add(new StepByStepTraverse());
 
         final IMenuManager exportMenu = new MenuManager("Export");
@@ -69,7 +69,7 @@ public class CCSEditorActionContributor extends BasicTextEditorActionContributor
     @Override
     public void contributeToToolBar(IToolBarManager toolBarManager) {
         super.contributeToToolBar(toolBarManager);
-        toolBarManager.add(new Evaluate());
+        toolBarManager.add(new ShowGraph());
         toolBarManager.add(new StepByStepTraverse());
     }
 

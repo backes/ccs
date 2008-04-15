@@ -44,8 +44,8 @@ public class StepByStepTraverse extends Action implements
 
     public StepByStepTraverse() {
         super("Step by step traverse");
-        setImageDescriptor(ImageDescriptor.createFromURL(getClass().getResource("/icons/step.gif")));
-        setDisabledImageDescriptor(ImageDescriptor.createFromURL(getClass().getResource("/icons/step_dis.gif")));
+        setImageDescriptor(ImageDescriptor.createFromURL(getClass().getResource("/resources/icons/step.gif")));
+        setDisabledImageDescriptor(ImageDescriptor.createFromURL(getClass().getResource("/resources/icons/step_dis.gif")));
         setToolTipText("Step by step traverse");
     }
 

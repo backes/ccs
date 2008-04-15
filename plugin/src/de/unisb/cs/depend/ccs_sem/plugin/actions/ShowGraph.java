@@ -2,6 +2,7 @@ package de.unisb.cs.depend.ccs_sem.plugin.actions;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IEditorActionDelegate;
 import org.eclipse.ui.IEditorPart;
@@ -18,6 +19,13 @@ import de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView;
 
 
 public class ShowGraph extends Action implements IWorkbenchWindowActionDelegate, IEditorActionDelegate {
+
+    public ShowGraph() {
+        super("Evaluate");
+        setImageDescriptor(ImageDescriptor.createFromURL(getClass().getResource("/resources/icons/refresh.gif")));
+        setDisabledImageDescriptor(ImageDescriptor.createFromURL(getClass().getResource("/resources/icons/refresh_dis.gif")));
+        setToolTipText("Evaluate (opens the Graph view)");
+    }
 
     public void dispose() {
         // nothing to do
