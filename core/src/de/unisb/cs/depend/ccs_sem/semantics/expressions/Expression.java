@@ -137,7 +137,7 @@ public abstract class Expression {
      * @return the alphabet of this Expression
      */
     public final Set<Action> getAlphabet() {
-        return getAlphabet(new HashSet<ProcessVariable>());
+        return getAlphabet(new HashSet<ProcessVariable>(4));
     }
 
     public abstract Set<Action> getAlphabet(Set<ProcessVariable> alreadyIncluded);

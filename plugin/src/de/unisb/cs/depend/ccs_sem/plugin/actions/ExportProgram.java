@@ -66,6 +66,7 @@ public class ExportProgram extends Action {
             this.file = filename;
             this.status = status;
             setUser(true);
+            setPriority(INTERACTIVE);
             setRule(new SchedulingRule(filename));
         }
 

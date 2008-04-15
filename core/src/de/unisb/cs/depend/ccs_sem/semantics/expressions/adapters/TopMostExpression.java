@@ -29,7 +29,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
  */
 public class TopMostExpression extends Expression {
 
-    Expression myExpr;
+    private final Expression myExpr;
 
     public TopMostExpression(Expression myExpr) {
         super();

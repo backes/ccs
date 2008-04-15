@@ -49,6 +49,7 @@ public class EvaluationJob extends Job {
         this.ccsCode = ccsCode;
         this.minimize = minimize;
         setUser(true);
+        setPriority(INTERACTIVE);
         setRule(rule);
     }
 

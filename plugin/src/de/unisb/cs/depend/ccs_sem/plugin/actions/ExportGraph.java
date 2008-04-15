@@ -68,6 +68,7 @@ public class ExportGraph extends Action {
             this.file = filename;
             this.graph = graph;
             setUser(true);
+            setPriority(INTERACTIVE);
             setRule(new SchedulingRule(filename));
         }
 

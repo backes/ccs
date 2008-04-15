@@ -51,7 +51,7 @@ public class StopExpression extends Expression {
     @Override
     public Set<Action> getAlphabet(Set<ProcessVariable> alreadyIncluded) {
         // no Collections.emptySet() here because it could be modified by the caller
-        return new HashSet<Action>();
+        return new HashSet<Action>(0);
     }
 
     @Override

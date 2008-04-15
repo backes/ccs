@@ -14,6 +14,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.InputAction;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.TauAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterReference;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
@@ -85,7 +86,8 @@ public class PrefixExpression extends Expression {
     @Override
     public Set<Action> getAlphabet(Set<ProcessVariable> alreadyIncluded) {
         final Set<Action> successorAlphabet = target.getAlphabet(alreadyIncluded);
-        successorAlphabet.add(prefix);
+        if (!(prefix instanceof TauAction))
+            successorAlphabet.add(prefix);
         return successorAlphabet;
     }
 

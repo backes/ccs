@@ -49,6 +49,7 @@ public class GraphUpdateJob extends Job {
         this.showNodeLabels = showNodeLabels;
         this.showEdgeLabels = showEdgeLabels;
         setUser(true);
+        setPriority(INTERACTIVE);
         setRule(rule);
     }
 

@@ -113,10 +113,9 @@ public class RecursiveExpression extends Expression {
 
     @Override
     public Set<Action> getAlphabet(Set<ProcessVariable> alreadyIncluded) {
-        if (alreadyIncluded.contains(referencedProcessVariable))
+        if (!alreadyIncluded.add(referencedProcessVariable))
             // no Collections.emptySet() here because it could be modified by the caller
             return new HashSet<Action>(0);
-        alreadyIncluded.add(referencedProcessVariable);
         final Set<Action> alphabet = referencedProcessVariable.getValue().getAlphabet(alreadyIncluded);
         // we have to remove it afterwards, so that other branches evaluate the full alphabet
         alreadyIncluded.remove(referencedProcessVariable);

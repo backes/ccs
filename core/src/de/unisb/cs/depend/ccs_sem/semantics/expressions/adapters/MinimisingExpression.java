@@ -121,7 +121,8 @@ public class MinimisingExpression extends Expression {
         MinimisingExpression e = null;
         while ((e = queue.poll()) != null) {
             for (final Transition trans: e.getTransitions()) {
-                alphabet.add(trans.getAction());
+                if (!(trans.getAction() instanceof TauAction))
+                    alphabet.add(trans.getAction());
                 // all successors of MinimisingExpressions must be
                 // MinimisingExpressions and must be evaluated
                 assert trans.getTarget() instanceof MinimisingExpression

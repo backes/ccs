@@ -661,17 +661,18 @@ public class CCSParser implements Parser {
             // it must have parenthesis around it)
 
             final int posStart = tokens.peek().getStartPosition();
-            final Value value = readArithmeticBaseExpression(tokens); // may return null
+            final Value value = readArithmeticBaseExpression(tokens, true); // may return null
             if (value instanceof ParameterReference)
                 try {
-                        ((ParameterReference)value).getParam().setType(Parameter.Type.VALUE);
+                    ((ParameterReference) value).getParam().setType(Parameter.Type.VALUE);
                 } catch (final ParseException e) {
-                    throw new ParseException(e.getMessage(), posStart, tokens.peekPrevious().getEndPosition());
+                    throw new ParseException(e.getMessage(), posStart,
+                        tokens.peekPrevious().getEndPosition());
                 }
             return new InputAction(channel, value);
         } else if (tokens.peek() instanceof Exclamation) {
             tokens.next();
-            // we have an output value
+            // we have an output value (may be null)
             final Value value = readOutputValue(tokens);
             return new OutputAction(channel, value);
         }
@@ -683,7 +684,7 @@ public class CCSParser implements Parser {
     // returns null if there is no output value
     private Value readOutputValue(ExtendedListIterator<Token> tokens) throws ParseException {
         final int posStart = tokens.peek().getStartPosition();
-        final Value value = readArithmeticBaseExpression(tokens); // may return null
+        final Value value = readArithmeticBaseExpression(tokens, true); // may return null
         if (value instanceof ParameterReference)
             try {
                 ((ParameterReference)value).getParam().setType(Parameter.Type.VALUE);
@@ -1070,10 +1071,11 @@ public class CCSParser implements Parser {
         }
 
         // else:
-        return readArithmeticBaseExpression(tokens);
+        return readArithmeticBaseExpression(tokens, false);
     }
 
-    private Value readArithmeticBaseExpression(ExtendedListIterator<Token> tokens) throws ParseException {
+    private Value readArithmeticBaseExpression(ExtendedListIterator<Token> tokens,
+            boolean allowNull) throws ParseException {
         final Token nextToken = tokens.next();
         if (nextToken instanceof IntegerToken)
             return new ConstIntegerValue(((IntegerToken)nextToken).getValue());
@@ -1121,6 +1123,8 @@ public class CCSParser implements Parser {
             return value;
         }
         tokens.previous();
+        if (!allowNull)
+            throw new ParseException("Expected arithmetic expression", nextToken);
         return null;
     }
 

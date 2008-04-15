@@ -122,6 +122,7 @@ public class ChoiceExpression extends Expression {
     public Set<Action> getAlphabet(Set<ProcessVariable> alreadyIncluded) {
         final Set<Action> leftAlphabet = left.getAlphabet(alreadyIncluded);
         final Set<Action> rightAlphabet = right.getAlphabet(alreadyIncluded);
+
         if (leftAlphabet.size() < rightAlphabet.size()) {
             rightAlphabet.addAll(leftAlphabet);
             return rightAlphabet;

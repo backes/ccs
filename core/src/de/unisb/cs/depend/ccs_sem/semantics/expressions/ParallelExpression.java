@@ -217,34 +217,16 @@ public class ParallelExpression extends Expression {
 
     @Override
     public Set<Action> getAlphabet(Set<ProcessVariable> alreadyIncluded) {
-        Set<Action> leftAlphabet = left.getAlphabet(alreadyIncluded);
-        Set<Action> rightAlphabet = right.getAlphabet(alreadyIncluded);
+        final Set<Action> leftAlphabet = left.getAlphabet(alreadyIncluded);
+        final Set<Action> rightAlphabet = right.getAlphabet(alreadyIncluded);
 
         if (leftAlphabet.size() < rightAlphabet.size()) {
-            final Set<Action> tmp = leftAlphabet;
-            leftAlphabet = rightAlphabet;
-            rightAlphabet = tmp;
+            rightAlphabet.addAll(leftAlphabet);
+            return rightAlphabet;
+        } else {
+            leftAlphabet.addAll(rightAlphabet);
+            return leftAlphabet;
         }
-
-        leftAlphabet.addAll(rightAlphabet);
-
-        // if there is no "tau" action in the alphabet, search if we can produce one
-        if (!leftAlphabet.contains(TauAction.get())) {
-            searching:
-            for (final Action leftAct: leftAlphabet)
-                for (final Action rightAct: rightAlphabet) {
-                    if (((leftAct instanceof InputAction
-                                && rightAct instanceof OutputAction)
-                            || (rightAct instanceof InputAction
-                                    && leftAct instanceof OutputAction))
-                            && leftAct.getChannel().sameChannel(rightAct.getChannel())) {
-                        leftAlphabet.add(TauAction.get());
-                        break searching;
-                    }
-                }
-        }
-
-        return leftAlphabet;
     }
 
     @Override
