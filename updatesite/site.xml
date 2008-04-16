@@ -3,109 +3,13 @@
    <description url="http://eclipse.hammacher.name/">
       Update site for the CCS-Evaluator Tool Eclipse Plugins written by Clemens Hammacher.
    </description>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.1.0.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.1.0">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.1.1.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.1.01">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.2.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.02">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.3.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.03">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.4.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.04">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.5.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.05">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.6.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.06">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.7.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.07">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.8.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.08">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.9.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.09">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.10.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.10">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.11.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.11">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.12.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.12">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.13.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.13">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.14.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.14">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.15.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.15">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.16.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.16">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.17.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.17">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.18.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.18">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.19.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.19">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.20.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.20">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.21.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.21">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.22.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.22">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.23.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.23">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.24.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.24">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.25.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.25">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.26.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.26">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.27.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.27">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.28.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.28">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.29.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.29">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.30.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.30">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.31.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.31">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.8.32.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.8.32">
-      <category name="CCS"/>
-   </feature>
    <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.9.1.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.9.01">
       <category name="CCS"/>
    </feature>
    <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.9.2.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.9.02">
+      <category name="CCS"/>
+   </feature>
+   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.9.3.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.9.03">
       <category name="CCS"/>
    </feature>
    <category-def name="CCS" label="CCS Evaluator Tool"/>
