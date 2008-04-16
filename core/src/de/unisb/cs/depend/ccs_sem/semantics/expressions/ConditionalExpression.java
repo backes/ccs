@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import de.unisb.cs.depend.ccs_sem.exceptions.ArithmeticError;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
@@ -60,7 +61,12 @@ public class ConditionalExpression extends Expression {
 
     @Override
     public Expression instantiate(Map<Parameter, Value> parameters) {
-        final Value newCondition = condition.instantiate(parameters);
+        Value newCondition;
+        try {
+            newCondition = condition.instantiate(parameters);
+        } catch (final ArithmeticError e) {
+            return ErrorExpression.get();
+        }
         final Expression newConsequence = consequence.instantiate(parameters);
         if (condition.equals(newCondition) && consequence.equals(newConsequence))
             return this;

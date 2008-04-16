@@ -3,6 +3,7 @@ package de.unisb.cs.depend.ccs_sem.semantics.types.values;
 import java.util.Collections;
 import java.util.Map;
 
+import de.unisb.cs.depend.ccs_sem.exceptions.ArithmeticError;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 
@@ -15,7 +16,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrappe
  */
 public abstract class AbstractValue implements Value {
 
-    public Value instantiate(Map<Parameter, Value> parameters) {
+    public Value instantiate(Map<Parameter, Value> parameters) throws ArithmeticError {
         return this;
     }
 

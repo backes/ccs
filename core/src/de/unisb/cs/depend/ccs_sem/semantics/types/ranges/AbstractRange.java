@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
+import de.unisb.cs.depend.ccs_sem.exceptions.ArithmeticError;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
@@ -25,7 +26,7 @@ public abstract class AbstractRange implements Range {
         return new AddRange(this, otherRange, true);
     }
 
-    public Range instantiate(Map<Parameter, Value> parameters) {
+    public Range instantiate(Map<Parameter, Value> parameters) throws ArithmeticError {
         return this;
     }
 

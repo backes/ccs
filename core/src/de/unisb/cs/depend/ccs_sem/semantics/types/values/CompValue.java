@@ -2,6 +2,7 @@ package de.unisb.cs.depend.ccs_sem.semantics.types.values;
 
 import java.util.Map;
 
+import de.unisb.cs.depend.ccs_sem.exceptions.ArithmeticError;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 
@@ -53,7 +54,7 @@ public class CompValue extends AbstractValue implements BooleanValue {
     }
 
     @Override
-    public BooleanValue instantiate(Map<Parameter, Value> parameters) {
+    public BooleanValue instantiate(Map<Parameter, Value> parameters) throws ArithmeticError {
         final Value newLeft = left.instantiate(parameters);
         final Value newRight = right.instantiate(parameters);
         if (left.equals(newLeft) && right.equals(newRight))
@@ -93,10 +94,6 @@ public class CompValue extends AbstractValue implements BooleanValue {
         else
             sb.append(rightStr);
         return sb.toString();
-    }
-
-    public boolean isConstant() {
-        return false;
     }
 
     public int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {

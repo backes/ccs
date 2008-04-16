@@ -2,6 +2,7 @@ package de.unisb.cs.depend.ccs_sem.semantics.types.actions;
 
 import java.util.Map;
 
+import de.unisb.cs.depend.ccs_sem.exceptions.ArithmeticError;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
@@ -73,7 +74,7 @@ public class OutputAction extends Action {
     }
 
     @Override
-    public Action instantiate(Map<Parameter, Value> parameters) {
+    public Action instantiate(Map<Parameter, Value> parameters) throws ArithmeticError {
         final Channel newChannel = channel.instantiate(parameters);
 
         if (value == null) {

@@ -26,7 +26,7 @@ public class ErrorMinimizationTest extends IntegrationTest {
 
     @Override @Test @Ignore
     public void checkStatesExplicitely() {
-        super.checkStatesExplicitely();
+        // do nothing
     }
 
     @Override

@@ -2,6 +2,7 @@ package de.unisb.cs.depend.ccs_sem.semantics.types.values;
 
 import java.util.Map;
 
+import de.unisb.cs.depend.ccs_sem.exceptions.ArithmeticError;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 
@@ -29,7 +30,7 @@ public class NegativeValue extends AbstractValue implements IntegerValue {
     }
 
     @Override
-    public Value instantiate(Map<Parameter, Value> parameters) {
+    public Value instantiate(Map<Parameter, Value> parameters) throws ArithmeticError {
         final Value newNegativeValue = negativeValue.instantiate(parameters);
         if (negativeValue.equals(newNegativeValue))
             return this;
@@ -40,10 +41,6 @@ public class NegativeValue extends AbstractValue implements IntegerValue {
         final boolean needParenthesis = !(negativeValue instanceof ParameterReference
                 || negativeValue instanceof ConstBooleanValue);
         return needParenthesis ? "-(" + negativeValue + ")" : "-" + negativeValue;
-    }
-
-    public boolean isConstant() {
-        return false;
     }
 
     public int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {

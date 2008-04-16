@@ -1,6 +1,7 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types.ranges;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
@@ -30,7 +31,7 @@ public class FullRange extends AbstractRange {
         // "not range restricted parameter" get's evaluated at top level
         assert false;
 
-        return null;
+        return Collections.emptyList();
     }
 
     public boolean isRangeRestricted() {

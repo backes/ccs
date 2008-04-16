@@ -95,8 +95,7 @@ public class UnknownRecursiveExpression extends Expression {
 
     @Override
     public Expression instantiate(Map<Parameter, Value> params) {
-        assert false;
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override

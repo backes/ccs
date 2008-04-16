@@ -2,6 +2,7 @@ package de.unisb.cs.depend.ccs_sem.semantics.types.values;
 
 import java.util.Map;
 
+import de.unisb.cs.depend.ccs_sem.exceptions.ArithmeticError;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 
@@ -29,7 +30,7 @@ public class NotValue extends AbstractValue implements BooleanValue {
     }
 
     @Override
-    public Value instantiate(Map<Parameter, Value> parameters) {
+    public Value instantiate(Map<Parameter, Value> parameters) throws ArithmeticError {
         final Value newNegatedValue = negatedValue.instantiate(parameters);
         if (negatedValue.equals(newNegatedValue))
             return this;
@@ -40,10 +41,6 @@ public class NotValue extends AbstractValue implements BooleanValue {
         final boolean needParenthesis = !(negatedValue instanceof ParameterReference
                 || negatedValue instanceof ConstBooleanValue);
         return needParenthesis ? "!(" + negatedValue + ")" : "!" + negatedValue;
-    }
-
-    public boolean isConstant() {
-        return false;
     }
 
     public int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {

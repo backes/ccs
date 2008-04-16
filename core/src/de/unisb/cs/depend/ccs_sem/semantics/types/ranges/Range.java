@@ -3,6 +3,7 @@ package de.unisb.cs.depend.ccs_sem.semantics.types.ranges;
 import java.util.Collection;
 import java.util.Map;
 
+import de.unisb.cs.depend.ccs_sem.exceptions.ArithmeticError;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
@@ -58,8 +59,9 @@ public interface Range {
      *
      * @param parameters the parameters to substitute
      * @return either <code>this</code> or a new Range
+     * @throws ArithmeticError if a division by zero occures during instantiation
      */
-    Range instantiate(Map<Parameter, Value> parameters);
+    Range instantiate(Map<Parameter, Value> parameters) throws ArithmeticError;
 
     int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences);
 

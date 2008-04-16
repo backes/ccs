@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import de.unisb.cs.depend.ccs_sem.exceptions.ArithmeticError;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.IntervalRange;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.Range;
@@ -200,7 +201,7 @@ public class Parameter {
         connectedParameters.add(param);
     }
 
-    public Parameter instantiate(Map<Parameter, Value> parameters) {
+    public Parameter instantiate(Map<Parameter, Value> parameters) throws ArithmeticError {
         if (range == null)
             return this;
 

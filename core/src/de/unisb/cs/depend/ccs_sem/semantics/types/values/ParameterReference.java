@@ -28,10 +28,6 @@ public class ParameterReference extends AbstractValue {
         return myValue == null ? this : myValue;
     }
 
-    public boolean isConstant() {
-        return false;
-    }
-
     public int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
         final ParameterOrProcessEqualsWrapper myWrapper = new ParameterOrProcessEqualsWrapper(this.param);
         final Integer myNum = parameterOccurences.get(myWrapper);

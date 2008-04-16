@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import de.unisb.cs.depend.ccs_sem.exceptions.ArithmeticError;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstIntegerValue;
@@ -58,7 +59,7 @@ public class IntervalRange extends AbstractRange {
     }
 
     @Override
-    public Range instantiate(Map<Parameter, Value> parameters) {
+    public Range instantiate(Map<Parameter, Value> parameters) throws ArithmeticError {
         final Value newStart = start.instantiate(parameters);
         final Value newEnd = end.instantiate(parameters);
         if (start.equals(newStart) && end.equals(newEnd))

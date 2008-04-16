@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import de.unisb.cs.depend.ccs_sem.exceptions.ArithmeticError;
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.lexer.CCSLexer;
@@ -631,8 +632,15 @@ public class CCSParser implements Parser {
         final Channel channel = readChannel(tokens);
         if (channel == null)
             return null;
-        if (channel instanceof TauChannel)
+        if (channel instanceof TauChannel) {
+            if (tokens.peek() instanceof QuestionMark)
+                throw new ParseException("Tau cannot be used as input channel",
+                    tokens.peek());
+            if (tokens.peek() instanceof Exclamation)
+                throw new ParseException("Tau cannot be used as output channel",
+                    tokens.peek());
             return TauAction.get();
+        }
 
         if (tokens.peek() instanceof QuestionMark) {
             tokens.next();
@@ -1045,7 +1053,12 @@ public class CCSParser implements Parser {
             final Value secondValue = readArithmeticUnaryExpression(tokens);
             ensureInteger(secondValue, "Both sides of a multiplication/division must be integer expressions.",
                 startToken.getStartPosition(), tokens.peekPrevious().getEndPosition());
-            value = MultValue.create(value, secondValue, type);
+            try {
+                value = MultValue.create(value, secondValue, type);
+            } catch (final ArithmeticError e) {
+                throw new ParseException("Arithmetic error: " + e.getMessage(),
+                    startToken.getStartPosition(), tokens.peekPrevious().getEndPosition());
+            }
         }
 
         return value;

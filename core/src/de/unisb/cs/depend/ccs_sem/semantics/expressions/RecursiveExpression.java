@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import de.unisb.cs.depend.ccs_sem.exceptions.ArithmeticError;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
@@ -99,7 +100,12 @@ public class RecursiveExpression extends Expression {
         final ValueList newParameters = new ValueList(parameterValues.size());
         boolean changed = false;
         for (final Value param: parameterValues) {
-            final Value newParam = param.instantiate(params);
+            Value newParam;
+            try {
+                newParam = param.instantiate(params);
+            } catch (final ArithmeticError e) {
+                return ErrorExpression.get();
+            }
             if (!changed && !newParam.equals(param))
                 changed = true;
             newParameters.add(newParam);

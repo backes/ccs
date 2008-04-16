@@ -27,10 +27,6 @@ public class TauChannel extends AbstractValue implements Channel {
         return this;
     }
 
-    public boolean isConstant() {
-        return true;
-    }
-
     public int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
         return 4711;
     }

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import de.unisb.cs.depend.ccs_sem.exceptions.ArithmeticError;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
@@ -56,7 +57,12 @@ public class PrefixExpression extends Expression {
 
     @Override
     public Expression instantiate(Map<Parameter, Value> parameters) {
-        final Action newPrefix = prefix.instantiate(parameters);
+        Action newPrefix;
+        try {
+            newPrefix = prefix.instantiate(parameters);
+        } catch (final ArithmeticError e) {
+            return ErrorExpression.get();
+        }
         // if the prefix is an input action and its parameter changed, we have
         // to substitute it in the target
         final Expression newTarget;

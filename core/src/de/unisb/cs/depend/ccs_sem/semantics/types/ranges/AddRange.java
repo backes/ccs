@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import de.unisb.cs.depend.ccs_sem.exceptions.ArithmeticError;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
@@ -56,7 +57,7 @@ public class AddRange extends AbstractRange {
     }
 
     @Override
-    public Range instantiate(Map<Parameter, Value> parameters) {
+    public Range instantiate(Map<Parameter, Value> parameters) throws ArithmeticError {
         final Range newLeft = left.instantiate(parameters);
         final Range newRight = right.instantiate(parameters);
         if (newLeft.equals(left) && newRight.equals(right))

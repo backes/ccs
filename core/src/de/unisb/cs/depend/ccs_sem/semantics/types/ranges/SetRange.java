@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import de.unisb.cs.depend.ccs_sem.exceptions.ArithmeticError;
 import de.unisb.cs.depend.ccs_sem.exceptions.InternalSystemException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
@@ -57,7 +58,7 @@ public class SetRange extends AbstractRange {
     }
 
     @Override
-    public Range instantiate(Map<Parameter, Value> parameters) {
+    public Range instantiate(Map<Parameter, Value> parameters) throws ArithmeticError {
         final ValueSet newSet = new ValueSet();
         boolean changed = false;
         for (final Value val: values) {

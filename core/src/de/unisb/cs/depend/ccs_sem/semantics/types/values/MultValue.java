@@ -2,6 +2,7 @@ package de.unisb.cs.depend.ccs_sem.semantics.types.values;
 
 import java.util.Map;
 
+import de.unisb.cs.depend.ccs_sem.exceptions.ArithmeticError;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 
@@ -25,7 +26,17 @@ public class MultValue extends AbstractValue implements IntegerValue {
         this.type = type;
     }
 
-    public static IntegerValue create(Value left, Value right, Type type) {
+    /**
+     * Creates a new MultValue. If the parameters are constant, the value is
+     * computed and a new {@link ConstIntegerValue} is returned.
+     *
+     * @param left the left operand
+     * @param right the right operand
+     * @param type the type of the operation (MULT, DIV or MOD)
+     * @return a new {@link MultValue} or a new {@link ConstIntegerValue}
+     * @throws ArithmeticError if type is DIV or MOD and the right operand is 0
+     */
+    public static IntegerValue create(Value left, Value right, Type type) throws ArithmeticError {
         if (left instanceof ConstIntegerValue && right instanceof ConstIntegerValue) {
             final int leftVal = ((ConstIntegerValue)left).getValue();
             final int rightVal = ((ConstIntegerValue)right).getValue();
@@ -35,9 +46,13 @@ public class MultValue extends AbstractValue implements IntegerValue {
                 value = leftVal * rightVal;
                 break;
             case DIV:
+                if (rightVal == 0)
+                    throw new ArithmeticError("Division by zero");
                 value = leftVal / rightVal;
                 break;
             case MOD:
+                if (rightVal == 0)
+                    throw new ArithmeticError("Division by zero (in modulo operator)");
                 value = leftVal % rightVal;
                 break;
             default:
@@ -50,7 +65,7 @@ public class MultValue extends AbstractValue implements IntegerValue {
     }
 
     @Override
-    public IntegerValue instantiate(Map<Parameter, Value> parameters) {
+    public IntegerValue instantiate(Map<Parameter, Value> parameters) throws ArithmeticError {
         final Value newLeft = left.instantiate(parameters);
         final Value newRight = right.instantiate(parameters);
         if (left.equals(newLeft) && right.equals(newRight))
@@ -90,10 +105,6 @@ public class MultValue extends AbstractValue implements IntegerValue {
         else
             sb.append(rightStr);
         return sb.toString();
-    }
-
-    public boolean isConstant() {
-        return false;
     }
 
     public int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {

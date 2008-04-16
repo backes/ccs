@@ -2,6 +2,7 @@ package de.unisb.cs.depend.ccs_sem.semantics.types.values;
 
 import java.util.Map;
 
+import de.unisb.cs.depend.ccs_sem.exceptions.ArithmeticError;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 
@@ -39,7 +40,7 @@ public class ConditionalValue extends AbstractValue {
     }
 
     @Override
-    public Value instantiate(Map<Parameter, Value> parameters) {
+    public Value instantiate(Map<Parameter, Value> parameters) throws ArithmeticError {
         final Value newCondition = condition.instantiate(parameters);
         final Value newThenValue = thenValue.instantiate(parameters);
         final Value newElseValue = elseValue.instantiate(parameters);
@@ -60,10 +61,6 @@ public class ConditionalValue extends AbstractValue {
             + elseString.length() + 6);
         sb.append(conditionString).append(" ? ").append(thenString).append(" : ").append(elseString);
         return sb.toString();
-    }
-
-    public boolean isConstant() {
-        return false;
     }
 
     public int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {

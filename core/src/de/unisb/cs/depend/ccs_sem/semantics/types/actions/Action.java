@@ -3,6 +3,7 @@ package de.unisb.cs.depend.ccs_sem.semantics.types.actions;
 import java.util.HashMap;
 import java.util.Map;
 
+import de.unisb.cs.depend.ccs_sem.exceptions.ArithmeticError;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
@@ -19,7 +20,7 @@ public abstract class Action implements Comparable<Action> {
 
     public abstract Value getValue();
 
-    public abstract Action instantiate(Map<Parameter, Value> parameters);
+    public abstract Action instantiate(Map<Parameter, Value> parameters) throws ArithmeticError;
 
     // toString() has to be overwritten in subclasses!
     @Override
