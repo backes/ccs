@@ -2,6 +2,7 @@ package de.unisb.cs.depend.ccs_sem.evaluators;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,6 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.utils.ConcurrentHashSet;
+import de.unisb.cs.depend.ccs_sem.utils.UniqueQueue;
 
 
 public class ParallelEvaluator implements Evaluator {
@@ -71,9 +73,32 @@ public class ParallelEvaluator implements Evaluator {
                 new EvaluatorJob(expr, evaluateSuccessors);
 
                 try {
-                    while (!currentlyEvaluating.isEmpty())
-                        readyLock.wait();
+                    // use this variable to detect a stuck situation.
+                    // if such a situation is detected, we check if we have
+                    // circular dependencies, that are typically caused by
+                    // unguarded expressions.
+                    int lastCount = -1;
+                    // the wait time is continously increased
+                    int waitTime = 200;
+                    while (lastCount != 0) {
+                        readyLock.wait(waitTime);
+                        waitTime = waitTime * 3 / 2;
+                        int newCount = currentlyEvaluating.size();
+                        if (lastCount == newCount) {
+                            // check for cycle dependencies
+                            if (hasCyclicDependencies()) {
+                                if (monitor != null)
+                                    monitor.error("There are cyclic dependencies in the expressions. " +
+                                        "This typically occures on unguarded expressions.");
+                                errorOccured = true;
+                                break;
+                            }
+                        }
+                        lastCount = newCount;
+                    }
                 } catch (final InterruptedException e) {
+                    if (monitor != null)
+                        monitor.error("interrupted");
                     errorOccured = true;
                     throw e;
                 }
@@ -83,6 +108,28 @@ public class ParallelEvaluator implements Evaluator {
         }
 
         return !errorOccured;
+    }
+
+    private boolean hasCyclicDependencies() {
+        Set<EvaluatorJob> checked = new HashSet<EvaluatorJob>();
+        for (EvaluatorJob job: currentlyEvaluating.values()) {
+            if (checked.contains(job))
+                continue;
+            UniqueQueue<EvaluatorJob> queue = new UniqueQueue<EvaluatorJob>();
+            queue.add(job);
+            EvaluatorJob e;
+            while ((e = queue.poll()) != null) {
+                synchronized (e.expr) {
+                    for (Barrier barrier: e.waiters) {
+                        if (!queue.add(barrier.job))
+                            return true;
+                    }
+                }
+            }
+            checked.addAll(queue.getSeen());
+        }
+
+        return false;
     }
 
     protected void initialize(boolean evaluateSuccessors, EvaluationMonitor monitor2) {
@@ -159,8 +206,8 @@ public class ParallelEvaluator implements Evaluator {
 
     private class EvaluatorJob implements Runnable {
 
-        private List<Barrier> waiters = null;
-        private final Expression expr;
+        protected List<Barrier> waiters = null;
+        protected final Expression expr;
         private final boolean evaluateSuccessors;
         private volatile boolean childrenEvaluated = false;
 
@@ -256,11 +303,11 @@ public class ParallelEvaluator implements Evaluator {
     // ExecutorService reference
     private static class Barrier {
 
-        private final Runnable job;
+        protected final EvaluatorJob job;
         private final Executor jobExecutor;
         private final AtomicInteger waitNo;
 
-        public Barrier(Runnable jobToRun, Executor executor, int startNo) {
+        public Barrier(EvaluatorJob jobToRun, Executor executor, int startNo) {
             this.job = jobToRun;
             this.jobExecutor = executor;
             this.waitNo = new AtomicInteger(startNo);

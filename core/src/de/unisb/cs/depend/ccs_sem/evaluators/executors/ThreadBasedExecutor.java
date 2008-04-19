@@ -2,11 +2,11 @@ package de.unisb.cs.depend.ccs_sem.evaluators.executors;
 
 import java.util.ArrayList;
 import java.util.EmptyStackException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.AbstractExecutorService;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -28,8 +28,7 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
 
     private final ThreadFactory threadFactory;
     protected volatile boolean isShutdown = false;
-    protected ConcurrentMap<Thread, Stack<Runnable>> threadJobs =
-        new ConcurrentHashMap<Thread, Stack<Runnable>>();
+    protected Map<Thread, Stack<Runnable>> threadJobs = new HashMap<Thread, Stack<Runnable>>();
     protected volatile boolean forcedStop = false;
 
     // object for synchronization
@@ -47,6 +46,7 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
     private void initialize(int poolSize) {
         for (int i = 0; i < poolSize; ++i) {
             final Thread newThread = threadFactory.newThread(new Worker());
+            threadJobs.put(newThread, new Stack<Runnable>());
             newThread.start();
         }
     }
@@ -72,7 +72,10 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
         if (!isShutdown)
             return false;
 
-        return threadJobs == null;
+        for (final Thread t: threadJobs.keySet())
+            if (t.isAlive())
+                return false;
+        return true;
     }
 
     public void shutdown() {
@@ -106,8 +109,6 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
             // outside. our own thread may still submit tasks
             if (isShutdown())
                 throw new RejectedExecutionException("Already shutdown.");
-            while (threadJobs.isEmpty())
-                Thread.yield();
             // get the first queue
             jobs = threadJobs.values().iterator().next();
         }
@@ -130,29 +131,21 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
             myThread = Thread.currentThread();
             myJobs = threadJobs.get(myThread);
             if (myJobs == null) {
-                myJobs = new Stack<Runnable>();
-                if (threadJobs == null)
-                    return;
-                if (threadJobs.putIfAbsent(myThread, myJobs) != null)
-                    myJobs = threadJobs.get(myThread);
+                assert false;
+                return;
             }
-            try {
-                while (!forcedStop) {
-                    Runnable nextJob = getNextJob();
-                    if (nextJob == null) {
-                        if (isShutdown && !forcedStop) {
-                            // look a last time for a new job
-                            nextJob = getNextJob();
-                            if (nextJob == null)
-                                break;
-                        } else
-                            continue;
-                    }
-                    nextJob.run();
+            while (!forcedStop) {
+                Runnable nextJob = getNextJob();
+                if (nextJob == null) {
+                    if (isShutdown && !forcedStop) {
+                        // look a last time for a new job
+                        nextJob = getNextJob();
+                        if (nextJob == null)
+                            break;
+                    } else
+                        continue;
                 }
-            } finally {
-                if (threadJobs != null)
-                    threadJobs.remove(myThread);
+                nextJob.run();
             }
         }
 
