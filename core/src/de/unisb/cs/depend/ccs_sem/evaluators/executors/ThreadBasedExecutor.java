@@ -47,8 +47,10 @@ public class ThreadBasedExecutor extends AbstractExecutorService {
         for (int i = 0; i < poolSize; ++i) {
             final Thread newThread = threadFactory.newThread(new Worker());
             threadJobs.put(newThread, new Stack<Runnable>());
-            newThread.start();
         }
+        // the threads must not be started before the threadJobs Map is filled
+        for (final Thread newThread: threadJobs.keySet())
+            newThread.start();
     }
 
     public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {

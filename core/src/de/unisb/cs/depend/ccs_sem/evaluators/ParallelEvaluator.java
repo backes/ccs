@@ -34,7 +34,7 @@ public class ParallelEvaluator implements Evaluator {
 
     protected EvaluationMonitor monitor;
 
-    public boolean errorOccured = false;
+    protected volatile boolean errorOccured = false;
 
     public ParallelEvaluator(int numThreads) {
         this.numThreads = numThreads;
@@ -83,7 +83,7 @@ public class ParallelEvaluator implements Evaluator {
                     while (lastCount != 0) {
                         readyLock.wait(waitTime);
                         waitTime = waitTime * 3 / 2;
-                        int newCount = currentlyEvaluating.size();
+                        final int newCount = currentlyEvaluating.size();
                         if (lastCount == newCount) {
                             // check for cycle dependencies
                             if (hasCyclicDependencies()) {
@@ -111,16 +111,16 @@ public class ParallelEvaluator implements Evaluator {
     }
 
     private boolean hasCyclicDependencies() {
-        Set<EvaluatorJob> checked = new HashSet<EvaluatorJob>();
-        for (EvaluatorJob job: currentlyEvaluating.values()) {
+        final Set<EvaluatorJob> checked = new HashSet<EvaluatorJob>();
+        for (final EvaluatorJob job: currentlyEvaluating.values()) {
             if (checked.contains(job))
                 continue;
-            UniqueQueue<EvaluatorJob> queue = new UniqueQueue<EvaluatorJob>();
+            final UniqueQueue<EvaluatorJob> queue = new UniqueQueue<EvaluatorJob>();
             queue.add(job);
             EvaluatorJob e;
             while ((e = queue.poll()) != null) {
                 synchronized (e.expr) {
-                    for (Barrier barrier: e.waiters) {
+                    for (final Barrier barrier: e.waiters) {
                         if (!queue.add(barrier.job))
                             return true;
                     }
@@ -146,10 +146,10 @@ public class ParallelEvaluator implements Evaluator {
                 errorOccured = true;
                 synchronized (readyLock) {
                     System.err.print("Exception in thread \""
-                        + t.getName() + "\" ");
+                        + t.getName() + "\": ");
                     e.printStackTrace(System.err);
                     if (monitor != null)
-                        monitor.error(e.getClass().getName() + ": " + e.getMessage());
+                        monitor.error(e.toString());
                     readyLock.notifyAll();
                 }
             }
