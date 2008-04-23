@@ -4,10 +4,13 @@ regularität / guardedness
 
 channels/values, parameter zusammenhänge
 
-geänderte semantik
-- parallele stopexpressions fallen weg (wahlweise? -> switch einfuehren)
-- dito für choice
+semantik
 - when wird aufgelöst sobald condition ausgewertet ist
+- modulo ist symmetrisch (-a mod b == -(a mod b))
+- rechtsshift beachtet vorzeichen (entspricht division durch 2)
+
+syntax
+- "i" entspricht tau
 
 expressions sind linksassoziativ (klammern von links), d.h. "x+1+1+1" wird nicht vereinfacht, aber "1+1+1+x" wird vereinfacht zu "3+x"
 (TODO ueberpruefen)
