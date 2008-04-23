@@ -8,12 +8,6 @@ import org.eclipse.ui.console.IConsoleConstants;
 import de.unisb.cs.depend.ccs_sem.plugin.Global;
 
 
-/**
- *  This class is meant to serve as an example for how various contributions
- *  are made to a perspective. Note that some of the extension point id's are
- *  referred to as API constants while others are hardcoded and may be subject
- *  to change.
- */
 public class CCSPerspective implements IPerspectiveFactory {
 
     private IPageLayout factory;

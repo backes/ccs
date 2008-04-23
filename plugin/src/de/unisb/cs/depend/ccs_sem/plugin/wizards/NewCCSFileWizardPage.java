@@ -77,12 +77,11 @@ public class NewCCSFileWizardPage extends WizardNewFileCreationPage {
     protected InputStream getInitialContents() {
         final String contents;
         if (addTextButton.getSelection())
-            contents = "(* This is an example CCS file *)\n\n"
-                + "// some process declarations:\n"
-                + "X = x.y.X;\n"
-                + "Y[c,a,b] = c!a.c!b.Y[c,b,a];\n\n"
-                + "// the main expression:\n"
-                + "X | Y[out, 0, 1]\n";
+            contents = "(* This is an example CCS file *)\n\n" +
+                "Match = strike?. MatchOnFire;\n\n" +
+                "MatchOnFire= light!. MatchOnFire + extinguish;\n\n" +
+                "TwoFireCracker = light?. (bang!. 0 | bang!. 0);\n\n" +
+                "(Match | TwoFireCracker) \\ {light}\n";
         else
             contents = "";
         return new ByteArrayInputStream(contents.getBytes());
