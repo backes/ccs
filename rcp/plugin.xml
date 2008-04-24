@@ -4,12 +4,26 @@
 
    <extension
          id="application"
+         name="CCS Evaluator RCP"
          point="org.eclipse.core.runtime.applications">
-      <application>
+      <application
+            visible="true">
          <run
-               class="ccs_semantics_rcp.Application">
+               class="de.unisb.cs.depend.ccs_sem.rcp.Application">
          </run>
       </application>
+   </extension>
+   <extension
+         id="product"
+         point="org.eclipse.core.runtime.products">
+      <product
+            application="de.unisb.cs.depend.ccs_sem.rcp.application"
+            name="CCS Editor and Evaluator">
+         <property
+               name="appName"
+               value="CCS Editor and Evaluator">
+         </property>
+      </product>
    </extension>
 
 </plugin>

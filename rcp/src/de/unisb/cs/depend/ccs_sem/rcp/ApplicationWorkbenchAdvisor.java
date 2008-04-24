@@ -1,4 +1,4 @@
-package ccs_semantics_rcp;
+package de.unisb.cs.depend.ccs_sem.rcp;
 
 import org.eclipse.ui.application.IWorkbenchConfigurer;
 import org.eclipse.ui.application.IWorkbenchWindowConfigurer;

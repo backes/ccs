@@ -1,4 +1,4 @@
-package ccs_semantics_rcp;
+package de.unisb.cs.depend.ccs_sem.rcp;
 
 import org.eclipse.jface.action.ICoolBarManager;
 import org.eclipse.jface.action.IMenuManager;

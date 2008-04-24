@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: CCS Semantics Plug-in
+Bundle-Name: CCS Evaluator
 Bundle-SymbolicName: de.unisb.cs.depend.ccs_sem.plugin;singleton:=true
 Bundle-Version: 0.9.04.1
 Bundle-Activator: de.unisb.cs.depend.ccs_sem.plugin.Activator

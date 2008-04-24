@@ -134,7 +134,7 @@ public class ProcessVariable {
             try {
                 parameters.get(i).match(values.get(i));
             } catch (final ParseException e) {
-                throw new ParseException("The type of parameter " + i + " does not fit: " + e.getMessage(), -1, -1);
+                throw new ParseException("The type of parameter " + (i+1) + " does not fit: " + e.getMessage(), -1, -1);
             }
         }
     }

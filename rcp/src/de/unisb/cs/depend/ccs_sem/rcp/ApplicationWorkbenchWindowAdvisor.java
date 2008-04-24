@@ -1,4 +1,4 @@
-package ccs_semantics_rcp;
+package de.unisb.cs.depend.ccs_sem.rcp;
 
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.ui.application.ActionBarAdvisor;
@@ -22,7 +22,7 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
     public void preWindowOpen() {
         final IWorkbenchWindowConfigurer configurer = getWindowConfigurer();
 
-        configurer.setInitialSize(new Point(800, 600));
+        configurer.setInitialSize(new Point(900, 700));
 
         configurer.setShowCoolBar(true);
         configurer.setShowStatusLine(true);

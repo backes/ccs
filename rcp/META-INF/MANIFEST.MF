@@ -1,9 +1,9 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: CCS_Semantics_RCP Plug-in
-Bundle-SymbolicName: CCS_Semantics_RCP; singleton:=true
+Bundle-Name: CCS Evaluator RCP
+Bundle-SymbolicName: de.unisb.cs.depend.ccs_sem.rcp;singleton:=true
 Bundle-Version: 1.0.0
-Bundle-Activator: ccs_semantics_rcp.Activator
+Bundle-Activator: de.unisb.cs.depend.ccs_sem.rcp.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  de.unisb.cs.depend.ccs_sem.plugin;visibility:=reexport
