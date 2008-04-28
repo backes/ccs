@@ -11,7 +11,7 @@ public class Assign extends OperatorToken {
 
     @Override
     public String toString() {
-        return "=";
+        return ":=";
     }
 
 }

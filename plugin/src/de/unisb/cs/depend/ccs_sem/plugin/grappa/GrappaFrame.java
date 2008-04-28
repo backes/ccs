@@ -200,20 +200,10 @@ public class GrappaFrame extends Composite {
         }
     }
 
-    public void zoomIn() {
+    public void zoom(double factor) {
         graphLock.lock();
         try {
-            grappaPanel.multiplyScaleFactor(1.25);
-            grappaPanel.repaint();
-        } finally {
-            graphLock.unlock();
-        }
-    }
-
-    public void zoomOut() {
-        graphLock.lock();
-        try {
-            grappaPanel.multiplyScaleFactor(0.8);
+            grappaPanel.multiplyScaleFactor(factor);
             grappaPanel.repaint();
         } finally {
             graphLock.unlock();

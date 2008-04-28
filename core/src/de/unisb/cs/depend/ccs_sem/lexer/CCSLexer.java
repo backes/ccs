@@ -218,7 +218,14 @@ public class CCSLexer extends AbstractLexer {
                 break;
 
             case ':':
-                tokens.add(new Colon(position));
+                nextChar = input.read();
+                if (nextChar == '=')
+                    tokens.add(new Assign(position, ++position));
+                else {
+                    if (nextChar != -1)
+                        input.unread(nextChar);
+                    tokens.add(new Colon(position));
+                }
                 break;
 
             case '<':

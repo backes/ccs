@@ -88,7 +88,7 @@ import de.unisb.cs.depend.ccs_sem.utils.Pair;
  * arithCond           --> arithOr | arithOr "?" arithCond ":" arithCond
  * arithOr             --> arithAnd | arithOr "||" arithAnd
  * arithAnd            --> arithEq | arithAnd "&&" arithEq
- * arithEq             --> arithComp | arithEq ("==" | "!=" | "=") arithComp
+ * arithEq             --> arithComp | arithEq ("==" | "!=" ) arithComp
  * arithComp           --> arithShift | arithShift ("<" | "<=" | ">" | ">=") arithShift
  * arithShift          --> arithAdd | arithShift (">>" | "<<") arithAdd
  * arithAdd            --> arithMult | arithAdd ("+" | "-") arithMult

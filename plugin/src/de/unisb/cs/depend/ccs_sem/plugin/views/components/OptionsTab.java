@@ -21,6 +21,7 @@ import de.unisb.cs.depend.ccs_sem.plugin.jobs.EvaluationJob.EvaluationStatus;
 
 public class OptionsTab extends CTabItem {
 
+    protected static final double ZOOM_FACTOR = 1.25;
     protected GrappaFrame gFrame;
     protected Button buttonZoomIn;
     protected Button buttonZoomOut;
@@ -101,23 +102,23 @@ public class OptionsTab extends CTabItem {
             public void handleEvent(Event event) {
                 scaleToFit = buttonScaleToFit.getSelection();
                 gFrame.setScaleToFit(scaleToFit);
-                updateZoomInButtonStates();
+                updateZoomButtonStates();
             }
 
         });
         buttonZoomIn.addListener(SWT.Selection, new Listener() {
 
             public void handleEvent(Event event) {
-                gFrame.zoomIn();
-                updateZoomInButtonStates();
+                gFrame.zoom(ZOOM_FACTOR);
+                updateZoomButtonStates();
             }
 
         });
         buttonZoomOut.addListener(SWT.Selection, new Listener() {
 
             public void handleEvent(Event event) {
-                gFrame.zoomOut();
-                updateZoomInButtonStates();
+                gFrame.zoom(1.0/ZOOM_FACTOR);
+                updateZoomButtonStates();
             }
 
         });
@@ -165,9 +166,13 @@ public class OptionsTab extends CTabItem {
         });
     }
 
-    protected void updateZoomInButtonStates() {
+    protected void updateZoomButtonStates() {
         final Dimension size = gFrame.getGrappaPanelSize();
-        final boolean allowZoomIn = size.height * size.width < 10000000; // 1e7
+        final double nextHeight = size.height * ZOOM_FACTOR * ZOOM_FACTOR;
+        final double nextWidth = size.width * ZOOM_FACTOR * ZOOM_FACTOR;
+        final boolean allowZoomIn = nextHeight * nextWidth < 10000000 // 1e7
+            && nextHeight <= 32768
+            && nextWidth <= 32768;
         buttonZoomIn.setEnabled(allowZoomIn && !scaleToFit);
         buttonZoomOut.setEnabled(!scaleToFit);
     }
