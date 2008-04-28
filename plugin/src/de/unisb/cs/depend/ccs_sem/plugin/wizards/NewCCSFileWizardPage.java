@@ -78,9 +78,9 @@ public class NewCCSFileWizardPage extends WizardNewFileCreationPage {
         final String contents;
         if (addTextButton.getSelection())
             contents = "(* This is an example CCS file *)\n\n" +
-                "Match = strike?. MatchOnFire;\n\n" +
-                "MatchOnFire= light!. MatchOnFire + extinguish;\n\n" +
-                "TwoFireCracker = light?. (bang!. 0 | bang!. 0);\n\n" +
+                "Match := strike?. MatchOnFire;\n\n" +
+                "MatchOnFire := light!. MatchOnFire + extinguish;\n\n" +
+                "TwoFireCracker := light?. (bang!. 0 | bang!. 0);\n\n" +
                 "(Match | TwoFireCracker) \\ {light}\n";
         else
             contents = "";

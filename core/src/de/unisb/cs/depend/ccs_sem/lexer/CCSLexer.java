@@ -129,8 +129,7 @@ public class CCSLexer extends AbstractLexer {
                 if (nextChar == '&')
                     tokens.add(new And(position, ++position));
                 else {
-                    ++position;
-                    throw new LexException("Syntaxerror: Expected a second '&'", position++);
+                    throw new LexException("Syntaxerror: Expected a second '&'", ++position);
                 }
                 break;
 
@@ -192,9 +191,13 @@ public class CCSLexer extends AbstractLexer {
                 nextChar = input.read();
                 if (nextChar == '=')
                     tokens.add(new Equals(position, ++position));
-                else if (nextChar != -1) {
-                    input.unread(nextChar);
+                else {
+                    throw new LexException("Unknown Token '='. Did you mean ':=' or '=='?", position++);
+                    /*
+                    if (nextChar != -1)
+                        input.unread(nextChar);
                     tokens.add(new Assign(position, position));
+                    */
                 }
                 break;
 

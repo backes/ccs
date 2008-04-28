@@ -3,12 +3,6 @@
    <description url="http://eclipse.hammacher.name/">
       Update site for the CCS-Evaluator Tool Eclipse Plugins written by Clemens Hammacher.
    </description>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.9.1.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.9.01">
-      <category name="CCS"/>
-   </feature>
-   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.9.2.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.9.02">
-      <category name="CCS"/>
-   </feature>
    <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.9.3.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.9.03">
       <category name="CCS"/>
    </feature>
@@ -19,6 +13,9 @@
       <category name="CCS"/>
    </feature>
    <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.9.5.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.9.05">
+      <category name="CCS"/>
+   </feature>
+   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.9.6.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.9.06">
       <category name="CCS"/>
    </feature>
    <category-def name="CCS" label="CCS Evaluator Tool"/>
