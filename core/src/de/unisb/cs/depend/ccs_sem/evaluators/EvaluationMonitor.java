@@ -30,7 +30,7 @@ public interface EvaluationMonitor {
     void error(String errorString);
 
     /**
-     * has the same effekt as
+     * has the same effect as
      * <code>
      *   newState();
      *   newTransitions(numTransitions);

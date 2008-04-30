@@ -7,7 +7,7 @@
         <fileset dir="plugins" includes="*.jar" />
 	</path>
 	
-	<property name="signcertificate" value="F:\Eigene Dateien\Zertifikate\CAcert\2008-04\clemens@hammacher.name_codesign.p12" />
+	<property name="signcertificate" value="${user.home}/certificates/clemens@hammacher.name_codesign.p12" />
 	<property name="signalias" value="cl-hamm" />
 	
 	<taskdef resource="net/sf/antcontrib/antlib.xml" />
