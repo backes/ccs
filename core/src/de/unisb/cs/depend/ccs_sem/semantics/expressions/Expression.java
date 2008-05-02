@@ -140,6 +140,13 @@ public abstract class Expression {
         return getAlphabet(new HashSet<ProcessVariable>(4));
     }
 
+    /**
+     * Only for internal use. Always call {@link #getAlphabet()}.
+     *
+     * @param alreadyIncluded a set of {@link ProcessVariable}s that have
+     *                        already been taken into account
+     * @return (a part of) the alphabet of this Expression
+     */
     public abstract Set<Action> getAlphabet(Set<ProcessVariable> alreadyIncluded);
 
     // we store the hashCode so that we only compute it once
