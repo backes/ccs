@@ -8,7 +8,7 @@ public class LowerCaseProcessVariable extends FailingIntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "x = a.0; x";
+        return "x := a.0; x";
     }
 
     @Override

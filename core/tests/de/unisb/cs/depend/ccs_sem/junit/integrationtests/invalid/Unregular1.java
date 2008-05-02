@@ -8,8 +8,8 @@ public class Unregular1 extends FailingIntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "X = a.b + c.d.Y[bla]; "
-            + "Y[foo] = out!foo | spawn.X; "
+        return "X := a.b + c.d.Y[bla]; "
+            + "Y[foo] := out!foo | spawn.X; "
             + "X";
     }
 

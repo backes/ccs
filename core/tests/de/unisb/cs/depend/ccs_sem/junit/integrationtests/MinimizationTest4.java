@@ -13,7 +13,7 @@ public class MinimizationTest4 extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "X=i.X+a; X";
+        return "X := i.X+a; X";
     }
 
     @Override

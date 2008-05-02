@@ -7,7 +7,7 @@ public class And extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "X[ch,a,b] = ch!(a && b);\n" +
+        return "X[ch,a,b] := ch!(a && b);\n" +
             "X[a, true, true] + X[b, true, false] + X[c, false, false] + X[d, false, true]";
     }
 

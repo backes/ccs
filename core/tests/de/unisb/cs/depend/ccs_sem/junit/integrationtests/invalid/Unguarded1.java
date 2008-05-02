@@ -8,8 +8,8 @@ public class Unguarded1 extends FailingIntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "X[a] = out!a . X[a+1] | Y[a+1]; "
-            + "Y[n] = uepsilon!n . fertisch | X[2*n]; "
+        return "X[a] := out!a . X[a+1] | Y[a+1]; "
+            + "Y[n] := uepsilon!n . fertisch | X[2*n]; "
             + "X[0]";
     }
 

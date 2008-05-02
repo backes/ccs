@@ -8,7 +8,7 @@ public class ProcessVariableAsAction extends FailingIntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "X = 0; a.X.0";
+        return "X := 0; a.X.0";
     }
 
     @Override

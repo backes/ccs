@@ -15,7 +15,7 @@ public class RangeTest1 extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "X[a:{0, 1, 2, 3}] = out!a.X[a + 1];\n"
+        return "X[a:{0, 1, 2, 3}] := out!a.X[a + 1];\n"
             + "\n"
             + "X[0]";
     }

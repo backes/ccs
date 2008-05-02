@@ -7,7 +7,7 @@ public class OverloadParameter2 extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "X[a] = in?a:{a, -a}.in?a:{2*a, -a}.out!a;\n"
+        return "X[a] := in?a:{a, -a}.in?a:{2*a, -a}.out!a;\n"
             + "X[3]";
     }
 

@@ -7,7 +7,7 @@ public class QuotesTest2 extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "X[a] = a!1.\"a\"!2.0;\n"
+        return "X[a] := a!1.\"a\"!2.0;\n"
             + "X[b]";
     }
 

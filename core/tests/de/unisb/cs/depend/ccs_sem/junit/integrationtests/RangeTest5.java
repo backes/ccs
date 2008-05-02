@@ -7,7 +7,7 @@ public class RangeTest5 extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "READ_INT[from, to] = in?a:(from..to).got!a.READ_INT[a+1, to];\n"
+        return "READ_INT[from, to] := in?a:(from..to).got!a.READ_INT[a+1, to];\n"
             + "READ_INT[7, 9]";
     }
 

@@ -15,7 +15,7 @@ public class SynchronizationTest4 extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "OUTPUT[min, max] = x!min.0 + when max > min i.OUTPUT[min + 1, max];\n"
+        return "OUTPUT[min, max] := x!min.0 + when max > min i.OUTPUT[min + 1, max];\n"
             + "\n"
             + "OUTPUT[1, 4] | x?x:((1..3) - {2}).out!x.0 \\ {x}";
     }

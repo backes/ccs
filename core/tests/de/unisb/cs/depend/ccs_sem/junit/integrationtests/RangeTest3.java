@@ -7,7 +7,7 @@ public class RangeTest3 extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "X[a] = in?a:{a}.out!(-a);\n"
+        return "X[a] := in?a:{a}.out!(-a);\n"
             + "X[13]";
     }
 

@@ -7,7 +7,7 @@ public class QuotesSynchronization2 extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "X[y] = y!1;\n"
+        return "X[y] := y!1;\n"
             + "X[\"a\"] | a?n.b!n \\ {a}";
     }
 

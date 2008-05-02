@@ -7,7 +7,7 @@ public class RangeWithParameterTest2 extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "X[a,b] = read?x:a..b.write!x;\n"
+        return "X[a,b] := read?x:a..b.write!x;\n"
             + "X[5,7]";
     }
 

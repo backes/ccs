@@ -7,10 +7,10 @@ import de.unisb.cs.depend.ccs_sem.junit.IntegrationTest;
 The CCS program:
 
 T = tick!.T;
-CLOCK = STOPPED[0] | T \ {tick};
-STOPPED[x] = tick?.STOPPED[x] + start?.RUNNING[x] + stop?.STOPPED[x] + reset?.STOPPED[0] + get!x.STOPPED[x];
-RUNNING[x] = tick?.when x < 3 RUNNING[x + 1] + start?.RUNNING[x] + stop?.STOPPED[x] + reset?.FREEZED[x, x] + get!x.RUNNING[x];
-FREEZED[x, y] = tick?.when x < 3 FREEZED[x + 1, y] + start?.FREEZED[x, y] + stop?.STOPPED[x] + reset?.RUNNING[x] + get!y.FREEZED[x, y];
+CLOCK := STOPPED[0] | T \ {tick};
+STOPPED[x] := tick?.STOPPED[x] + start?.RUNNING[x] + stop?.STOPPED[x] + reset?.STOPPED[0] + get!x.STOPPED[x];
+RUNNING[x] := tick?.when x < 3 RUNNING[x + 1] + start?.RUNNING[x] + stop?.STOPPED[x] + reset?.FREEZED[x, x] + get!x.RUNNING[x];
+FREEZED[x, y] := tick?.when x < 3 FREEZED[x + 1, y] + start?.FREEZED[x, y] + stop?.STOPPED[x] + reset?.RUNNING[x] + get!y.FREEZED[x, y];
 
 CLOCK
 */
@@ -19,7 +19,7 @@ public class ClockExample extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return decode("T = tick!.T%59%13%10CLOCK = STOPPED[0] | T %92 {tick}%59%13%10STOPPED[x] = tick?.STOPPED[x] %43 start?.RUNNING[x] %43 stop?.STOPPED[x] %43 reset?.STOPPED[0] %43 get!x.STOPPED[x]%59%13%10RUNNING[x] = tick?.when x %60 3 RUNNING[x %43 1] %43 start?.RUNNING[x] %43 stop?.STOPPED[x] %43 reset?.FREEZED[x, x] %43 get!x.RUNNING[x]%59%13%10FREEZED[x, y] = tick?.when x %60 3 FREEZED[x %43 1, y] %43 start?.FREEZED[x, y] %43 stop?.STOPPED[x] %43 reset?.RUNNING[x] %43 get!y.FREEZED[x, y]%59%13%10%13%10CLOCK");
+        return decode("T := tick!.T%59%13%10CLOCK := STOPPED[0] | T %92 {tick}%59%13%10STOPPED[x] := tick?.STOPPED[x] %43 start?.RUNNING[x] %43 stop?.STOPPED[x] %43 reset?.STOPPED[0] %43 get!x.STOPPED[x]%59%13%10RUNNING[x] := tick?.when x %60 3 RUNNING[x %43 1] %43 start?.RUNNING[x] %43 stop?.STOPPED[x] %43 reset?.FREEZED[x, x] %43 get!x.RUNNING[x]%59%13%10FREEZED[x, y] := tick?.when x %60 3 FREEZED[x %43 1, y] %43 start?.FREEZED[x, y] %43 stop?.STOPPED[x] %43 reset?.RUNNING[x] %43 get!y.FREEZED[x, y]%59%13%10%13%10CLOCK");
     }
 
     @Override

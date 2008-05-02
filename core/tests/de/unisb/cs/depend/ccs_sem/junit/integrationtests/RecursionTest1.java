@@ -16,8 +16,8 @@ public class RecursionTest1 extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return decode("A[x] = out!x.B[(x + 1) %37 4];\n"
-            + "B[x] = A[x] + foo.B[x];\n"
+        return decode("A[x] := out!x.B[(x + 1) %37 4];\n"
+            + "B[x] := A[x] + foo.B[x];\n"
             + "\n"
             + "A[2]");
     }

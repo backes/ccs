@@ -17,9 +17,9 @@ public class ConditionalTest extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "STRING[b] = out!(b ? yes : no).(when b INTEGER[false] else STRING[!b]);\n"
-            + "INTEGER[b] = out!(b ? 1 : 0).(when b BOOLEAN[!b] + when !b INTEGER[!b]);\n"
-            + "BOOLEAN[b] = out!(b ? false : true).when !b BOOLEAN[true];\n"
+        return "STRING[b] := out!(b ? yes : no).(when b INTEGER[false] else STRING[!b]);\n"
+            + "INTEGER[b] := out!(b ? 1 : 0).(when b BOOLEAN[!b] + when !b INTEGER[!b]);\n"
+            + "BOOLEAN[b] := out!(b ? false : true).when !b BOOLEAN[true];\n"
             + "\n"
             + "STRING[false]";
     }

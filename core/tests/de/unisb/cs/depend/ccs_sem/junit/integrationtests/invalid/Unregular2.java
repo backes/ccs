@@ -8,8 +8,8 @@ public class Unregular2 extends FailingIntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "X[a] = out!a | Y[true] | Y[false]; "
-            + "Y[n] = uepsilon!n . when n (fertisch | X[n ? 17 : 71]); "
+        return "X[a] := out!a | Y[true] | Y[false]; "
+            + "Y[n] := uepsilon!n . when n (fertisch | X[n ? 17 : 71]); "
             + "X[0]";
     }
 

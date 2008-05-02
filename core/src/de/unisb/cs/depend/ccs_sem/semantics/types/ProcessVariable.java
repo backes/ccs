@@ -171,9 +171,9 @@ public class ProcessVariable {
     @Override
     public String toString() {
         if (parameters.size() == 0)
-            return name + " = " + value;
+            return name + " := " + value;
 
-        return name + parameters + " = " + value;
+        return name + parameters + " := " + value;
     }
 
     /**

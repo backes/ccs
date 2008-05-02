@@ -16,7 +16,16 @@ import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.lexer.CCSLexer;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.*;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.*;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.ChoiceExpression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.ConditionalExpression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.ErrorExpression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.ExpressionRepository;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.ParallelExpression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.PrefixExpression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.RestrictExpression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.StopExpression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.UnknownRecursiveExpression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.adapters.TopMostExpression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ChannelSet;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
@@ -233,7 +242,7 @@ public class CCSParser implements Parser {
                         throw new ParseException("Constant name \"" + constName + "\" already used.", nextToken);
 
                     if (!tokens.hasNext() || !(tokens.next() instanceof Assign))
-                        throw new ParseException("Expected '=' after const identifier.", tokens.peekPrevious());
+                        throw new ParseException("Expected ':=' after const identifier.", tokens.peekPrevious());
 
                     final Token startToken = tokens.peek();
                     final Value constValue = readArithmeticExpression(tokens);
@@ -263,7 +272,7 @@ public class CCSParser implements Parser {
                         throw new ParseException("Range name \"" + rangeName + "\" already used.", nextToken);
 
                     if (!tokens.hasNext() || !(tokens.next() instanceof Assign))
-                        throw new ParseException("Expected '=' after range identifier.", tokens.peekPrevious());
+                        throw new ParseException("Expected ':=' after range identifier.", tokens.peekPrevious());
 
                     final Range range = readRange(tokens);
 

@@ -7,7 +7,7 @@ public class Add extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "X[ch,a,b] = ch!(a + b);\n" +
+        return "X[ch,a,b] := ch!(a + b);\n" +
             "X[a, 0, 0] + X[b, 3, 4] + X[c, -2, -3] + X[d, -4, 4]";
     }
 

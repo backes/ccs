@@ -7,8 +7,8 @@ public class QuotesTest4 extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "X[a,b] = a!b . \"a\"!b . a!\"b\";\n"
-            + "Y[x] = x! . X[x,\"x\"];\n"
+        return "X[a,b] := a!b . \"a\"!b . a!\"b\";\n"
+            + "Y[x] := x! . X[x,\"x\"];\n"
             + "\n"
             + "Y[c]\n";
     }

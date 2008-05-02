@@ -7,7 +7,7 @@ public class RestrictionWithParameter1 extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "X[a,b] = a!1 \\ {b};\n"
+        return "X[a,b] := a!1 \\ {b};\n"
             + "X[out, res]";
     }
 

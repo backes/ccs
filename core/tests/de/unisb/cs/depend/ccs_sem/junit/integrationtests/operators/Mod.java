@@ -7,7 +7,7 @@ public class Mod extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "X[ch,a,b] = ch!(a % b);\n" +
+        return "X[ch,a,b] := ch!(a % b);\n" +
             "X[a, 0, 3] + X[b, 1, 3] + X[c, 2, 3] + X[d, 3, 3] + X[e, 4, 3] + " +
             "foo.X[f, 1, 0] + bar.X[g, 0, 0] + " +
             "X[h, -1, 3] + X[i, -2, 3] + X[j, -3, 3] + X[k, -4, 3]";

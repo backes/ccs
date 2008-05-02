@@ -7,7 +7,7 @@ public class QuotesRestriction2 extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "X[a] = a!1 + \"a\"!2 \\ {\"a\"};\n"
+        return "X[a] := a!1 + \"a\"!2 \\ {\"a\"};\n"
             + "x.X[b] + y.X[a]";
     }
 

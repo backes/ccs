@@ -7,7 +7,7 @@ public class Negative extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "X[ch,a] = ch!(-a);\n" +
+        return "X[ch,a] := ch!(-a);\n" +
             "X[a, 0] + X[b, 3] + X[c, -2] + X[d, -0] + X[e, ----6] + X[f, -----6]";
     }
 

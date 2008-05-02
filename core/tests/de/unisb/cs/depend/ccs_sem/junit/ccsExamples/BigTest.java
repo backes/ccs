@@ -19,8 +19,8 @@ public class BigTest extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "A = a.b.wait?x.c.d.found!x.A;\n"
-            + "B = x.y.wait!1.z.wait!2.B;\n"
+        return "A := a.b.wait?x.c.d.found!x.A;\n"
+            + "B := x.y.wait!1.z.wait!2.B;\n"
             + "\n"
             + "A | B | A | B \\ {wait}";
     }

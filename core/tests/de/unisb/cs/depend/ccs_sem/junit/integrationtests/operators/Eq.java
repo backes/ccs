@@ -7,7 +7,7 @@ public class Eq extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "X[ch,a,b] = ch!(a==b);\n" +
+        return "X[ch,a,b] := ch!(a==b);\n" +
             "a!(3==4) + b!(0==-0) + c!(1==-1) + d!(true==true) + e!(false==true) + " +
             "f!(a==b) + g!(a==a) + h!(aa==aaa) + " +
             "xa!(3!=4) + xb!(0!=-0) + xc!(1!=-1) + xd!(true!=true) + xe!(false!=true) + " +

@@ -7,7 +7,7 @@ public class ParameterTypeCheckRecursive extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "X[a] = out!(a+1); Y[a] = foo.X[a]; Y[2]";
+        return "X[a] := out!(a+1); Y[a] := foo.X[a]; Y[2]";
     }
 
     @Override

@@ -8,7 +8,7 @@ public class Unguarded2 extends FailingIntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "X[a] = X[a+1]; X[0]";
+        return "X[a] := X[a+1]; X[0]";
     }
 
     @Override
