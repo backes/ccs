@@ -31,8 +31,7 @@ public class Transition {
 
     /**
      * Called on input transitions to check whether they can synchronize with
-     * the given Action, that has to be an output action (getAction().isOutputAction()
-     * has to yield true).
+     * the given Action, that has to be an output action.
      *
      * @param otherAction the Action to check against
      * @return the new Expression that is reached by this Transition if one matches

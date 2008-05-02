@@ -222,7 +222,7 @@ public class CCSParser implements Parser {
             try {
                 if (tokens.peek() instanceof ConstToken) {
                     tokens.next();
-                    final Token nextToken = tokens.next();
+                    Token nextToken = tokens.next();
                     if (!(nextToken instanceof Identifier))
                         throw new ParseException("Expected an identifier after 'const' keyword.", nextToken);
 
@@ -240,7 +240,9 @@ public class CCSParser implements Parser {
 
                     identifierParsed((Identifier)nextToken, constValue);
 
-                    if (!(tokens.next() instanceof Semicolon))
+                    nextToken = tokens.next();
+                    // TODO remove this ambiguousness
+                    if (!(nextToken instanceof Semicolon) && !(nextToken instanceof Comma))
                         throw new ParseException("Expected ';' after constant declaration.", tokens.peekPrevious());
 
                     if (!(constValue instanceof ConstantValue))
@@ -250,7 +252,7 @@ public class CCSParser implements Parser {
                     constants.put(constName, (ConstantValue)constValue);
                 } else if (tokens.peek() instanceof RangeToken) {
                     tokens.next();
-                    final Token nextToken = tokens.next();
+                    Token nextToken = tokens.next();
                     if (!(nextToken instanceof Identifier))
                         throw new ParseException("Expected an identifier after 'range' keyword.", nextToken);
 
@@ -267,7 +269,9 @@ public class CCSParser implements Parser {
 
                     identifierParsed((Identifier)nextToken, range);
 
-                    if (!(tokens.next() instanceof Semicolon))
+                    nextToken = tokens.next();
+                    // TODO remove this ambiguousness
+                    if (!(nextToken instanceof Semicolon) && !(nextToken instanceof Comma))
                         throw new ParseException("Expected ';' after constant declaration.", tokens.peekPrevious());
 
                     ranges.put(rangeName, range);
@@ -352,7 +356,9 @@ public class CCSParser implements Parser {
             reportProblem(new ParsingProblem(e));
         }
 
-        if (!tokens.hasNext() || !(tokens.next() instanceof Semicolon)) {
+        final Token nextToken = tokens.next();
+        // TODO remove this ambiguousness
+        if (!(nextToken instanceof Semicolon) && !(nextToken instanceof Comma)) {
             // only report the error if the expression was read correctly
             if (expr != null)
                 reportProblem(new ParsingProblem(ParsingProblem.ERROR,
