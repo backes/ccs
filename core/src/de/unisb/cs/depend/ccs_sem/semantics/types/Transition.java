@@ -30,7 +30,8 @@ public class Transition {
     }
 
     /**
-     * Called on input transitions to check whether they can synchronize with
+     * Called on "input transitions" (i.e. transitions with an input action)
+     * to check whether they can synchronize with
      * the given Action, that has to be an output action.
      *
      * @param otherAction the Action to check against

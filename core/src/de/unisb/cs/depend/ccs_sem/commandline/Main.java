@@ -545,8 +545,8 @@ public class Main implements IParsingProblemListener {
                 case '\n':
                     if (lineNumber >= offsets.length) {
                         final int[] oldOffsets = offsets;
-                        offsets = new int[offsets.length * 2];
-                        System.arraycopy(oldOffsets, 0, offsets, 0, offsets.length);
+                        offsets = new int[oldOffsets.length * 2];
+                        System.arraycopy(oldOffsets, 0, offsets, 0, oldOffsets.length);
                     }
                     offsets[lineNumber++] = pos;
                     break;

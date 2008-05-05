@@ -120,10 +120,10 @@ public class ParallelEvaluator implements Evaluator {
             EvaluatorJob e;
             while ((e = queue.poll()) != null) {
                 synchronized (e.expr) {
-                    for (final Barrier barrier: e.waiters) {
-                        if (!queue.add(barrier.job))
-                            return true;
-                    }
+                    if (e.waiters != null)
+                        for (final Barrier barrier: e.waiters)
+                            if (!queue.add(barrier.job))
+                                return true;
                 }
             }
             checked.addAll(queue.getSeen());
