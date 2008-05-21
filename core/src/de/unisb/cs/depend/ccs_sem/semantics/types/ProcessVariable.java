@@ -25,6 +25,18 @@ public class ProcessVariable {
     private final ParameterList parameters;
     private Expression value;
 
+    /**
+     * Initialises a new Process Variable.
+     *
+     * @param name
+     *            the name of the process variable (should be unique in the
+     *            program, but this is <b>not checked</b>).
+     * @param parameters
+     *            list of parameters, must be non-null
+     * @param value
+     *            the expression of the process variable, can reference the
+     *            given parameters
+     */
     public ProcessVariable(String name, ParameterList parameters,
             Expression value) {
         super();
@@ -116,7 +128,8 @@ public class ProcessVariable {
         return value;
     }
 
-    public void replaceRecursion(List<ProcessVariable> processVariables) throws ParseException {
+    public void replaceRecursion(List<ProcessVariable> processVariables)
+            throws ParseException {
         value = value.replaceRecursion(processVariables);
     }
 
@@ -134,7 +147,8 @@ public class ProcessVariable {
             try {
                 parameters.get(i).match(values.get(i));
             } catch (final ParseException e) {
-                throw new ParseException("The type of parameter " + (i+1) + " does not fit: " + e.getMessage(), -1, -1);
+                throw new ParseException("The type of parameter " + (i + 1)
+                        + " does not fit: " + e.getMessage(), -1, -1);
             }
         }
     }
@@ -255,7 +269,7 @@ public class ProcessVariable {
         // myNum is null, so otherNum has to be null, too
         if (otherNum != null)
             return false;
-        myNum = parameterOccurences.size()+1;
+        myNum = parameterOccurences.size() + 1;
         assert parameterOccurences.size() % 2 == 0;
         parameterOccurences.put(myWrapper, myNum);
         parameterOccurences.put(otherWrapper, myNum);

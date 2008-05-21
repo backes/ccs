@@ -19,6 +19,7 @@ import de.unisb.cs.depend.ccs_sem.evaluators.ThreadBasedEvaluator;
 import de.unisb.cs.depend.ccs_sem.exceptions.ExportException;
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
 import de.unisb.cs.depend.ccs_sem.exporters.AiSeeGraphExporter;
+import de.unisb.cs.depend.ccs_sem.exporters.CCSExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.ETMCCExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.GraphVizExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.IntegrationtestExporter;
@@ -45,8 +46,8 @@ public class Main implements IParsingProblemListener {
     private boolean errorsOccured = false;
 
     // TODO add parameter for controlling this
-    private static final boolean allowUnguarded = true; //false;
-    private static final boolean allowUnregular = true; //false;
+    private static final boolean allowUnguarded = true; // false;
+    private static final boolean allowUnregular = true; // false;
 
 
     public Main(String[] args) {
@@ -67,7 +68,8 @@ public class Main implements IParsingProblemListener {
         try {
             inputFileReader = new FileReader(inputFile);
         } catch (final FileNotFoundException e) {
-            System.err.println("File " + inputFile.getAbsolutePath() + " not found.");
+            System.err.println("File " + inputFile.getAbsolutePath()
+                    + " not found.");
             return false;
         }
 
@@ -85,7 +87,8 @@ public class Main implements IParsingProblemListener {
             }
         } catch (final LexException e) {
             // for conformity, we use the method reportParsingProblem
-            reportParsingProblem(new ParsingProblem(ParsingProblem.ERROR, e.getMessage(), e.getPosition(), e.getPosition()));
+            reportParsingProblem(new ParsingProblem(ParsingProblem.ERROR,
+                    e.getMessage(), e.getPosition(), e.getPosition()));
             return false;
         }
         log("Parsing...");
@@ -176,9 +179,8 @@ public class Main implements IParsingProblemListener {
             printHelp(System.err);
             System.exit(-1);
         }
-        if (evaluator == null) {
+        if (evaluator == null)
             evaluator = Globals.getDefaultEvaluator();
-        }
     }
 
     private void parseCommandLine(String[] args) {
@@ -195,7 +197,7 @@ public class Main implements IParsingProblemListener {
             if (arg.startsWith("--")) {
                 final int indexOfEquals = arg.indexOf('=');
                 if (indexOfEquals != -1) {
-                    next = arg.substring(indexOfEquals+1);
+                    next = arg.substring(indexOfEquals + 1);
                     arg = arg.substring(0, indexOfEquals);
                 }
             }
@@ -228,7 +230,8 @@ public class Main implements IParsingProblemListener {
                 minimizeWeak = true;
             } else if ("--minimizeStrong".equals(arg)) {
                 minimizeStrong = true;
-            } else if (arg.length() >= 2 && arg.charAt(0) == '-' && arg.charAt(1) != '-') {
+            } else if (arg.length() >= 2 && arg.charAt(0) == '-'
+                    && arg.charAt(1) != '-') {
                 arg = arg.substring(1);
                 while (arg.length() > 0) {
                     final char c = arg.charAt(0);
@@ -285,7 +288,8 @@ public class Main implements IParsingProblemListener {
                         break;
                     }
                 }
-            } else if (arg.length()> 0 && !arg.startsWith("-") && inputFile == null) {
+            } else if (arg.length() > 0 && !arg.startsWith("-")
+                    && inputFile == null) {
                 inputFile = new File(arg);
             } else {
                 System.err.println("Illegal parameter: \"" + arg + "\"");
@@ -297,7 +301,7 @@ public class Main implements IParsingProblemListener {
 
     private void setPolicy(int policy) {
         if (policy == 0)
-            evaluator = new ParallelEvaluator();
+            evaluator = Globals.getDefaultEvaluator();
         else if (policy == 1)
             evaluator = new SequentialEvaluator();
         else if (policy < 0)
@@ -311,14 +315,15 @@ public class Main implements IParsingProblemListener {
         String format, filename;
         if (index != -1) {
             format = arg.substring(0, index);
-            filename = arg.substring(index+1);
+            filename = arg.substring(index + 1);
         } else {
             index = arg.indexOf('.');
             if (index == -1) {
-                System.err.println("Cannot extract format from filename \"" + arg + "\"");
+                System.err.println("Cannot extract format from filename \""
+                        + arg + "\"");
                 System.exit(-1);
             }
-            format = arg.substring(index+1);
+            format = arg.substring(index + 1);
             filename = arg;
         }
         if (filename.length() == 0) {
@@ -338,9 +343,11 @@ public class Main implements IParsingProblemListener {
                 exporters.add(new FileWrapperExporter(new File(filename), new BCGExporter()));
             } catch (final ExportException e) {
                 System.err.println("Error initializing exporter for '"
-                    + filename + "': " + e.getMessage());
+                        + filename + "': " + e.getMessage());
                 System.exit(-1);
             }
+        } else if ("ccs".equalsIgnoreCase(format)) {
+            exporters.add(new FileWrapperExporter(new File(filename), new CCSExporter("PROC")));
         } else {
             System.err.println("Unknown format: \"" + format + "\"");
             System.exit(-1);
@@ -364,9 +371,10 @@ public class Main implements IParsingProblemListener {
         out.println("     sets the output file. This parameter can occure several times to several output files.");
         out.println("     If the format is omitted, it is assumed to be the same as the extension.");
         out.println("     Currently the following formats are accepted:");
-        out.println("       - tra (for ETMCC)");
-        out.println("       - gdl (for aiSee)");
+        out.println("       - ccs (for an auto-generated CCS file)");
         out.println("       - dot (for GraphViz)");
+        out.println("       - gdl (for aiSee)");
+        out.println("       - tra (for ETMCC)");
         out.println();
         out.println("  -t, --threads=<integer>");
         out.println("     sets the number of threads used to evaluate the ccs expression.");
@@ -409,29 +417,30 @@ public class Main implements IParsingProblemListener {
         } else {
             int startOffset = problem.getStartPosition();
             if (startLine > 1)
-                startOffset -= lineOffsets[startLine-2];
+                startOffset -= lineOffsets[startLine - 2];
             int endOffset = problem.getEndPosition();
             if (endLine > 1)
-                endOffset -= lineOffsets[endLine-2];
+                endOffset -= lineOffsets[endLine - 2];
             if (startLine == endLine) {
                 System.out.print("line " + startLine);
                 if (startOffset == endOffset)
-                    System.out.println(", character " + (startOffset+1));
+                    System.out.println(", character " + (startOffset + 1));
                 else
-                    System.out.println(", characters " + (startOffset+1)
-                            + " to " + (endOffset+1));
+                    System.out.println(", characters " + (startOffset + 1)
+                            + " to " + (endOffset + 1));
                 System.out.print("context:     ");
                 Reader reader = null;
                 try {
                     reader = new FileReader(inputFile);
                     if (startLine > 1)
-                        reader.skip(lineOffsets[startLine-2]);
+                        reader.skip(lineOffsets[startLine - 2]);
                     int ch;
                     int skipChars = 13;
                     int markChars = 0;
                     int o = 0;
                     StringBuilder sb = new StringBuilder();
-                    while ((ch = reader.read()) != -1 && ch != '\r' && ch != '\n') {
+                    while ((ch = reader.read()) != -1 && ch != '\r'
+                            && ch != '\n') {
                         if (o < startOffset)
                             skipChars += ch == '\t' ? 4 : 1;
                         else if (o <= endOffset)
@@ -440,7 +449,7 @@ public class Main implements IParsingProblemListener {
                         if (ch == '\t')
                             sb.append("    ");
                         else
-                            sb.append((char)ch);
+                            sb.append((char) ch);
                     }
                     System.out.println(sb.toString());
                     sb = new StringBuilder();
@@ -450,7 +459,8 @@ public class Main implements IParsingProblemListener {
                         sb.append('^');
                     System.out.println(sb.toString());
                 } catch (final IOException e) {
-                    System.err.println("Error reading input file \"" + inputFile + "\": " + e.getMessage());
+                    System.err.println("Error reading input file \""
+                            + inputFile + "\": " + e.getMessage());
                     System.exit(-1);
                 }
                 if (reader != null)
@@ -461,8 +471,8 @@ public class Main implements IParsingProblemListener {
                     }
             } else {
                 System.out.println("line " + startLine + ", character "
-                        + (startOffset+1) + " to line " + endLine
-                        + ", character " + (endOffset+1));
+                        + (startOffset + 1) + " to line " + endLine
+                        + ", character " + (endOffset + 1));
                 System.out.print("context:     ");
                 Reader reader = null;
                 for (int line = startLine; line <= endLine; ++line) {
@@ -471,10 +481,11 @@ public class Main implements IParsingProblemListener {
                             System.out.print("             ");
                         reader = new FileReader(inputFile);
                         if (line > 1)
-                            reader.skip(lineOffsets[line-2]);
+                            reader.skip(lineOffsets[line - 2]);
                         int ch;
-                        while ((ch = reader.read()) != -1 && ch != '\r' && ch != '\n') {
-                            System.out.print(ch == '\t' ? "    " : (char)ch);
+                        while ((ch = reader.read()) != -1 && ch != '\r'
+                                && ch != '\n') {
+                            System.out.print(ch == '\t' ? "    " : (char) ch);
                         }
                         System.out.println();
                     } catch (final IOException e) {
@@ -498,8 +509,8 @@ public class Main implements IParsingProblemListener {
         }
         if (lineOffsets.length == 0)
             return 1;
-        if (startPosition >= lineOffsets[lineOffsets.length-1])
-            return lineOffsets.length+1;
+        if (startPosition >= lineOffsets[lineOffsets.length - 1])
+            return lineOffsets.length + 1;
         if (startPosition < lineOffsets[0])
             return 1;
 
@@ -507,13 +518,13 @@ public class Main implements IParsingProblemListener {
         int left = 0;
         int right = lineOffsets.length;
         while (left < right) {
-            final int mid = (left + right)/2;
+            final int mid = (left + right) / 2;
             if (lineOffsets[mid] > startPosition)
                 right = mid;
-            else if (lineOffsets[mid+1] <= startPosition)
-                left = mid+1;
+            else if (lineOffsets[mid + 1] <= startPosition)
+                left = mid + 1;
             else
-                return mid+2;
+                return mid + 2;
         }
         return -1;
     }
@@ -524,7 +535,8 @@ public class Main implements IParsingProblemListener {
         try {
             reader = new PushbackReader(new FileReader(file));
         } catch (final FileNotFoundException e) {
-            System.err.println("Input file " + file.getAbsolutePath() + " not found: " + e.getMessage());
+            System.err.println("Input file " + file.getAbsolutePath()
+                    + " not found: " + e.getMessage());
             System.exit(-1);
         }
         try {
@@ -546,7 +558,8 @@ public class Main implements IParsingProblemListener {
                     if (lineNumber >= offsets.length) {
                         final int[] oldOffsets = offsets;
                         offsets = new int[oldOffsets.length * 2];
-                        System.arraycopy(oldOffsets, 0, offsets, 0, oldOffsets.length);
+                        System.arraycopy(oldOffsets, 0, offsets, 0,
+                                oldOffsets.length);
                     }
                     offsets[lineNumber++] = pos;
                     break;
@@ -559,13 +572,15 @@ public class Main implements IParsingProblemListener {
             System.arraycopy(offsets, 0, realOffsets, 0, lineNumber);
             return realOffsets;
         } catch (final IOException e) {
-            System.err.println("Error reading input file " + file.getAbsolutePath() + ": " + e.getMessage());
+            System.err.println("Error reading input file "
+                    + file.getAbsolutePath() + ": " + e.getMessage());
             System.exit(-1);
         } finally {
             try {
                 reader.close();
             } catch (final IOException e) {
-                System.err.println("Input file " + file.getAbsolutePath() + " cannot be closed: " + e.getMessage());
+                System.err.println("Input file " + file.getAbsolutePath()
+                        + " cannot be closed: " + e.getMessage());
             }
         }
         return null;
@@ -582,7 +597,8 @@ public class Main implements IParsingProblemListener {
 
         public EvalMonitor(boolean isMinimization) {
             this.isMinimization = isMinimization;
-            this.showInterval = isMinimization ? MINIMIZATION_INTERVAL : EVALUATION_INTERVAL;
+            this.showInterval = isMinimization ? MINIMIZATION_INTERVAL
+                    : EVALUATION_INTERVAL;
         }
 
         public synchronized void newTransitions(int size) {
@@ -592,15 +608,19 @@ public class Main implements IParsingProblemListener {
         public synchronized void newState() {
             ++states;
             if (states % showInterval == 0)
-                log(states + " states, " + transitions + " transitions so far...");
+                log(states + " states, " + transitions
+                        + " transitions so far...");
         }
 
         public synchronized void ready() {
-            log((isMinimization ? "Minimized " : "Evaluated ") + states + " states and " + transitions + " transitions.");
+            log((isMinimization ? "Minimized " : "Evaluated ") + states
+                    + " states and " + transitions + " transitions.");
         }
 
         public void error(String errorString) {
-            log("An error occured during " + (isMinimization ? "minimization: " : "evaluation: ") + errorString);
+            log("An error occured during "
+                    + (isMinimization ? "minimization: " : "evaluation: ")
+                    + errorString);
         }
 
         public synchronized void newState(int numTransitions) {
