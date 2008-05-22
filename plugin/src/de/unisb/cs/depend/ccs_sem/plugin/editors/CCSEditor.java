@@ -1,10 +1,13 @@
 package de.unisb.cs.depend.ccs_sem.plugin.editors;
 
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
+import de.unisb.cs.depend.ccs_sem.plugin.actions.ReplaceCCSByMinimalEquivalent;
 import de.unisb.cs.depend.ccs_sem.plugin.views.CCSContentOutlinePage;
 
 public class CCSEditor extends TextEditor {
@@ -46,6 +49,14 @@ public class CCSEditor extends TextEditor {
     public String getText() {
         final IDocument doc = getDocument();
         return doc == null ? "" : doc.get();
+    }
+
+    @Override
+    protected void editorContextMenuAboutToShow(IMenuManager menu) {
+        super.editorContextMenuAboutToShow(menu);
+
+        menu.add(new Separator("ccs"));
+        menu.appendToGroup("ccs", new ReplaceCCSByMinimalEquivalent(this));
     }
 
 }
