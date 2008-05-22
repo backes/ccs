@@ -31,6 +31,14 @@ public class PrefixExpression extends Expression {
         this.target = target;
     }
 
+    public Action getPrefix() {
+        return prefix;
+    }
+
+    public Expression getTarget() {
+        return target;
+    }
+
     @Override
     public Collection<Expression> getChildren() {
         // nothing has to be evaluated before we can evaluate, so: empty set

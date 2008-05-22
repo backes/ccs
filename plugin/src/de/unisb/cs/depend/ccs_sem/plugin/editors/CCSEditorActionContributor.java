@@ -7,6 +7,7 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.ui.texteditor.BasicTextEditorActionContributor;
 
 import de.unisb.cs.depend.ccs_sem.exporters.AiSeeGraphExporter;
+import de.unisb.cs.depend.ccs_sem.exporters.CCSExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.ETMCCExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.GraphVizExporter;
 import de.unisb.cs.depend.ccs_sem.plugin.actions.ExportGraph;
@@ -40,6 +41,8 @@ public class CCSEditorActionContributor extends BasicTextEditorActionContributor
             new String[] { "*.gdl", "AiSee Graph File (*.gdl)" }));
         exportMenu.add(new ExportProgram("Export to ETMCC format", new ETMCCExporter(),
             new String[] { "*.tra", "ETMCC File (*.tra)" }));
+        exportMenu.add(new ExportProgram("Export to CCS file", new CCSExporter("PROC_"),
+            new String[] { "*.ccs", "CCS File (*.ccs)" }));
 
         exportMenu.add(new Separator());
 

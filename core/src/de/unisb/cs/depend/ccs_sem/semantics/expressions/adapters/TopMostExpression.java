@@ -36,6 +36,10 @@ public class TopMostExpression extends Expression {
         this.myExpr = myExpr;
     }
 
+    public Expression getInnerExpression() {
+        return myExpr;
+    }
+
     @Override
     protected List<Transition> evaluate0() {
         final List<Transition> transitions = myExpr.getTransitions();

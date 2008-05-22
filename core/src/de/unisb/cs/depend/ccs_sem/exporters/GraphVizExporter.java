@@ -51,7 +51,19 @@ public class GraphVizExporter implements Exporter {
             final Expression e = queue.poll();
 
             final int sourceStateNo = stateNumbers.get(e);
-            writer.println(sourceStateNo + " [label=\"" + quote(e.toString()) + "\"];");
+            String attributes = "label=\"" + quote(e.toString()) + "\"";
+            String comment = "";
+            if (sourceStateNo == 1) { // start node
+                if (!e.isError()) {
+                    attributes += ", style=filled, fillcolor=\"#c0c0c0\"";
+                }
+                comment += "  /* this is the start node */";
+            }
+            if (e.isError()) {
+                attributes += ", style=filled, fillcolor=\"#ff0000\", shape=octagon";
+                comment += "  /* this is an error node */";
+            }
+            writer.println("  " + sourceStateNo + " [" + attributes + "];" + comment);
 
             for (final Transition trans: e.getTransitions()) {
                 final Expression targetExpr = trans.getTarget();
