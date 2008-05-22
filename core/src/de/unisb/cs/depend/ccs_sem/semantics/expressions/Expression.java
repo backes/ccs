@@ -17,6 +17,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterReference;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
+import de.unisb.cs.depend.ccs_sem.utils.LazyCreatedMap;
 
 
 public abstract class Expression {
@@ -154,11 +155,11 @@ public abstract class Expression {
     public final int hashCode() {
         int h = this.hash;
         if (h == 0) {
-            h = hashCode(new HashMap<ParameterOrProcessEqualsWrapper, Integer>(4));
+            h = hashCode(new LazyCreatedMap<ParameterOrProcessEqualsWrapper, Integer>(4));
             this.hash = h;
         }
 
-        assert h == hashCode(new HashMap<ParameterOrProcessEqualsWrapper, Integer>(4));
+        assert h == hashCode(new LazyCreatedMap<ParameterOrProcessEqualsWrapper, Integer>(4));
 
         return h;
     }
