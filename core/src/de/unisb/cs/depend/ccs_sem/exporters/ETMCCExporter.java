@@ -65,8 +65,8 @@ public class ETMCCExporter implements Exporter {
                 final Transition trans = transQueue.poll();
                 final Expression targetExpr = trans.getTarget();
                 final int targetStateNo = stateNumbers.get(targetExpr);
-                traWriter.println("d " + sourceStateNo + " " + targetStateNo
-                        + " 0.0 I");
+                traWriter.println(trans.getAction().getLabel() + " "
+                        + sourceStateNo + " " + targetStateNo + " 0.0 I");
                 if (written.add(targetExpr))
                     queue.add(targetExpr);
             }
