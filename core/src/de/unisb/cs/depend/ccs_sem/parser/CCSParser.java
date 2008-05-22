@@ -16,16 +16,7 @@ import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.lexer.CCSLexer;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.*;
 import de.unisb.cs.depend.ccs_sem.lexer.tokens.categories.Token;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.ChoiceExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.ConditionalExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.ErrorExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.ExpressionRepository;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.ParallelExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.PrefixExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.RestrictExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.StopExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.UnknownRecursiveExpression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.*;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.adapters.TopMostExpression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ChannelSet;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
@@ -86,7 +77,7 @@ import de.unisb.cs.depend.ccs_sem.utils.Pair;
  *
  * range               --> rangeAdd
  * rangeAdd            --> rangeDef | rangeAdd ( "+" | "-" ) rangeDef
- * rangeDef            --> Identifier | arithExpression ".." arithExpression
+ * rangeDef            --> Identifier | arithBase ".." arithBase
  *                          | "{" ( ( arithExpression "," )* arithExpression)? "}"
  * rangeBase           --> Identifier
  * rangeElem           --> integer | Identifier
@@ -433,7 +424,7 @@ public class CCSParser implements Parser {
 
         // or a range of integer values
         int posStart = nextToken.getStartPosition();
-        final Value startValue = readArithmeticExpression(tokens);
+        final Value startValue = readArithmeticBaseExpression(tokens, false);
         // are there '..'?
         if (tokens.peek() instanceof IntervalDots) {
             ensureInteger(startValue, "Expected constant integer expression before '..'.", posStart, tokens.peekPrevious().getEndPosition());
@@ -441,7 +432,7 @@ public class CCSParser implements Parser {
             tokens.next();
 
             posStart = tokens.peek().getStartPosition();
-            final Value endValue = readArithmeticExpression(tokens);
+            final Value endValue = readArithmeticBaseExpression(tokens, false);
             ensureInteger(endValue, "Expected constant integer expression after '..'.", posStart, tokens.peekPrevious().getEndPosition());
 
             return new IntervalRange(startValue, endValue);
@@ -889,11 +880,12 @@ public class CCSParser implements Parser {
         if (nextToken instanceof Identifier) {
             final Identifier id = (Identifier) nextToken;
             if (id.isUpperCase()) {
-                ValueList myParameters = new ValueList(0);
+                final ValueList myParameters;
                 if (tokens.hasNext() && tokens.peek() instanceof LBracket) {
                     tokens.next();
                     myParameters = readParameterValues(tokens);
-                }
+                } else
+                    myParameters = new ValueList(0);
                 final Expression expression = ExpressionRepository.getExpression(new UnknownRecursiveExpression(id.getName(), myParameters, id.getStartPosition(), tokens.peekPrevious().getEndPosition()));
                 // hook for logging:
                 identifierParsed(id, expression);

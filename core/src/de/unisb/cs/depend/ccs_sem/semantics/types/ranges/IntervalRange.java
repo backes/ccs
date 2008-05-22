@@ -10,6 +10,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstIntegerValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterReference;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 
@@ -70,7 +71,19 @@ public class IntervalRange extends AbstractRange {
 
     @Override
     public String toString() {
-        return start + ".." + end;
+        final String startString = start.toString();
+        final String endString = end.toString();
+        final StringBuilder sb = new StringBuilder(startString.length() + endString.length() + 6);
+        if (start instanceof ConstantValue || start instanceof ParameterReference)
+            sb.append(startString);
+        else
+            sb.append('(').append(startString).append(')');
+        sb.append("..");
+        if (end instanceof ConstantValue || end instanceof ParameterReference)
+            sb.append(endString);
+        else
+            sb.append('(').append(endString).append(')');
+        return sb.toString();
     }
 
     public int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {

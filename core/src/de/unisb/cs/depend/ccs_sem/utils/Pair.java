@@ -61,7 +61,7 @@ public class Pair<T1, T2> {
     @Override
     public String toString() {
         final String firstString = String.valueOf(first);
-        final String secondString = String.valueOf(first);
+        final String secondString = String.valueOf(second);
         return new StringBuilder(firstString.length() + secondString.length() + 4)
             .append('<').append(firstString).append(", ").append(secondString)
             .append('>').toString();

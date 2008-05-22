@@ -67,9 +67,8 @@ public class AddRange extends AbstractRange {
 
     @Override
     public String toString() {
-        final boolean leftNeedsParenthesis = left instanceof IntervalRange;
-        final boolean rightNeedsParenthesis = right instanceof AddRange
-            || right instanceof IntervalRange;
+        final boolean leftNeedsParenthesis = false;
+        final boolean rightNeedsParenthesis = right instanceof AddRange;
 
         final StringBuilder sb = new StringBuilder();
         if (leftNeedsParenthesis)
