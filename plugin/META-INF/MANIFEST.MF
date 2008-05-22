@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: CCS Evaluator
 Bundle-SymbolicName: de.unisb.cs.depend.ccs_sem.plugin;singleton:=true
-Bundle-Version: 0.9.09
+Bundle-Version: 0.9.10
 Bundle-Activator: de.unisb.cs.depend.ccs_sem.plugin.Activator
 Require-Bundle: org.eclipse.ui;bundle-version="3.3.0",
  org.eclipse.core.runtime,
@@ -29,3 +29,5 @@ Export-Package: de.unisb.cs.depend.ccs_sem.plugin.actions;
    org.eclipse.jface.viewers,
    de.unisb.cs.depend.ccs_sem.plugin.jobs,
    org.eclipse.swt.widgets"
+Bundle-Vendor: Dependable Systems and Software Group, Saarland University, Germany
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
