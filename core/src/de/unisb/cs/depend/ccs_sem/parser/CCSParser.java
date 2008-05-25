@@ -40,9 +40,9 @@ import de.unisb.cs.depend.ccs_sem.utils.Pair;
  * This Parser parses the following grammar:
  *
  * program            --> (constDecl | rangeDecl | recursiveDecl)*  expression
- * constDecl          --> "const" identifier "=" arithExpression ";"
- * rangeDecl          --> "range" identifier "=" range ";"
- * recursiveDecl      --> recursionVariable = expression ";"
+ * constDecl          --> "const" identifier ":=" arithExpression ";"
+ * rangeDecl          --> "range" identifier ":=" range ";"
+ * recursiveDecl      --> recursionVariable := expression ";"
  * recursionVariable  --> ucIdentifier ( "[" ( ( parameter "," )* parameter)? "]"  )?
  *
  * expression          --> restrictExpression
