@@ -2,7 +2,7 @@
 <feature
       id="de.unisb.cs.depend.ccs_sem.feature"
       label="CCS Evaluator"
-      version="0.9.10"
+      version="0.9.11"
       provider-name="Dependable Systems and Software Group, Saarland University, Germany"
       plugin="de.unisb.cs.depend.ccs_sem.plugin">
 

@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: CCS Evaluator
 Bundle-SymbolicName: de.unisb.cs.depend.ccs_sem.plugin;singleton:=true
-Bundle-Version: 0.9.10
+Bundle-Version: 0.9.11
 Bundle-Activator: de.unisb.cs.depend.ccs_sem.plugin.Activator
 Require-Bundle: org.eclipse.ui;bundle-version="3.3.0",
  org.eclipse.core.runtime,
