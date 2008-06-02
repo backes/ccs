@@ -2,7 +2,7 @@
 <feature
       id="de.unisb.cs.depend.ccs_sem.feature"
       label="CCS Evaluator"
-      version="0.9.11"
+      version="0.9.12"
       provider-name="Dependable Systems and Software Group, Saarland University, Germany"
       plugin="de.unisb.cs.depend.ccs_sem.plugin">
 
@@ -118,8 +118,8 @@ This Agreement is governed by the laws of the State of New York and the intellec
 
    <plugin
          id="de.unisb.cs.depend.ccs_sem.plugin"
-         download-size="600"
-         install-size="900"
+         download-size="650"
+         install-size="700"
          version="0.0.0"
          unpack="false"/>
 

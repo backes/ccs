@@ -153,7 +153,7 @@ public class Parameter {
             if (newType == Type.STRING)
                 // do not change
                 return;
-            throw new ParseException("Parameter " + name + " already has type \""
+            throw new ParseException("Parameter \"" + name + "\" already has type \""
                 + type + "\", cannot be " + (instantiation ? "instantiated with" : "changed to")
                 + " \"" + newType + "\"", -1, -1);
         case VALUE:
@@ -168,7 +168,7 @@ public class Parameter {
                 break; // inner switch!
 
             default:
-                throw new ParseException("Parameter " + name + " already has type \""
+                throw new ParseException("Parameter \"" + name + "\" already has type \""
                     + type + "\", cannot be " + (instantiation ? "instantiated with" : "changed to")
                     + " \"" + newType + "\"", -1, -1);
             }
@@ -181,7 +181,7 @@ public class Parameter {
         case BOOLEANVALUE:
         case INTEGERVALUE:
             if (newType != Type.VALUE)
-                throw new ParseException("Parameter " + name + " already has type \""
+                throw new ParseException("Parameter \"" + name + "\" already has type \""
                     + type + "\", cannot be " + (instantiation ? "instantiated with" : "changed to")
                     + " \"" + newType + "\"", -1, -1);
             // accept otherwise:
@@ -190,7 +190,7 @@ public class Parameter {
             if (newType == Type.CHANNEL || newType == Type.STRINGVALUE)
                 // accept
                 break;
-            throw new ParseException("Parameter " + name + " already has type \""
+            throw new ParseException("Parameter \"" + name + "\" already has type \""
                 + type + "\", cannot be " + (instantiation ? "instantiated with" : "changed to")
                 + " \"" + newType + "\"", -1, -1);
         default:
