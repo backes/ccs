@@ -139,11 +139,34 @@ public class GraphUpdateJob extends Job {
                 return new GraphUpdateStatus(IStatus.CANCEL, "cancelled");
 
             monitor.subTask("Layouting graph...");
-            if (!GraphHelper.filterGraph(graph, true)) {
-                return new GraphUpdateStatus(IStatus.ERROR,
-                    "The graph could not be layout, most probably there was an error starting the dot tool.\n" +
-                    "You can configure the path for this tool in your preferences on the \"CCS\" page.");
+            final FutureTask<Boolean> filterTask = new FutureTask<Boolean>(new Callable<Boolean>() {
+                public Boolean call() throws Exception {
+                    return GraphHelper.filterGraph(graph, true);
+                }
+            });
+            new Thread(filterTask, "layout graph").start();
+            final long startTime = System.currentTimeMillis();
+            while (true) {
+                try {
+                    if (!filterTask.get(500, TimeUnit.MILLISECONDS)) {
+                        return new GraphUpdateStatus(IStatus.ERROR,
+                            "The graph could not be layout, most probably there was an error starting the dot tool.\n" +
+                            "You can configure the path for this tool in your preferences on the \"CCS\" page.");
+                    }
+                    break;
+                } catch (final TimeoutException e) {
+                    final long endTime = System.currentTimeMillis();
+                    int sec = (int) ((endTime-startTime)/1000);
+                    final int min = sec / 60;
+                    sec %= 60;
+                    monitor.subTask("Layouting graph... (" + (min > 0 ? min+" min, " : "")
+                        + sec + " sec)");
+                } catch (final InterruptedException e) {
+                    filterTask.cancel(true);
+                    throw e;
+                }
             }
+
             monitor.worked(WORK_LAYOUT_GRAPH);
 
             if (monitor.isCanceled())

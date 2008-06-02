@@ -88,9 +88,11 @@ public class Parameter {
      * not suit, the type is left unchanged, and a ParseException is thrown.
      *
      * @param value the Value to match this Parameter with
+     * @param instantiation only used for output: do you try to instantiate the
+     *                      parameter, or just change/specialize it
      * @throws ParseException if this parameter cannot be instantiated with the given value
      */
-    public void match(Value value) throws ParseException {
+    public void match(Value value, boolean instantiation) throws ParseException {
         if (value instanceof ParameterReference) {
             final ParameterReference paramValue = (ParameterReference) value;
             final Type otherType = paramValue.getParam().type;
@@ -105,24 +107,24 @@ public class Parameter {
             case INTEGERVALUE:
             case STRINGVALUE:
             case STRING:
-                setType(otherType);
+                setType(otherType, instantiation);
                 break;
             default:
                 assert false;
                 break;
             }
         } else if (value instanceof Channel) {
-            setType(Type.CHANNEL);
+            setType(Type.CHANNEL, instantiation);
         } else if (value instanceof BooleanValue) {
-            setType(Type.BOOLEANVALUE);
+            setType(Type.BOOLEANVALUE, instantiation);
         } else if (value instanceof IntegerValue) {
-            setType(Type.INTEGERVALUE);
+            setType(Type.INTEGERVALUE, instantiation);
         } else if (value instanceof ConstString) {
-            setType(Type.STRING);
+            setType(Type.STRING, instantiation);
         } else if (value instanceof ConditionalValue) {
             final ConditionalValue cond = (ConditionalValue) value;
-            match(cond.getThenValue());
-            match(cond.getElseValue());
+            match(cond.getThenValue(), instantiation);
+            match(cond.getElseValue(), instantiation);
         } else {
             // we should never get to here
             assert false;
@@ -133,10 +135,12 @@ public class Parameter {
      * Tries to set a new type, which has suit the old one.
      * Otherwise a ParseException is thrown.
      * @param newType the new type to set this parameter to
+     * @param instantiation only used for output: do you try to instantiate the
+     *                      parameter, or just change/specialize it
      * @throws ParseException if the old type and the new type don't fit together
      */
     @SuppressWarnings("fallthrough")
-    public void setType(Type newType) throws ParseException {
+    public void setType(Type newType, boolean instantiation) throws ParseException {
         assert newType != Type.UNKNOWN;
         if (type == newType)
             return;
@@ -149,7 +153,9 @@ public class Parameter {
             if (newType == Type.STRING)
                 // do not change
                 return;
-            throw new ParseException("Parameter already has type \"" + type + "\", cannot be instantiated with \"" + newType + "\"", -1, -1);
+            throw new ParseException("Parameter " + name + " already has type \""
+                + type + "\", cannot be " + (instantiation ? "instantiated with" : "changed to")
+                + " \"" + newType + "\"", -1, -1);
         case VALUE:
             switch (newType) {
             case STRING:
@@ -162,7 +168,9 @@ public class Parameter {
                 break; // inner switch!
 
             default:
-                throw new ParseException("Parameter already has type \"" + type + "\", cannot be instantiated with \"" + newType + "\"", -1, -1);
+                throw new ParseException("Parameter " + name + " already has type \""
+                    + type + "\", cannot be " + (instantiation ? "instantiated with" : "changed to")
+                    + " \"" + newType + "\"", -1, -1);
             }
             break;
 
@@ -173,14 +181,18 @@ public class Parameter {
         case BOOLEANVALUE:
         case INTEGERVALUE:
             if (newType != Type.VALUE)
-                throw new ParseException("Parameter already has type \"" + type + "\", cannot be instantiated with \"" + newType + "\"", -1, -1);
+                throw new ParseException("Parameter " + name + " already has type \""
+                    + type + "\", cannot be " + (instantiation ? "instantiated with" : "changed to")
+                    + " \"" + newType + "\"", -1, -1);
             // accept otherwise:
             break;
         case STRING:
             if (newType == Type.CHANNEL || newType == Type.STRINGVALUE)
                 // accept
                 break;
-            throw new ParseException("Parameter already has type \"" + type + "\", cannot be instantiated with \"" + newType + "\"", -1, -1);
+            throw new ParseException("Parameter " + name + " already has type \""
+                + type + "\", cannot be " + (instantiation ? "instantiated with" : "changed to")
+                + " \"" + newType + "\"", -1, -1);
         default:
             assert false;
         }
@@ -190,7 +202,7 @@ public class Parameter {
             final List<Parameter> parametersToSetType = connectedParameters;
             connectedParameters = null;
             for (final Parameter otherParam: parametersToSetType)
-                otherParam.setType(newType);
+                otherParam.setType(newType, instantiation);
             connectedParameters = parametersToSetType;
         }
     }

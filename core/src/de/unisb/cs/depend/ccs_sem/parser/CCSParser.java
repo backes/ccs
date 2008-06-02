@@ -712,7 +712,7 @@ public class CCSParser implements Parser {
                 for (final Parameter param: parameters) {
                     if (param.getName().equals(identifier.getName())) {
                         try {
-                            param.setType(Parameter.Type.CHANNEL);
+                            param.setType(Parameter.Type.CHANNEL, false);
                         } catch (final ParseException e) {
                             throw new ParseException(e.getMessage(), identifier);
                         }
@@ -1148,11 +1148,11 @@ public class CCSParser implements Parser {
             return;
         try {
             if (value1 instanceof ParameterReference || value1 instanceof ParameterRefChannel) {
-                ((ParameterReference)value1).getParam().match(value2);
+                ((ParameterReference)value1).getParam().match(value2, false);
                 return;
             }
             if (value2 instanceof ParameterReference || value2 instanceof ParameterRefChannel) {
-                ((ParameterReference)value2).getParam().match(value1);
+                ((ParameterReference)value2).getParam().match(value1, false);
                 return;
             }
         } catch (final ParseException e) {
@@ -1178,7 +1178,7 @@ public class CCSParser implements Parser {
             throw new ParseException(message + " The value \"" + value + "\" has type string.", startPos, endPos);
         if (value instanceof ParameterReference) {
             try {
-                ((ParameterReference)value).getParam().setType(Parameter.Type.BOOLEANVALUE);
+                ((ParameterReference)value).getParam().setType(Parameter.Type.BOOLEANVALUE, false);
             } catch (final ParseException e) {
                 throw new ParseException(message + " " + e.getMessage(), startPos, endPos);
             }
@@ -1202,7 +1202,7 @@ public class CCSParser implements Parser {
             throw new ParseException(message + " The value \"" + value + "\" has type string.", startPos, endPos);
         if (value instanceof ParameterReference) {
             try {
-                ((ParameterReference)value).getParam().setType(Parameter.Type.INTEGERVALUE);
+                ((ParameterReference)value).getParam().setType(Parameter.Type.INTEGERVALUE, false);
             } catch (final ParseException e) {
                 throw new ParseException(message + " " + e.getMessage(), startPos, endPos);
             }

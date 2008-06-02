@@ -7,7 +7,7 @@ public class Not extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "X[ch, val] := out!(val?1:0) + when val n.X[ch, !val];\n" +
+        return "X[ch, val] := ch!(val?1:0) + when val n.X[ch, !val];\n" +
             "X[a, true] + X[b, false]";
     }
 

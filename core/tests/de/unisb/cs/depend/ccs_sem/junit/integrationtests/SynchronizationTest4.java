@@ -27,12 +27,12 @@ public class SynchronizationTest4 extends IntegrationTest {
 
     @Override
     protected void addStates() {
-        addState("OUTPUT[1, 4] | x?x:((1..3) - {2}).out!x.0 \\ {x}");
-        addState("OUTPUT[2, 4] | x?x:((1..3) - {2}).out!x.0 \\ {x}");
+        addState("OUTPUT[1, 4] | x?x:(1..3 - {2}).out!x.0 \\ {x}");
+        addState("OUTPUT[2, 4] | x?x:(1..3 - {2}).out!x.0 \\ {x}");
         addState("0 | out!1.0 \\ {x}");
-        addState("OUTPUT[3, 4] | x?x:((1..3) - {2}).out!x.0 \\ {x}");
+        addState("OUTPUT[3, 4] | x?x:(1..3 - {2}).out!x.0 \\ {x}");
         addState("0 | 0 \\ {x}");
-        addState("OUTPUT[4, 4] | x?x:((1..3) - {2}).out!x.0 \\ {x}");
+        addState("OUTPUT[4, 4] | x?x:(1..3 - {2}).out!x.0 \\ {x}");
         addState("0 | out!3.0 \\ {x}");
     }
 

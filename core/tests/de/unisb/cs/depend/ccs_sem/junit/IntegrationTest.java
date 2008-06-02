@@ -65,7 +65,7 @@ public abstract class IntegrationTest implements IParsingProblemListener {
     }
 
     @Before
-    public void initialize() throws InterruptedException {
+    public void initialize() {
         ExpressionRepository.reset();
         states = new ArrayList<String>();
         transitions = new ArrayList<List<SimpleTrans>>();
@@ -83,16 +83,28 @@ public abstract class IntegrationTest implements IParsingProblemListener {
         evaluating = false;
         parser.addProblemListener(this);
         program = parser.parse(expressionString);
-        if (program == null)
-            Assert.fail("Program could not be parsed");
-        evaluating = true;
-        program.evaluate(getEvaluator());
-
-        if (isMinimize())
-            program.minimizeTransitions();
 
         if (states.size() == 0)
             fail("This testcase contains no nodes.");
+    }
+
+    private void evaluate() {
+        if (program == null)
+            Assert.fail("Program could not be parsed");
+        evaluating = true;
+        try {
+            program.evaluate(getEvaluator());
+        } catch (final InterruptedException e) {
+            Assert.fail("Interrupted while evaluating.");
+        }
+
+        try {
+            if (isMinimize())
+                program.minimizeTransitions();
+        } catch (final InterruptedException e) {
+            Assert.fail("Interrupted while minimizing.");
+        }
+
     }
 
     @After
@@ -105,6 +117,8 @@ public abstract class IntegrationTest implements IParsingProblemListener {
 
     @Test
     public void checkErrorsAndWarnings() {
+        if (program != null)
+            evaluate();
         final StringBuilder sb = new StringBuilder();
         final String newLine = Globals.getNewline();
         if (parsingErrors.size() != getExpectedParsingErrors()) {
@@ -152,6 +166,7 @@ public abstract class IntegrationTest implements IParsingProblemListener {
 
     @Test
     public void checkStateNumber() {
+        evaluate();
         final int found = StateNumerator.numerateStates(program.getExpression()).size();
 
         if (found != states.size())
@@ -161,6 +176,7 @@ public abstract class IntegrationTest implements IParsingProblemListener {
 
     @Test
     public void checkTransitionNumber() {
+        evaluate();
         final int found = TransitionCounter.countTransitions(program.getExpression());
         int expected = 0;
         for (final List<SimpleTrans> trans: transitions)
@@ -182,6 +198,7 @@ public abstract class IntegrationTest implements IParsingProblemListener {
     }
 
     private void checkBisimilarity(boolean strong) throws InterruptedException {
+        evaluate();
         final Expression expression = program.getExpression();
         final RebuiltExpression got = RebuiltExpression.create(expression);
         final RebuiltExpression expected = RebuiltExpression.create(states, transitions);
@@ -196,6 +213,7 @@ public abstract class IntegrationTest implements IParsingProblemListener {
 
     @Test
     public void checkStatesExplicitely() {
+        evaluate();
         final Expression expression = program.getExpression();
 
         // the queue of expressions to check
@@ -254,6 +272,7 @@ public abstract class IntegrationTest implements IParsingProblemListener {
 
     @Test
     public void checkProgramOutputAndReconstruction() {
+        evaluate();
         final String parsedExpressionString = program.toString(true);
         final Program reparsed = new CCSParser().parse(parsedExpressionString);
         if (reparsed == null)

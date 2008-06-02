@@ -65,35 +65,34 @@ public class GraphHelper {
         }
 
         if (success) {
-            try {
-                final Process finalDotFilter = dotFilter;
+            final Process finalDotFilter = dotFilter;
 
-                // graph filtering in another thread, for that we can control it and
-                // terminate it
-                final Callable<Boolean> filterGraphCall = new Callable<Boolean>() {
-                    public Boolean call() {
-                        try {
-                            return GrappaSupport.filterGraph(graph, finalDotFilter);
-                        } catch (IOException e) {
-                            return false;
-                        }
-                    }
-                };
-                final FutureTask<Boolean> filterGraphTask = new FutureTask<Boolean>(filterGraphCall);
-                new Thread(filterGraphTask, "filterGraph").start();
-
-                try {
-                    success &= filterGraphTask.get();
-                } catch (final ExecutionException e) {
-                    if (e.getCause() instanceof IOException)
-                        success = false;
-                    else {
-                        // should not occure (GrappaSupport.filterGraph does only
-                        // throw IOException)
-                        throw new RuntimeException(e);
+            // graph filtering in another thread, for that we can control it and
+            // terminate it
+            final Callable<Boolean> filterGraphCall = new Callable<Boolean>() {
+                public Boolean call() {
+                    try {
+                        return GrappaSupport.filterGraph(graph, finalDotFilter);
+                    } catch (IOException e) {
+                        return false;
                     }
                 }
+            };
+            final FutureTask<Boolean> filterGraphTask = new FutureTask<Boolean>(filterGraphCall);
+            new Thread(filterGraphTask, "filterGraph").start();
+
+            try {
+                success &= filterGraphTask.get();
+            } catch (final ExecutionException e) {
+                if (e.getCause() instanceof IOException)
+                    success = false;
+                else {
+                    // should not occure (GrappaSupport.filterGraph does only
+                    // throw IOException)
+                    throw new RuntimeException(e);
+                }
             } finally {
+                filterGraphTask.cancel(true);
                 if (dotFilter != null)
                     dotFilter.destroy();
             }
