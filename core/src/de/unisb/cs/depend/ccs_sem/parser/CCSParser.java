@@ -676,13 +676,8 @@ public class CCSParser implements Parser {
 
             final int posStart = tokens.peek().getStartPosition();
             final Value value = readArithmeticBaseExpression(tokens, true); // may return null
-            if (value instanceof ParameterReference)
-                try {
-                    ((ParameterReference) value).getParam().setType(Parameter.Type.VALUE);
-                } catch (final ParseException e) {
-                    throw new ParseException(e.getMessage(), posStart,
-                        tokens.peekPrevious().getEndPosition());
-                }
+            if (value != null)
+                ensureInteger(value, "Only integers can be passed as values.", posStart, tokens.peekPrevious().getEndPosition());
             return new InputAction(channel, value);
         } else if (tokens.peek() instanceof Exclamation) {
             tokens.next();
@@ -699,12 +694,8 @@ public class CCSParser implements Parser {
     private Value readOutputValue(ExtendedListIterator<Token> tokens) throws ParseException {
         final int posStart = tokens.peek().getStartPosition();
         final Value value = readArithmeticBaseExpression(tokens, true); // may return null
-        if (value instanceof ParameterReference)
-            try {
-                ((ParameterReference)value).getParam().setType(Parameter.Type.VALUE);
-            } catch (final ParseException e) {
-                throw new ParseException(e.getMessage(), posStart, tokens.peekPrevious().getEndPosition());
-            }
+        if (value != null)
+            ensureInteger(value, "Only integers can be passed as values.", posStart, tokens.peekPrevious().getEndPosition());
         return value;
     }
 
@@ -1173,6 +1164,7 @@ public class CCSParser implements Parser {
         } else if (value2 instanceof ConditionalValue) {
             ensureEqualTypes(value1, ((ConditionalValue)value2).getThenValue(), message, startPos, endPos);
             ensureEqualTypes(value1, ((ConditionalValue)value2).getElseValue(), message, startPos, endPos);
+            return;
         }
         throw new ParseException(message + " The values \"" + value1 + "\" and \"" + value2 + "\" have different types.", startPos, endPos);
     }
@@ -1188,13 +1180,14 @@ public class CCSParser implements Parser {
             try {
                 ((ParameterReference)value).getParam().setType(Parameter.Type.BOOLEANVALUE);
             } catch (final ParseException e) {
-                throw new ParseException(message + e.getMessage(), startPos, endPos);
+                throw new ParseException(message + " " + e.getMessage(), startPos, endPos);
             }
             return;
         }
         if (value instanceof ConditionalValue) {
             ensureBoolean(((ConditionalValue)value).getThenValue(), message, startPos, endPos);
             ensureBoolean(((ConditionalValue)value).getElseValue(), message, startPos, endPos);
+            return;
         }
         assert false;
         throw new ParseException(message, startPos, endPos);
@@ -1211,13 +1204,14 @@ public class CCSParser implements Parser {
             try {
                 ((ParameterReference)value).getParam().setType(Parameter.Type.INTEGERVALUE);
             } catch (final ParseException e) {
-                throw new ParseException(message + e.getMessage(), startPos, endPos);
+                throw new ParseException(message + " " + e.getMessage(), startPos, endPos);
             }
             return;
         }
         if (value instanceof ConditionalValue) {
             ensureInteger(((ConditionalValue)value).getThenValue(), message, startPos, endPos);
             ensureInteger(((ConditionalValue)value).getElseValue(), message, startPos, endPos);
+            return;
         }
         assert false;
         throw new ParseException(message, startPos, endPos);

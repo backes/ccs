@@ -7,7 +7,7 @@ public class And extends IntegrationTest {
 
     @Override
     protected String getExpressionString() {
-        return "X[ch,a,b] := ch!(a && b);\n" +
+        return "X[ch,a,b] := ch!(a && b ? 1 : 0);\n" +
             "X[a, true, true] + X[b, true, false] + X[c, false, false] + X[d, false, true]";
     }
 
@@ -19,10 +19,10 @@ public class And extends IntegrationTest {
 
     @Override
     protected void addTransitions() {
-        addTransition(0, 1, "a!true");
-        addTransition(0, 1, "b!false");
-        addTransition(0, 1, "c!false");
-        addTransition(0, 1, "d!false");
+        addTransition(0, 1, "a!1");
+        addTransition(0, 1, "b!0");
+        addTransition(0, 1, "c!0");
+        addTransition(0, 1, "d!0");
     }
 
 }
