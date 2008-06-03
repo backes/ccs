@@ -24,6 +24,7 @@ import de.unisb.cs.depend.ccs_sem.parser.IParsingProblemListener;
 import de.unisb.cs.depend.ccs_sem.parser.ParsingProblem;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.ExpressionRepository;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.RecursiveExpression.RecursiveExpressionAlphabetWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
@@ -505,7 +506,7 @@ public abstract class IntegrationTest implements IParsingProblemListener {
         }
 
         @Override
-        public Set<Action> getAlphabet(Set<ProcessVariable> alreadyIncluded) {
+        public Set<Action> getAlphabet(Set<RecursiveExpressionAlphabetWrapper> alreadyIncluded) {
             throw new UnsupportedOperationException();
         }
 

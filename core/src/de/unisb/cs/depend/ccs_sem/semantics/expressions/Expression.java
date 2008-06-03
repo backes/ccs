@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.RecursiveExpression.RecursiveExpressionAlphabetWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
@@ -138,17 +139,17 @@ public abstract class Expression {
      * @return the alphabet of this Expression
      */
     public final Set<Action> getAlphabet() {
-        return getAlphabet(new HashSet<ProcessVariable>(4));
+        return getAlphabet(new HashSet<RecursiveExpressionAlphabetWrapper>(4));
     }
 
     /**
      * Only for internal use. Always call {@link #getAlphabet()}.
      *
-     * @param alreadyIncluded a set of {@link ProcessVariable}s that have
-     *                        already been taken into account
+     * @param alreadyIncluded a set of {@link RecursiveExpression}s with channels
+     *                        that have already been taken into account
      * @return (a part of) the alphabet of this Expression
      */
-    public abstract Set<Action> getAlphabet(Set<ProcessVariable> alreadyIncluded);
+    public abstract Set<Action> getAlphabet(Set<RecursiveExpressionAlphabetWrapper> alreadyIncluded);
 
     // we store the hashCode so that we only compute it once
     @Override

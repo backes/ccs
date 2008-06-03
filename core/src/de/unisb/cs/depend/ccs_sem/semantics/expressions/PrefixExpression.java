@@ -9,6 +9,7 @@ import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ArithmeticError;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.RecursiveExpression.RecursiveExpressionAlphabetWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
@@ -98,7 +99,7 @@ public class PrefixExpression extends Expression {
     }
 
     @Override
-    public Set<Action> getAlphabet(Set<ProcessVariable> alreadyIncluded) {
+    public Set<Action> getAlphabet(Set<RecursiveExpressionAlphabetWrapper> alreadyIncluded) {
         final Set<Action> successorAlphabet = target.getAlphabet(alreadyIncluded);
         if (!(prefix instanceof TauAction))
             successorAlphabet.add(prefix);

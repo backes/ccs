@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.RecursiveExpression.RecursiveExpressionAlphabetWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
@@ -110,7 +111,7 @@ public class MinimisingExpression extends Expression {
     }
 
     @Override
-    public Set<Action> getAlphabet(Set<ProcessVariable> alreadyIncluded) {
+    public Set<Action> getAlphabet(Set<RecursiveExpressionAlphabetWrapper> alreadyIncluded) {
         // this is a bit more complex: we have to do a full graph search for
         // all possible actions
         final Set<Action> alphabet = new HashSet<Action>();

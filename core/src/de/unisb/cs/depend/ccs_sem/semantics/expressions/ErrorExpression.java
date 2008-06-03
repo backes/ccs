@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.RecursiveExpression.RecursiveExpressionAlphabetWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
@@ -49,7 +50,7 @@ public class ErrorExpression extends Expression {
     }
 
     @Override
-    public Set<Action> getAlphabet(Set<ProcessVariable> alreadyIncluded) {
+    public Set<Action> getAlphabet(Set<RecursiveExpressionAlphabetWrapper> alreadyIncluded) {
         // no Collections.emptySet() here because it could be modified by the caller
         return new HashSet<Action>(0);
     }

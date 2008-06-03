@@ -66,7 +66,6 @@ public class ParseCCSProgramJob extends Job {
 
         Program ccsProgram = null;
         final ParsingResult result = new ParsingResult();
-        monitor.subTask("Lexing...");
         if (input == null) {
             if (ccsDocument == null)
                 return new ParseStatus(IStatus.ERROR,
@@ -79,6 +78,7 @@ public class ParseCCSProgramJob extends Job {
                 ccsDocument.unlock();
             }
         }
+        monitor.subTask("Lexing...");
         final List<Token> tokens = new LoggingCCSLexer(result).lex(input);
         monitor.worked(WORK_LEXING);
 

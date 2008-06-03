@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.RecursiveExpression.RecursiveExpressionAlphabetWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ChannelSet;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
@@ -96,7 +97,7 @@ public class RestrictExpression extends Expression {
     }
 
     @Override
-    public Set<Action> getAlphabet(Set<ProcessVariable> alreadyIncluded) {
+    public Set<Action> getAlphabet(Set<RecursiveExpressionAlphabetWrapper> alreadyIncluded) {
         // filter out the restricted actions
         final Set<Action> innerAlphabet = innerExpr.getAlphabet(alreadyIncluded);
         final Iterator<Action> it = innerAlphabet.iterator();
