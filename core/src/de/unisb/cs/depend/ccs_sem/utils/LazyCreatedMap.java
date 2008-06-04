@@ -9,7 +9,7 @@ import java.util.Set;
 /**
  * This Map implementation only creates the inner map if an entry is inserted.
  * So it's cheap to create a LazyCreatedMap when most probably no entries will
- * be added
+ * be added.
  *
  * @author Clemens Hammacher
  *

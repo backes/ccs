@@ -3,6 +3,7 @@ package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -101,9 +102,19 @@ public class PrefixExpression extends Expression {
     @Override
     public Set<Action> getAlphabet(Set<RecursiveExpressionAlphabetWrapper> alreadyIncluded) {
         final Set<Action> successorAlphabet = target.getAlphabet(alreadyIncluded);
-        if (!(prefix instanceof TauAction))
-            successorAlphabet.add(prefix);
-        return successorAlphabet;
+        if (prefix instanceof TauAction)
+            return successorAlphabet;
+        if (successorAlphabet.isEmpty()) {
+            return Collections.singleton(prefix);
+        } else {
+            if (successorAlphabet instanceof HashSet) {
+                successorAlphabet.add(prefix);
+                return successorAlphabet;
+            }
+            final Set<Action> newSet = new HashSet<Action>(successorAlphabet);
+            newSet.add(prefix);
+            return newSet;
+        }
     }
 
     @Override

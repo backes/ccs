@@ -3,6 +3,7 @@ package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -100,7 +101,11 @@ public class RestrictExpression extends Expression {
     public Set<Action> getAlphabet(Set<RecursiveExpressionAlphabetWrapper> alreadyIncluded) {
         // filter out the restricted actions
         final Set<Action> innerAlphabet = innerExpr.getAlphabet(alreadyIncluded);
-        final Iterator<Action> it = innerAlphabet.iterator();
+        if (innerAlphabet.isEmpty())
+            return innerAlphabet;
+        final Set<Action> newSet = innerAlphabet instanceof HashSet
+            ? innerAlphabet : new HashSet<Action>(innerAlphabet);
+        final Iterator<Action> it = newSet.iterator();
         while (it.hasNext())
             if (restricted.contains(it.next().getChannel()))
                 it.remove();

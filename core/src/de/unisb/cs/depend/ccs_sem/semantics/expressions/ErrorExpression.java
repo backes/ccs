@@ -2,7 +2,6 @@ package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,8 +50,7 @@ public class ErrorExpression extends Expression {
 
     @Override
     public Set<Action> getAlphabet(Set<RecursiveExpressionAlphabetWrapper> alreadyIncluded) {
-        // no Collections.emptySet() here because it could be modified by the caller
-        return new HashSet<Action>(0);
+        return Collections.emptySet();
     }
 
     @Override

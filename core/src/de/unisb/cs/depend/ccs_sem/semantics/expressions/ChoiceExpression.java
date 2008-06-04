@@ -124,10 +124,20 @@ public class ChoiceExpression extends Expression {
         final Set<Action> leftAlphabet = left.getAlphabet(alreadyIncluded);
         final Set<Action> rightAlphabet = right.getAlphabet(alreadyIncluded);
 
-        if (leftAlphabet.size() < rightAlphabet.size()) {
+        if (leftAlphabet.isEmpty())
+            return rightAlphabet;
+        if (rightAlphabet.isEmpty())
+            return leftAlphabet;
+
+        if (leftAlphabet.size() < rightAlphabet.size() && (rightAlphabet instanceof HashSet)) {
             rightAlphabet.addAll(leftAlphabet);
             return rightAlphabet;
         } else {
+            if (!(leftAlphabet instanceof HashSet)) {
+                final Set<Action> newSet = new HashSet<Action>(leftAlphabet);
+                newSet.addAll(rightAlphabet);
+                return newSet;
+            }
             leftAlphabet.addAll(rightAlphabet);
             return leftAlphabet;
         }

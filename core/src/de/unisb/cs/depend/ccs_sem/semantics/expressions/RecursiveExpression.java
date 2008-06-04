@@ -2,7 +2,6 @@ package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -123,8 +122,8 @@ public class RecursiveExpression extends Expression {
     public Set<Action> getAlphabet(Set<RecursiveExpressionAlphabetWrapper> alreadyIncluded) {
         final RecursiveExpressionAlphabetWrapper myWrapper = new RecursiveExpressionAlphabetWrapper(this);
         if (!alreadyIncluded.add(myWrapper))
-            // no Collections.emptySet() here because it could be modified by the caller
-            return new HashSet<Action>(0);
+            return Collections.emptySet();
+
         final Set<Action> alphabet = getInstantiatedExpression().getAlphabet(alreadyIncluded);
         // we have to remove it afterwards, so that other branches evaluate the full alphabet
         alreadyIncluded.remove(myWrapper);

@@ -3,7 +3,6 @@ package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -178,7 +177,7 @@ public abstract class Expression {
         // hashCode is cached, so we compare it first (it's cheap)
         if (hashCode() != ((Expression)obj).hashCode())
             return false;
-        return equals(obj, new HashMap<ParameterOrProcessEqualsWrapper, Integer>(4));
+        return equals(obj, new LazyCreatedMap<ParameterOrProcessEqualsWrapper, Integer>(4));
     }
 
     public abstract boolean equals(Object obj,
