@@ -26,13 +26,13 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 public class Parameter {
 
     public static enum Type {
-        UNKNOWN("Unknown / unused parameter"),
-        CHANNEL("Channel parameter"),
-        VALUE("Value parameter"),
-        STRINGVALUE("String value parameter"),
-        BOOLEANVALUE("Boolean value parameter"),
-        INTEGERVALUE("Integer value parameter"),
-        STRING("String (value/channel) parameter");
+        UNKNOWN("Unused"),
+        CHANNEL("Channel"),
+        VALUE("Value"),
+        STRINGVALUE("String value"),
+        BOOLEANVALUE("Boolean value"),
+        INTEGERVALUE("Integer value"),
+        STRING("String (value/channel)");
 
         private String desc;
 
@@ -96,10 +96,10 @@ public class Parameter {
         if (value instanceof ParameterReference) {
             final ParameterReference paramValue = (ParameterReference) value;
             final Type otherType = paramValue.getParam().type;
+            addConnectedParameter(paramValue.getParam());
+            paramValue.getParam().addConnectedParameter(this);
             switch (otherType) {
             case UNKNOWN:
-                addConnectedParameter(paramValue.getParam());
-                paramValue.getParam().addConnectedParameter(this);
                 break;
             case CHANNEL:
             case VALUE:
@@ -145,6 +145,7 @@ public class Parameter {
         if (type == newType)
             return;
 
+        boolean error = false;
         switch (type) {
         case UNKNOWN:
             // we accept every type
@@ -153,9 +154,8 @@ public class Parameter {
             if (newType == Type.STRING)
                 // do not change
                 return;
-            throw new ParseException("Parameter \"" + name + "\" already has type \""
-                + type + "\", cannot be " + (instantiation ? "instantiated with" : "changed to")
-                + " \"" + newType + "\"", -1, -1);
+            error = true;
+            break;
         case VALUE:
             switch (newType) {
             case STRING:
@@ -168,9 +168,7 @@ public class Parameter {
                 break; // inner switch!
 
             default:
-                throw new ParseException("Parameter \"" + name + "\" already has type \""
-                    + type + "\", cannot be " + (instantiation ? "instantiated with" : "changed to")
-                    + " \"" + newType + "\"", -1, -1);
+                error = true;
             }
             break;
 
@@ -180,34 +178,37 @@ public class Parameter {
             // fall through here!
         case BOOLEANVALUE:
         case INTEGERVALUE:
-            if (newType != Type.VALUE)
-                throw new ParseException("Parameter \"" + name + "\" already has type \""
-                    + type + "\", cannot be " + (instantiation ? "instantiated with" : "changed to")
-                    + " \"" + newType + "\"", -1, -1);
-            // accept otherwise:
+            error |= newType != Type.VALUE;
             break;
         case STRING:
-            if (newType == Type.CHANNEL || newType == Type.STRINGVALUE)
-                // accept
-                break;
-            throw new ParseException("Parameter \"" + name + "\" already has type \""
-                + type + "\", cannot be " + (instantiation ? "instantiated with" : "changed to")
-                + " \"" + newType + "\"", -1, -1);
+            error |= newType != Type.CHANNEL && newType != Type.STRINGVALUE;
+            break;
         default:
             assert false;
         }
+
+        if (error)
+            throw new ParseException("Parameter \"" + name + "\" already has type \""
+                + type + "\", cannot be " + (instantiation ? "instantiated with" : "changed to")
+                + " \"" + newType + "\"", -1, -1);
+
         type = newType;
         if (connectedParameters != null) {
             // work on a copy of connectedParameters, otherwise we would get a loop
             final List<Parameter> parametersToSetType = connectedParameters;
             connectedParameters = null;
-            for (final Parameter otherParam: parametersToSetType)
-                otherParam.setType(newType, instantiation);
-            connectedParameters = parametersToSetType;
+            try {
+                for (final Parameter otherParam: parametersToSetType)
+                    otherParam.setType(newType, instantiation);
+            } finally {
+                connectedParameters = parametersToSetType;
+            }
         }
     }
 
     private void addConnectedParameter(Parameter param) {
+        if (param == this)
+            return;
         if (connectedParameters == null)
             connectedParameters = new ArrayList<Parameter>(2);
         connectedParameters.add(param);

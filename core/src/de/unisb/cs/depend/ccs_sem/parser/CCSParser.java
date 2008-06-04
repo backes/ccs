@@ -664,6 +664,13 @@ public class CCSParser implements Parser {
                         range = readRangeDef(tokens);
                     }
                     final Parameter parameter = new Parameter(identifier.getName(), range);
+                    try {
+                        parameter.setType(Parameter.Type.INTEGERVALUE, false);
+                    } catch (final ParseException e) {
+                        // this should never occur since we are setting the type of a fresh parameter
+                        throw new ParseException("Only integers can be passed as values. " + e.getMessage(),
+                            identifier.getStartPosition(), tokens.peekPrevious().getEndPosition());
+                    }
                     // hook for logging:
                     identifierParsed(identifier, parameter);
                     return new InputAction(channel, parameter);
