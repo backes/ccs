@@ -1,4 +1,4 @@
-X[read,write,j] = read!j . X[read,write,j] + write?k . X[read,write,k];
+X[a] := 0;
+Y[b] := X[!b];
 
-X[r,w,true]
-
+Y[false]

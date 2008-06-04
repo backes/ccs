@@ -1,7 +1,7 @@
-const MAX = 3;
-range RAN = 0..MAX;
+const MAX := 3;
+range RAN := 0..MAX;
 
-X[a:RAN] = out!a.X[a+1];
+ERROR_CHECK[a] := when a > 6 ERROR;
+X[a:RAN] := out!a.X[a+1] + ERROR_CHECK[a];
 
 X[0]
-

@@ -1,5 +1,5 @@
-X=a.b.go?.X;
-Y=go!.Y;
+X:=a.b.go?.X;
+Y:=go!.Y;
 
-X|Y \ {go!, go?}
+X|Y \ {go}
 

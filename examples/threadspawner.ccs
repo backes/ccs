@@ -1,0 +1,9 @@
+(* This is an example CCS file *)
+
+STARTTHREADS[n] := when (n>0) (WORKER[n] | STARTTHREADS[n-1]);
+WORKER[n] := start!n . do_something . ready!n;
+
+CONTROLLER[n] := WAITFOR[start,n] | WAITFOR[ready,n];
+WAITFOR[ch, n] := if n > 0 ch?x:{n}.WAITFOR[ch, n-1];
+
+STARTTHREADS[2] | CONTROLLER[2] \ {start}

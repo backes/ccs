@@ -1,6 +1,6 @@
-const CONST = 4711;
-range SOME_STUFF = {foo, bla, CONST};
-range INPUT_RANGE = (2..4) + SOME_STUFF;
+const CONST := 4711;
+range SOME_STUFF := {foo, bla, CONST};
+range INPUT_RANGE := (2..4) + SOME_STUFF;
 
 in?x:INPUT_RANGE.one.two.three.out!x
 

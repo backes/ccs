@@ -1,4 +1,4 @@
-X[a] = a;
+X[a] := a;
 
-X[out!1]
+X[out]
 

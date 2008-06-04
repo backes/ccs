@@ -1,0 +1,4 @@
+X[n] := next.X[(n+1) % 5] + when n == 2 error.ERROR;
+
+X[0]
+

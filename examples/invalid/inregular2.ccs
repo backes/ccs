@@ -1,0 +1,5 @@
+X[a] := out!a | Y[true] | Y[false];
+Y[n] := uepsilon!n . when n (fertisch | X[n ? 17 : 71]);
+
+X[0]
+

@@ -1,24 +1,24 @@
-// let's assume we have just a 2 digit display
-const max_value = 99;
-range clock_range = 0 .. max_value;
+// let's assume we have a 3 digit display
+const max_value := 999;
+range clock_range := 0 .. max_value;
 
-T = tick! . T;
+T := tick! . T;
 
-CLOCK = (STOPPED[0] | T) \ {tick?, tick!};
+CLOCK := (STOPPED[0] | T) \ {tick};
 
-STOPPED[x: clock_range] = tick?.STOPPED[x]
+STOPPED[x: clock_range] := tick?.STOPPED[x]
   + start?.RUNNING[x]
   + stop?.STOPPED[x]
   + reset?.STOPPED[0]
   + get!x.STOPPED[x];
 
-RUNNING[x: clock_range] = tick?.RUNNING[x + 1]
+RUNNING[x: clock_range] := tick?.RUNNING[x < max_value ? x + 1 : x]
   + start?.RUNNING[x]
   + stop?.STOPPED[x]
   + reset?.FREEZED[x, x]
   + get!x.RUNNING[x];
 
-FREEZED[x: clock_range, y: clock_range] = tick?.FREEZED[x + 1, y]
+FREEZED[x: clock_range, y: clock_range] := tick?.FREEZED[x < max_value ? x + 1 : x, y]
   + start?.FREEZED[x,y]
   + stop?.STOPPED[x]
   + reset?.RUNNING[x]

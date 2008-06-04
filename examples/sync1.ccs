@@ -1,0 +1,4 @@
+(* there should be one trace: i.out!1 *)
+
+x!1 | x?x.out!x \ {x}
+

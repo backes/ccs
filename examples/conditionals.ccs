@@ -2,9 +2,9 @@
    out!no, out!yes, out!0, out!1, out!true, out!false
 *)
 
-STRING[b] = out!(b?yes:no).when b INTEGER[false] else STRING[!b];
-INTEGER[b] = out!(b?1:0).(when (b) then BOOLEAN[!b] + when (!b) INTEGER[!b]);
-BOOLEAN[b] = out!(b?false:true).when b then 0 else BOOLEAN[true];
+STRING[b] := out!(b?yes:no).when b INTEGER[false] else STRING[!b];
+INTEGER[b] := out!(b?1:0).(when (b) then BOOLEAN[!b] + when (!b) INTEGER[!b]);
+BOOLEAN[b] := out!(b?false:true).when b then 0 else BOOLEAN[true];
 
 STRING[false]
 

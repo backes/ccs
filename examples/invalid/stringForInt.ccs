@@ -1,4 +1,3 @@
-X[n] = out!n.X[n+1];
+X[n] := out!n.X[n+1];
 
 X[a]
-

@@ -1,4 +1,4 @@
-X=a.b.X;
-Y=c.d.Y;
+Cell[ rd,wr,x] := rd!x.Cell[ rd,wr,x] + wr?new.Cell[ rd,wr,new];
+ TestCell := rA?x.answ!x.wA!12.rA?c.answ!c;
 
-X|Y \ {d}
+ (Cell [ rA,wA,0] | TestCell)\{rA,wA}

@@ -1,0 +1,5 @@
+X := a.b + c.d.Y[bla];
+Y[foo] := out!foo | spawn.X;
+
+X
+
