@@ -18,13 +18,14 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.InputAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.Range;
+import de.unisb.cs.depend.ccs_sem.semantics.types.values.IntegerValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 
 /**
  * This is an adapter for an expression to indicate that it is a top most
  * Expression. While evaluation, it substitutes all not-instantiated input
- * actions by all possible values for it.
+ * actions by all possible (integer) values for it.
  *
  * @author Clemens Hammacher
  */
@@ -59,6 +60,8 @@ public class TopMostExpression extends Expression {
                         continue;
                     }
                     for (final Value val: range.getPossibleValues()) {
+                        if (!(val instanceof IntegerValue))
+                            continue;
                         final Map<Parameter, Value> map = Collections.singletonMap(param, val);
                         Expression newTarget = trans.getTarget().instantiate(map);
                         newTarget = ExpressionRepository.getExpression(new TopMostExpression(newTarget));
