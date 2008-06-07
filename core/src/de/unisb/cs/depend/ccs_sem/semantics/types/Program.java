@@ -1,7 +1,7 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types;
 
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.evaluators.EvaluationMonitor;
 import de.unisb.cs.depend.ccs_sem.evaluators.Evaluator;
@@ -124,7 +124,7 @@ public class Program {
         minimizeTransitions(Globals.getDefaultEvaluator(), null, false);
     }
 
-    public Set<Action> getAlphabet() {
+    public Map<Action, Action> getAlphabet() {
         return getExpression().getAlphabet();
     }
 

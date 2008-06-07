@@ -1,6 +1,5 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types.actions;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ArithmeticError;
@@ -10,6 +9,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrappe
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
+import de.unisb.cs.depend.ccs_sem.utils.LazyCreatedMap;
 
 
 public abstract class Action implements Comparable<Action> {
@@ -41,7 +41,7 @@ public abstract class Action implements Comparable<Action> {
 
     @Override
     public final boolean equals(Object obj) {
-        return equals(obj, new HashMap<ParameterOrProcessEqualsWrapper, Integer>(4));
+        return equals(obj, new LazyCreatedMap<ParameterOrProcessEqualsWrapper, Integer>(4));
     }
 
     public abstract boolean equals(Object obj,
@@ -49,7 +49,7 @@ public abstract class Action implements Comparable<Action> {
 
     @Override
     public final int hashCode() {
-        return hashCode(new HashMap<ParameterOrProcessEqualsWrapper, Integer>(4));
+        return hashCode(new LazyCreatedMap<ParameterOrProcessEqualsWrapper, Integer>(4));
     }
 
     public abstract int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences);

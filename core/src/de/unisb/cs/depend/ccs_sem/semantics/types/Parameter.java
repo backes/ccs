@@ -211,7 +211,8 @@ public class Parameter {
             return;
         if (connectedParameters == null)
             connectedParameters = new ArrayList<Parameter>(2);
-        connectedParameters.add(param);
+        if (!connectedParameters.contains(param))
+            connectedParameters.add(param);
     }
 
     public Parameter instantiate(Map<Parameter, Value> parameters) throws ArithmeticError {

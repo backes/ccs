@@ -135,9 +135,10 @@ public abstract class Expression {
     /**
      * Computes the alphabet of this Expression.
      *
-     * @return the alphabet of this Expression
+     * @return the alphabet of this Expression, as map from actual action to
+     *         the (possibly parameterized) action that generated it.
      */
-    public final Set<Action> getAlphabet() {
+    public final Map<Action, Action> getAlphabet() {
         return getAlphabet(new HashSet<RecursiveExpressionAlphabetWrapper>(4));
     }
 
@@ -148,7 +149,7 @@ public abstract class Expression {
      *                        that have already been taken into account
      * @return (a part of) the alphabet of this Expression
      */
-    public abstract Set<Action> getAlphabet(Set<RecursiveExpressionAlphabetWrapper> alreadyIncluded);
+    public abstract Map<Action, Action> getAlphabet(Set<RecursiveExpressionAlphabetWrapper> alreadyIncluded);
 
     // we store the hashCode so that we only compute it once
     @Override
@@ -158,8 +159,6 @@ public abstract class Expression {
             h = hashCode(new LazyCreatedMap<ParameterOrProcessEqualsWrapper, Integer>(4));
             this.hash = h;
         }
-
-        assert h == hashCode(new LazyCreatedMap<ParameterOrProcessEqualsWrapper, Integer>(4));
 
         return h;
     }
@@ -175,8 +174,11 @@ public abstract class Expression {
         if (getClass() != obj.getClass())
             return false;
         // hashCode is cached, so we compare it first (it's cheap)
+        // TODO uncomment
+        /*
         if (hashCode() != ((Expression)obj).hashCode())
             return false;
+        */
         return equals(obj, new LazyCreatedMap<ParameterOrProcessEqualsWrapper, Integer>(4));
     }
 

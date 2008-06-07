@@ -122,12 +122,12 @@ public class LoggingCCSParser extends CCSParser implements IParsingProblemListen
     }
 
     @Override
-    protected void reportUnboundInputParameter(Action act) {
+    protected void reportUnboundInputParameter(Action act, Action origin) {
         for (final Pair<Action, Pair<Token, Token>> readAct: result.actions) {
-            if (readAct.getFirst().equals(act)) {
+            if (readAct.getFirst().equals(origin)) {
                 reportProblem(new ParsingProblem(ParsingProblem.ERROR,
                     "This action is not restricted and without a range. "
-                        + "This would leed to infinitely many transitions.",
+                        + "This would lead to infinitely many transitions.",
                     readAct.getSecond().getFirst().getStartPosition(),
                     readAct.getSecond().getSecond().getEndPosition()
                     ));

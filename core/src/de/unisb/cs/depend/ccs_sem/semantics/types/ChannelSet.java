@@ -38,6 +38,7 @@ public class ChannelSet extends TreeSet<Channel> {
 
     public int hashCode(Map<ParameterOrProcessEqualsWrapper,Integer> parameterOccurences) {
         int result = 1;
+        // remember that the set is ordered, so there should be no ambiguousness
         for (final Channel ch: this)
             if (ch != null)
                 result += ch.hashCode(parameterOccurences);

@@ -2,10 +2,12 @@ package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ArithmeticError;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
@@ -13,6 +15,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrappe
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ValueList;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter.Type;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.Range;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
@@ -119,15 +122,45 @@ public class RecursiveExpression extends Expression {
     }
 
     @Override
-    public Set<Action> getAlphabet(Set<RecursiveExpressionAlphabetWrapper> alreadyIncluded) {
+    public Map<Action, Action> getAlphabet(Set<RecursiveExpressionAlphabetWrapper> alreadyIncluded) {
         final RecursiveExpressionAlphabetWrapper myWrapper = new RecursiveExpressionAlphabetWrapper(this);
         if (!alreadyIncluded.add(myWrapper))
-            return Collections.emptySet();
+            return Collections.emptyMap();
 
-        final Set<Action> alphabet = getInstantiatedExpression().getAlphabet(alreadyIncluded);
+        final Map<Action, Action> alphabet = referencedProcessVariable.getValue().getAlphabet(alreadyIncluded);
+        final Map<Action, Action> newAlphabet = new HashMap<Action, Action>(alphabet.size()*4/3 + 1);
+        if (alphabet.isEmpty())
+            return alphabet;
+
+        // create channel instantiation mapping
+        final Map<Parameter,Value> map = new HashMap<Parameter, Value>(
+                referencedProcessVariable.getParamCount()*4/3 + 1);
+        for (int i = 0; i < referencedProcessVariable.getParamCount(); ++i) {
+            final Parameter param = referencedProcessVariable.getParam(i);
+            if (param.getType() != Type.CHANNEL)
+                continue;
+            map.put(param, parameterValues.get(i));
+        }
+        for (final Entry<Action, Action> e: alphabet.entrySet()) {
+            final Action act = e.getKey();
+            Action newAct;
+            try {
+                newAct = act.instantiate(map);
+            } catch (final ArithmeticError e1) {
+                // should not occur
+                assert false;
+                newAct = act;
+            }
+            if (newAct == act) {
+                newAlphabet.put(act, e.getValue());
+            } else {
+                newAlphabet.put(newAct, e.getValue());
+            }
+        }
+
         // we have to remove it afterwards, so that other branches evaluate the full alphabet
         alreadyIncluded.remove(myWrapper);
-        return alphabet;
+        return newAlphabet;
     }
 
     @Override

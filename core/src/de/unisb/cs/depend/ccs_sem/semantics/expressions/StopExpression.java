@@ -49,8 +49,8 @@ public class StopExpression extends Expression {
     }
 
     @Override
-    public Set<Action> getAlphabet(Set<RecursiveExpressionAlphabetWrapper> alreadyIncluded) {
-        return Collections.emptySet();
+    public Map<Action, Action> getAlphabet(Set<RecursiveExpressionAlphabetWrapper> alreadyIncluded) {
+        return Collections.emptyMap();
     }
 
     @Override

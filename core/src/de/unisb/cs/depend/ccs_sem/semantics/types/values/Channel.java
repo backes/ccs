@@ -5,7 +5,6 @@ import java.util.Map;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 
 
-
 /**
  * This interface is implements by all {@link Value}s that can represent a channel.
  *

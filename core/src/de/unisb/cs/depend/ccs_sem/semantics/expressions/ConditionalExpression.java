@@ -90,7 +90,7 @@ public class ConditionalExpression extends Expression {
     }
 
     @Override
-    public Set<Action> getAlphabet(Set<RecursiveExpressionAlphabetWrapper> alreadyIncluded) {
+    public Map<Action, Action> getAlphabet(Set<RecursiveExpressionAlphabetWrapper> alreadyIncluded) {
         // the alphabet is the consequence's alphabet, even if we don't know
         // whether it will ever occur
         return consequence.getAlphabet(alreadyIncluded);

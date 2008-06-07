@@ -108,7 +108,7 @@ public class TopMostExpression extends Expression {
     }
 
     @Override
-    public Set<Action> getAlphabet(Set<RecursiveExpressionAlphabetWrapper> alreadyIncluded) {
+    public Map<Action, Action> getAlphabet(Set<RecursiveExpressionAlphabetWrapper> alreadyIncluded) {
         return myExpr.getAlphabet(alreadyIncluded);
     }
 

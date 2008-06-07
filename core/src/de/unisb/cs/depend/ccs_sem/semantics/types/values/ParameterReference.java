@@ -49,6 +49,7 @@ public class ParameterReference extends AbstractValue {
         final ParameterOrProcessEqualsWrapper otherWrapper = new ParameterOrProcessEqualsWrapper(other.param);
         final Integer myNum = parameterOccurences.get(myWrapper);
         final Integer otherNum = parameterOccurences.get(otherWrapper);
+        // the references can only be equal if both were defined before...
         return myNum != null && myNum.equals(otherNum);
     }
 

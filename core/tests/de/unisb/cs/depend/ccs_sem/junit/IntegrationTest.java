@@ -506,7 +506,7 @@ public abstract class IntegrationTest implements IParsingProblemListener {
         }
 
         @Override
-        public Set<Action> getAlphabet(Set<RecursiveExpressionAlphabetWrapper> alreadyIncluded) {
+        public Map<Action, Action> getAlphabet(Set<RecursiveExpressionAlphabetWrapper> alreadyIncluded) {
             throw new UnsupportedOperationException();
         }
 

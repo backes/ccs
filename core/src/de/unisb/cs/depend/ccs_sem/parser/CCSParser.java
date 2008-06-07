@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ArithmeticError;
 import de.unisb.cs.depend.ccs_sem.exceptions.LexException;
@@ -195,8 +196,9 @@ public class CCSParser implements Parser {
 
         if (program != null) {
             // search if the alphabet contains parameterized input actions
-            final Set<Action> alphabet = program.getAlphabet();
-            for (final Action act: alphabet) {
+            final Map<Action, Action> alphabet = program.getAlphabet();
+            for (final Entry<Action, Action> e: alphabet.entrySet()) {
+                final Action act = e.getKey();
                 if (!(act instanceof InputAction))
                     continue;
                 final Parameter param = ((InputAction)act).getParameter();
@@ -207,7 +209,7 @@ public class CCSParser implements Parser {
                     continue;
 
                 // ok, we have an unrestricted and not range restricted action.
-                reportUnboundInputParameter(act);
+                reportUnboundInputParameter(act, e.getValue());
             }
         }
 
@@ -1246,10 +1248,10 @@ public class CCSParser implements Parser {
             listener.reportParsingProblem(problem);
     }
 
-    protected void reportUnboundInputParameter(Action act) {
+    protected void reportUnboundInputParameter(Action act, Action origin) {
         reportProblem(new ParsingProblem(ParsingProblem.ERROR,
             "The action \"" + act + "\" is not restricted and without a range. "
-                + "This would leed to infinitely many transitions.",
+                + "This would lead to infinitely many transitions.",
             -1, -1));
     }
 

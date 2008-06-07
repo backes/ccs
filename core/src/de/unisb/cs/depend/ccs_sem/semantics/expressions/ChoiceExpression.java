@@ -2,10 +2,12 @@ package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.RecursiveExpression.RecursiveExpressionAlphabetWrapper;
@@ -120,25 +122,26 @@ public class ChoiceExpression extends Expression {
     }
 
     @Override
-    public Set<Action> getAlphabet(Set<RecursiveExpressionAlphabetWrapper> alreadyIncluded) {
-        final Set<Action> leftAlphabet = left.getAlphabet(alreadyIncluded);
-        final Set<Action> rightAlphabet = right.getAlphabet(alreadyIncluded);
+    public Map<Action, Action> getAlphabet(Set<RecursiveExpressionAlphabetWrapper> alreadyIncluded) {
+        Map<Action, Action> leftAlphabet = left.getAlphabet(alreadyIncluded);
+        final Map<Action, Action> rightAlphabet = right.getAlphabet(alreadyIncluded);
 
         if (leftAlphabet.isEmpty())
             return rightAlphabet;
         if (rightAlphabet.isEmpty())
             return leftAlphabet;
 
-        if (leftAlphabet.size() < rightAlphabet.size() && (rightAlphabet instanceof HashSet)) {
-            rightAlphabet.addAll(leftAlphabet);
+        if (leftAlphabet.size() < rightAlphabet.size() && (rightAlphabet instanceof HashMap)) {
+            for (final Entry<Action, Action> e: leftAlphabet.entrySet())
+                if (!rightAlphabet.containsKey(e.getKey()))
+                    rightAlphabet.put(e.getKey(), e.getValue());
             return rightAlphabet;
         } else {
-            if (!(leftAlphabet instanceof HashSet)) {
-                final Set<Action> newSet = new HashSet<Action>(leftAlphabet);
-                newSet.addAll(rightAlphabet);
-                return newSet;
-            }
-            leftAlphabet.addAll(rightAlphabet);
+            if (!(leftAlphabet instanceof HashMap))
+                leftAlphabet = new HashMap<Action, Action>(leftAlphabet);
+            for (final Entry<Action, Action> e: rightAlphabet.entrySet())
+                if (!leftAlphabet.containsKey(e.getKey()))
+                    leftAlphabet.put(e.getKey(), e.getValue());
             return leftAlphabet;
         }
     }

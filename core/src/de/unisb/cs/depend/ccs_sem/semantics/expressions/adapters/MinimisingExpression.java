@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -111,10 +110,10 @@ public class MinimisingExpression extends Expression {
     }
 
     @Override
-    public Set<Action> getAlphabet(Set<RecursiveExpressionAlphabetWrapper> alreadyIncluded) {
+    public Map<Action, Action> getAlphabet(Set<RecursiveExpressionAlphabetWrapper> alreadyIncluded) {
         // this is a bit more complex: we have to do a full graph search for
         // all possible actions
-        final Set<Action> alphabet = new HashSet<Action>();
+        final Map<Action, Action> alphabet = new HashMap<Action, Action>();
 
         final UniqueQueue<MinimisingExpression> queue = new UniqueQueue<MinimisingExpression>();
         queue.add(this);
@@ -123,7 +122,7 @@ public class MinimisingExpression extends Expression {
         while ((e = queue.poll()) != null) {
             for (final Transition trans: e.getTransitions()) {
                 if (!(trans.getAction() instanceof TauAction))
-                    alphabet.add(trans.getAction());
+                    alphabet.put(trans.getAction(), trans.getAction());
                 // all successors of MinimisingExpressions must be
                 // MinimisingExpressions and must be evaluated
                 assert trans.getTarget() instanceof MinimisingExpression

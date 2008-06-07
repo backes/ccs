@@ -2,11 +2,11 @@ package de.unisb.cs.depend.ccs_sem.semantics.types;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.ListIterator;
 import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
+import de.unisb.cs.depend.ccs_sem.utils.LazyCreatedMap;
 
 
 public class ValueList extends ArrayList<Value> {
@@ -27,7 +27,7 @@ public class ValueList extends ArrayList<Value> {
 
     @Override
     public int hashCode() {
-        return hashCode(new HashMap<ParameterOrProcessEqualsWrapper, Integer>());
+        return hashCode(new LazyCreatedMap<ParameterOrProcessEqualsWrapper, Integer>(4));
     }
 
     public int hashCode(Map<ParameterOrProcessEqualsWrapper,Integer> parameterOccurences) {
@@ -39,7 +39,7 @@ public class ValueList extends ArrayList<Value> {
 
     @Override
     public boolean equals(Object o) {
-        return equals(new HashMap<ParameterOrProcessEqualsWrapper, Integer>());
+        return equals(new LazyCreatedMap<ParameterOrProcessEqualsWrapper, Integer>(4));
     }
 
     public boolean equals(Object o,

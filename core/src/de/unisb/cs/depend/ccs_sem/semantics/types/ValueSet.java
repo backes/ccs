@@ -2,13 +2,13 @@ package de.unisb.cs.depend.ccs_sem.semantics.types;
 
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
+import de.unisb.cs.depend.ccs_sem.utils.LazyCreatedMap;
 
 
 public class ValueSet extends TreeSet<Value> {
@@ -33,7 +33,7 @@ public class ValueSet extends TreeSet<Value> {
 
     @Override
     public int hashCode() {
-        return hashCode(new HashMap<ParameterOrProcessEqualsWrapper, Integer>(4));
+        return hashCode(new LazyCreatedMap<ParameterOrProcessEqualsWrapper, Integer>(4));
     }
 
     public int hashCode(Map<ParameterOrProcessEqualsWrapper,Integer> parameterOccurences) {
@@ -46,7 +46,7 @@ public class ValueSet extends TreeSet<Value> {
 
     @Override
     public boolean equals(Object o) {
-        return equals(new HashMap<ParameterOrProcessEqualsWrapper, Integer>(4));
+        return equals(new LazyCreatedMap<ParameterOrProcessEqualsWrapper, Integer>(4));
     }
 
     public boolean equals(Object o,

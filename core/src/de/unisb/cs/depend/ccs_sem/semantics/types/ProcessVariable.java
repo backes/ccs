@@ -15,6 +15,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.expressions.RestrictExpression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.Range;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
+import de.unisb.cs.depend.ccs_sem.utils.LazyCreatedMap;
 import de.unisb.cs.depend.ccs_sem.utils.UniqueQueue;
 
 
@@ -119,6 +120,20 @@ public class ProcessVariable {
      */
     public int getParamCount() {
         return parameters.size();
+    }
+
+    /**
+     * Returns a specific parameter of this process variable.
+     *
+     * @param paramNr the number of the parameter
+     * @return the specified parameter
+     * @throws IndexOutOfBoundsException if <code>paramNr < 0</code> or
+     *                                   <code>paramNr >= getParamCount()</code>
+     */
+    public Parameter getParam(int paramNr) {
+        if (paramNr < 0 || paramNr >= parameters.size())
+            throw new IndexOutOfBoundsException();
+        return parameters.get(paramNr);
     }
 
     /**
@@ -232,7 +247,7 @@ public class ProcessVariable {
         int result = 1;
         result = prime * result + name.hashCode();
         final Map<ParameterOrProcessEqualsWrapper,Integer> parameterOccurences =
-                new HashMap<ParameterOrProcessEqualsWrapper, Integer>(4);
+                new LazyCreatedMap<ParameterOrProcessEqualsWrapper, Integer>(4);
         result = prime * result + parameters.hashCode(parameterOccurences);
         result = prime * result + value.hashCode(parameterOccurences);
         return result;
@@ -240,7 +255,7 @@ public class ProcessVariable {
 
     @Override
     public boolean equals(Object obj) {
-        return equals(obj, new HashMap<ParameterOrProcessEqualsWrapper, Integer>(4));
+        return equals(obj, new LazyCreatedMap<ParameterOrProcessEqualsWrapper, Integer>(4));
     }
 
     public boolean equals(Object obj, Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
@@ -251,8 +266,11 @@ public class ProcessVariable {
         if (getClass() != obj.getClass())
             return false;
         final ProcessVariable other = (ProcessVariable) obj;
+        // TODO uncomment
+        /*
         if (hashCode() != other.hashCode())
             return false;
+        */
         if (!name.equals(other.name))
             return false;
         if (!parameters.equals(other.parameters, parameterOccurences))
