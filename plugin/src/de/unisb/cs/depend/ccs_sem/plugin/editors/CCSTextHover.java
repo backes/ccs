@@ -28,7 +28,6 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstString;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstantValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterReference;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.TauChannel;
-import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
 
 public class CCSTextHover implements ITextHover {
@@ -79,17 +78,8 @@ public class CCSTextHover implements ITextHover {
             final ParseStatus parseStatus = myRegion.parseStatus;
             final ParsingResult result = parseStatus == null ? null : parseStatus.getParsingResult();
 
-            if (myRegion.problems != null) {
-                if (myRegion.problems.size() == 1)
-                    return myRegion.problems.get(0).getMessage();
-                final StringBuilder sb = new StringBuilder();
-                for (final ParsingProblem prob: myRegion.problems) {
-                    if (sb.length() > 0)
-                        sb.append(Globals.getNewline());
-                    sb.append("- ").append(prob.getMessage());
-                }
-                return sb.toString();
-            }
+            if (myRegion.problems != null && myRegion.problems.size() > 0)
+                return myRegion.problems.get(0).getMessage();
 
             if (myRegion.token instanceof Identifier && result != null) {
                 final Object o = result.identifiers.get(myRegion.token);

@@ -6,7 +6,8 @@
         <fileset dir="features" includes="*.jar" />
         <fileset dir="plugins" includes="*.jar" />
 	</path>
-	
+
+	<!-- these can be overridden on command line (using option -D) -->
 	<property name="signcertificate" value="${user.home}/certificates/clemens@hammacher.name_codesign.p12" />
 	<property name="signalias" value="cl-hamm" />
 	

@@ -1419,8 +1419,7 @@ public class GrappaNexus implements GrappaConstants, Cloneable, ImageObserver,
     }
 
     public PathIterator getPathIterator(AffineTransform at, double flatness) {
-        return new FlatteningPathIterator(new GrappaPathIterator(this, at),
-                flatness);
+        return new FlatteningPathIterator(getPathIterator(at), flatness);
     }
 
     public boolean intersects(double x, double y, double width, double height) {

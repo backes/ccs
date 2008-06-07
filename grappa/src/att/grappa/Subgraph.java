@@ -774,6 +774,7 @@ public class Subgraph extends Element implements Comparator<Object> {
                             + ")");
                 }
             }
+
             final GrappaSize minSize =
                     (GrappaSize) getAttributeValue(MINSIZE_ATTR);
             if (minSize != null) {

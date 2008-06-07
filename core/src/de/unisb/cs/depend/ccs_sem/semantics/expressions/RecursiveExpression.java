@@ -128,9 +128,10 @@ public class RecursiveExpression extends Expression {
             return Collections.emptyMap();
 
         final Map<Action, Action> alphabet = referencedProcessVariable.getValue().getAlphabet(alreadyIncluded);
-        final Map<Action, Action> newAlphabet = new HashMap<Action, Action>(alphabet.size()*4/3 + 1);
         if (alphabet.isEmpty())
             return alphabet;
+
+        final Map<Action, Action> newAlphabet = new HashMap<Action, Action>(alphabet.size()*4/3 + 1);
 
         // create channel instantiation mapping
         final Map<Parameter,Value> map = new HashMap<Parameter, Value>(
@@ -151,11 +152,7 @@ public class RecursiveExpression extends Expression {
                 assert false;
                 newAct = act;
             }
-            if (newAct == act) {
-                newAlphabet.put(act, e.getValue());
-            } else {
-                newAlphabet.put(newAct, e.getValue());
-            }
+            newAlphabet.put(newAct, e.getValue());
         }
 
         // we have to remove it afterwards, so that other branches evaluate the full alphabet

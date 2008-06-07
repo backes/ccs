@@ -313,8 +313,6 @@ public class GrappaFrame extends Composite {
                 if (nodesToSelect.contains(node.getAttributeValue(GrappaConstants.LABEL_ATTR))) {
                     newSelection.add(node);
                     node.highlight |= GrappaConstants.SELECTION_MASK;
-                } else {
-                    node.highlight &= ~GrappaConstants.HIGHLIGHT_MASK;
                 }
             }
 
@@ -343,8 +341,6 @@ public class GrappaFrame extends Composite {
                 if (edgesToSelect.contains(edge.getAttributeValue(GrappaConstants.LABEL_ATTR))) {
                     newSelection.add(edge);
                     edge.highlight |= GrappaConstants.SELECTION_MASK;
-                } else {
-                    edge.highlight &= ~GrappaConstants.HIGHLIGHT_MASK;
                 }
             }
 

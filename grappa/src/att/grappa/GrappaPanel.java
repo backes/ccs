@@ -584,10 +584,6 @@ public class GrappaPanel extends javax.swing.JPanel implements
         if (bbox != null && grappaNexus != null && subg.visible
                 && !grappaNexus.style.invis && clipper.intersects(bbox)) {
 
-            Enumeration<?> enm = null;
-
-            int i;
-
             if (subg != subgraph) {
                 g2d.setPaint(grappaNexus.color);
                 if (grappaNexus.style.filled) {
@@ -641,24 +637,23 @@ public class GrappaPanel extends javax.swing.JPanel implements
             if (grappaNexus.lstr != null && subgLabels) {
                 g2d.setFont(grappaNexus.font);
                 g2d.setPaint(grappaNexus.font_color);
-                for (i = 0; i < grappaNexus.lstr.length; i++) {
+                for (int i = 0; i < grappaNexus.lstr.length; i++) {
                     g2d.drawString(grappaNexus.lstr[i],
                         (int) grappaNexus.lpos[i].x,
                         (int) grappaNexus.lpos[i].y);
                 }
             }
 
-            enm = subg.subgraphElements();
-            Subgraph subsubg = null;
-            while (enm.hasMoreElements()) {
-                subsubg = (Subgraph) (enm.nextElement());
+            final Enumeration<Subgraph> enm1 = subg.subgraphElements();
+            while (enm1.hasMoreElements()) {
+                final Subgraph subsubg = enm1.nextElement();
                 if (subsubg != null)
                     paintSubgraph(g2d, subsubg, clipper, bkgdColor);
             }
-            Node node;
-            enm = subg.nodeElements();
-            while (enm.hasMoreElements()) {
-                node = (Node) (enm.nextElement());
+
+            final Enumeration<Node> enm2 = subg.nodeElements();
+            while (enm2.hasMoreElements()) {
+                final Node node = enm2.nextElement();
                 if (node == null || !node.reserve())
                     continue;
                 if ((grappaNexus = node.grappaNexus) != null && node.visible
@@ -711,7 +706,7 @@ public class GrappaPanel extends javax.swing.JPanel implements
                     if (grappaNexus.lstr != null && nodeLabels) {
                         g2d.setFont(grappaNexus.font);
                         g2d.setPaint(grappaNexus.font_color);
-                        for (i = 0; i < grappaNexus.lstr.length; i++) {
+                        for (int i = 0; i < grappaNexus.lstr.length; i++) {
                             g2d.drawString(grappaNexus.lstr[i],
                                 (int) grappaNexus.lpos[i].x,
                                 (int) grappaNexus.lpos[i].y);
@@ -721,10 +716,9 @@ public class GrappaPanel extends javax.swing.JPanel implements
                 node.release();
             }
 
-            Edge edge;
-            enm = subg.edgeElements();
-            while (enm.hasMoreElements()) {
-                edge = (Edge) (enm.nextElement());
+            final Enumeration<Edge> enm3 = subg.edgeElements();
+            while (enm3.hasMoreElements()) {
+                final Edge edge = enm3.nextElement();
                 if (edge == null || !edge.reserve())
                     continue;
                 if ((grappaNexus = edge.grappaNexus) != null && edge.visible
@@ -765,7 +759,7 @@ public class GrappaPanel extends javax.swing.JPanel implements
                     if (grappaNexus.lstr != null && edgeLabels) {
                         g2d.setFont(grappaNexus.font);
                         g2d.setPaint(grappaNexus.font_color);
-                        for (i = 0; i < grappaNexus.lstr.length; i++) {
+                        for (int i = 0; i < grappaNexus.lstr.length; i++) {
                             g2d.drawString(grappaNexus.lstr[i],
                                 (int) grappaNexus.lpos[i].x,
                                 (int) grappaNexus.lpos[i].y);
