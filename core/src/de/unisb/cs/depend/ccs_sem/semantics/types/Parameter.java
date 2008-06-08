@@ -1,7 +1,5 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ArithmeticError;
@@ -16,6 +14,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.ConstString;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.IntegerValue;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterReference;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
+import de.unisb.cs.depend.ccs_sem.utils.WeakIdentityHashMap;
 
 
 /**
@@ -49,7 +48,7 @@ public class Parameter {
     // the type is determined while parsing and UnknownRecursiveExpression.replaceRecursion()
     private Type type = Type.UNKNOWN;
     private final String name;
-    private List<Parameter> connectedParameters = null;
+    private Map<Parameter, Object> connectedParameters = null;
     private final Range range;
 
     public Parameter(String name) {
@@ -195,10 +194,10 @@ public class Parameter {
         type = newType;
         if (connectedParameters != null) {
             // work on a copy of connectedParameters, otherwise we would get a loop
-            final List<Parameter> parametersToSetType = connectedParameters;
+            final Map<Parameter, Object> parametersToSetType = connectedParameters;
             connectedParameters = null;
             try {
-                for (final Parameter otherParam: parametersToSetType)
+                for (final Parameter otherParam: parametersToSetType.keySet())
                     otherParam.setType(newType, instantiation);
             } finally {
                 connectedParameters = parametersToSetType;
@@ -210,9 +209,8 @@ public class Parameter {
         if (param == this)
             return;
         if (connectedParameters == null)
-            connectedParameters = new ArrayList<Parameter>(2);
-        if (!connectedParameters.contains(param))
-            connectedParameters.add(param);
+            connectedParameters = new WeakIdentityHashMap<Parameter, Object>(4);
+        connectedParameters.put(param, null);
     }
 
     public Parameter instantiate(Map<Parameter, Value> parameters) throws ArithmeticError {
@@ -230,20 +228,21 @@ public class Parameter {
     }
 
     public int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
-        // first check if we have a recursion
-        final ParameterOrProcessEqualsWrapper myWrapper = new ParameterOrProcessEqualsWrapper(this);
-        Integer myNum = parameterOccurences.get(myWrapper);
-        if (myNum != null)
-            return myNum;
-
-        myNum = parameterOccurences.size() + 1;
-        parameterOccurences.put(myWrapper, myNum);
-
         final int prime = 31;
         int result = 1;
         result = prime * result + name.hashCode();
         result = prime * result + (range == null ? 0 : range.hashCode(parameterOccurences));
         //result = prime * result + (type == null ? 0 : type.hashCode());
+
+        // check if we have a recursion
+        final ParameterOrProcessEqualsWrapper myWrapper = new ParameterOrProcessEqualsWrapper(this);
+        Integer myNum = parameterOccurences.get(myWrapper);
+        if (myNum != null)
+            result = prime * result + myNum;
+
+        myNum = parameterOccurences.size() + 1;
+        parameterOccurences.put(myWrapper, myNum);
+
         return result;
     }
 

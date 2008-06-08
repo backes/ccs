@@ -1,11 +1,11 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types.values;
 
-import java.util.Collections;
 import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ArithmeticError;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
+import de.unisb.cs.depend.ccs_sem.utils.LazyCreatedMap;
 
 
 /**
@@ -36,16 +36,12 @@ public abstract class AbstractValue implements Value {
 
     @Override
     public final boolean equals(Object obj) {
-        final Map<ParameterOrProcessEqualsWrapper, Integer> emptyMap = Collections.emptyMap();
-        // the map is not modified, so we need no HashMap!
-        return equals(obj, emptyMap);
+        return equals(obj, new LazyCreatedMap<ParameterOrProcessEqualsWrapper, Integer>(4));
     }
 
     @Override
     public final int hashCode() {
-        final Map<ParameterOrProcessEqualsWrapper, Integer> emptyMap = Collections.emptyMap();
-        // the map is not modified, so we need no HashMap!
-        return hashCode(emptyMap);
+        return hashCode(new LazyCreatedMap<ParameterOrProcessEqualsWrapper, Integer>(4));
     }
 
 }

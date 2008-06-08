@@ -29,11 +29,7 @@ public class ParameterReference extends AbstractValue {
     }
 
     public int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences) {
-        final ParameterOrProcessEqualsWrapper myWrapper = new ParameterOrProcessEqualsWrapper(this.param);
-        final Integer myNum = parameterOccurences.get(myWrapper);
-        if (myNum != null)
-            return myNum;
-        return 1;
+        return param.hashCode(parameterOccurences);
     }
 
     public boolean equals(Object obj,
@@ -45,12 +41,9 @@ public class ParameterReference extends AbstractValue {
         if (getClass() != obj.getClass())
             return false;
         final ParameterReference other = (ParameterReference) obj;
-        final ParameterOrProcessEqualsWrapper myWrapper = new ParameterOrProcessEqualsWrapper(this.param);
-        final ParameterOrProcessEqualsWrapper otherWrapper = new ParameterOrProcessEqualsWrapper(other.param);
-        final Integer myNum = parameterOccurences.get(myWrapper);
-        final Integer otherNum = parameterOccurences.get(otherWrapper);
-        // the references can only be equal if both were defined before...
-        return myNum != null && myNum.equals(otherNum);
+        if (!param.equals(other.param, parameterOccurences))
+            return false;
+        return true;
     }
 
 }

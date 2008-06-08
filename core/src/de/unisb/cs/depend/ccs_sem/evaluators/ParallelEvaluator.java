@@ -80,18 +80,17 @@ public class ParallelEvaluator implements Evaluator {
                     int lastCount = -1;
                     // the wait time is continously increased
                     int waitTime = 200;
-                    while (lastCount != 0) {
+                    while (lastCount != 0 && !errorOccured) {
                         readyLock.wait(waitTime);
                         waitTime = waitTime * 3 / 2;
                         final int newCount = currentlyEvaluating.size();
-                        if (lastCount == newCount) {
+                        if (lastCount == newCount && !errorOccured) {
                             // check for cycle dependencies
                             if (hasCyclicDependencies()) {
                                 if (monitor != null)
                                     monitor.error("There are cyclic dependencies in the expressions. " +
                                         "This typically occures on unguarded expressions.");
                                 errorOccured = true;
-                                break;
                             }
                         }
                         lastCount = newCount;
