@@ -18,7 +18,9 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
@@ -168,18 +170,28 @@ public class ExportProgram extends Action {
                 final IStatus result = event.getResult();
                 if (result instanceof EvaluationStatus) {
                     final EvaluationStatus status = (EvaluationStatus) result;
-                    if (status.getWarning() != null) {
-                        MessageDialog.openWarning(activeWorkbenchWindow.getShell(),
-                            "Could not export",
-                            "Could not export to " + filename + ": " + status.getWarning());
-                    } else if (!status.isOK()) {
-                        MessageDialog.openWarning(activeWorkbenchWindow.getShell(),
-                            "Could not export",
-                            "Could not export to " + filename + ": parsing error");
-                    } else if (status.getCcsProgram() == null) {
-                        MessageDialog.openWarning(activeWorkbenchWindow.getShell(),
-                            "Could not export",
-                            "Could not export to " + filename + ": program could not be parsed");
+                    final String warning;
+                    if (status.getWarning() != null)
+                        warning = status.getWarning();
+                    else if (!status.isOK())
+                        warning = "parsing error";
+                    else if (status.getCcsProgram() == null)
+                        warning = "program could not be parsed";
+                    else
+                        warning = null;
+
+                    if (warning != null) {
+                        final Shell shell = activeWorkbenchWindow.getShell();
+                        Display display = shell != null ? shell.getDisplay() : null;
+                        if (display != null) {
+                            display.asyncExec(new Runnable() {
+                                public void run() {
+                                    MessageDialog.openWarning(shell,
+                                            "Could not export",
+                                            "Could not export to " + filename + ": " + warning);
+                                }
+                            });
+                        }
                     } else {
                         final ExporterJob exporterJob = new ExporterJob(new File(filename), status);
                         exporterJob.schedule();
