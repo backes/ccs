@@ -151,6 +151,8 @@ public class ExportGraph extends Action {
         saveDialog.setFilterNames(preferredExtensionDescriptions);
         saveDialog.setFilterExtensions(preferredExtensions);
         final String filename = saveDialog.open();
+        if (filename == null)
+            return;
 
         final Graph graph = graphView == null ? null : graphView.getGraph();
         if (graph == null)
@@ -199,7 +201,7 @@ public class ExportGraph extends Action {
 
                     if (warning != null) {
                         final Shell shell = activeWorkbenchWindow.getShell();
-                        Display display = shell != null ? shell.getDisplay() : null;
+                        final Display display = shell != null ? shell.getDisplay() : null;
                         if (display != null) {
                             display.asyncExec(new Runnable() {
                                 public void run() {

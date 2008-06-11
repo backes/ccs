@@ -244,8 +244,9 @@ public class GraphUpdateJob extends Job {
                 return node;
 
             node = new Node(graph, "node_" + nodeCnt++);
+            final String label = showNodeLabels ? e.toString() : "";
             node.setAttribute(GrappaConstants.LABEL_ATTR,
-                showNodeLabels ? e.toString() : "");
+                label);
             node.setAttribute(GrappaConstants.TIP_ATTR, "Node: " + e.toString());
             if (nodeCnt == 1) {
                 node.setAttribute(GrappaConstants.STYLE_ATTR, "filled");

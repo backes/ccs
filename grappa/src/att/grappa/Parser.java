@@ -709,7 +709,7 @@ class CUP$Parser$actions {
         if (parser.getErrorWriter() != null && parser.getDebugLevel() >= level) {
 
             parser.debug_message(level, "parsed graph follows:");
-            rootSubgraph.printSubgraph(parser.getErrorWriter());
+            rootSubgraph.printSubgraph(parser.getErrorWriter(), false);
         }
     }
 

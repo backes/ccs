@@ -738,7 +738,7 @@ implements GrappaConstants
         graph.filterMode = true;
         try {
             final StringWriter theGraph = new StringWriter();
-            graph.printGraph(theGraph);
+            graph.printGraph(theGraph, true);
             theGraph.flush();
             content = theGraph.toString();
             theGraph.close();

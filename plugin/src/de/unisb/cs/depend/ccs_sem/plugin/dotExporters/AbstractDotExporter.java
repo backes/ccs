@@ -51,7 +51,7 @@ public class AbstractDotExporter {
                         OutputStream toFilterRaw = finalDotFilter.getOutputStream();
                         final BufferedWriter toFilter =
                                 new BufferedWriter(new OutputStreamWriter(toFilterRaw));
-                        graph.printGraph(toFilterRaw);
+                        graph.printGraph(toFilterRaw, false);
                         toFilter.close();
                         try {
                             finalDotFilter.waitFor();

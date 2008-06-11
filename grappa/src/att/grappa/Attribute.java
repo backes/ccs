@@ -846,6 +846,6 @@ public final class Attribute extends java.util.Observable implements
                             + attrName
                             + "\" must be one of Grappa.NODE, Grappa.EDGE or Grappa.SUBGRAPH");
         }
-        return (attrType);
+        return attrType;
     }
 }

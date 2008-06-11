@@ -850,10 +850,13 @@ public class Subgraph extends Element implements Comparator<Object> {
      *
      * @param out
      *            the OutputStream for writing the graph description.
+     * @param grappaCompatibilityFormat
+     *            <code>true</code> if the output should be re-readable by
+     *            grappa, <code>false</code> when exporting to a dot file
      */
-    public void printSubgraph(PrintWriter out) {
+    public void printSubgraph(PrintWriter out, boolean grappaCompatibilityFormat) {
         final Graph graph = getGraph();
-        final String indent = new String(graph.getIndent());
+        final String indent = graph.getIndent();
 
         if (Grappa.printVisibleOnly && (!visible || grappaNexus.style.invis))
             return;
@@ -871,28 +874,28 @@ public class Subgraph extends Element implements Comparator<Object> {
 
         graph.incrementIndent();
 
-        printDflt(out, SUBGRAPH);
-        printDflt(out, NODE);
-        printDflt(out, EDGE);
+        printDflt(out, SUBGRAPH, grappaCompatibilityFormat);
+        printDflt(out, NODE, grappaCompatibilityFormat);
+        printDflt(out, EDGE, grappaCompatibilityFormat);
 
         if (graphdict != null && !graphdict.isEmpty()) {
             final Enumeration<Subgraph> elems = graphdict.elements();
             while (elems.hasMoreElements()) {
-                ((elems.nextElement())).printSubgraph(out);
+                ((elems.nextElement())).printSubgraph(out, grappaCompatibilityFormat);
             }
         }
 
         if (nodedict != null && !nodedict.isEmpty()) {
             final Enumeration<Node> elems = nodedict.elements();
             while (elems.hasMoreElements()) {
-                (elems.nextElement()).printNode(out);
+                (elems.nextElement()).printNode(out, grappaCompatibilityFormat);
             }
         }
 
         if (edgedict != null && !edgedict.isEmpty()) {
             final Enumeration<Edge> elems = edgedict.elements();
             while (elems.hasMoreElements()) {
-                (elems.nextElement()).printEdge(out);
+                (elems.nextElement()).printEdge(out, grappaCompatibilityFormat);
             }
         }
 
@@ -902,8 +905,8 @@ public class Subgraph extends Element implements Comparator<Object> {
     }
 
     // print the subgraph default elements
-    private void printDflt(PrintWriter out, int type) {
-        final String indent = new String(getGraph().getIndent());
+    private void printDflt(PrintWriter out, int type, boolean grappaCompatibilityFormat) {
+        final String indent = getGraph().getIndent();
         Hashtable<String, Attribute> attr = null;
         String label = null;
 
@@ -924,20 +927,20 @@ public class Subgraph extends Element implements Comparator<Object> {
 
         if (attr == null || attr.isEmpty()) {
             getGraph().printError(
-                "no " + label + " atrtibutes for " + getName());
+                "no " + label + " attributes for " + getName());
             return;
         }
 
         getGraph().incrementIndent();
-        printDfltAttr(out, attr, type, indent + label + " [", indent + "];");
+        printDfltAttr(out, attr, type, indent + label + " [", indent + "];", grappaCompatibilityFormat);
         getGraph().decrementIndent();
     }
 
     // print the subgraph default element attribute values
     private void printDfltAttr(PrintWriter out,
             Hashtable<String, Attribute> dfltAttr, int type, String prefix,
-            String suffix) {
-        final String indent = new String(getGraph().getIndent());
+            String suffix, boolean grappaCompatibilityFormat) {
+        final String indent = getGraph().getIndent();
         String value;
         String key;
         Attribute attr;
@@ -965,10 +968,10 @@ public class Subgraph extends Element implements Comparator<Object> {
                 nbr++;
                 if (nbr == 1) {
                     out.println(prefix);
-                    out.print(indent + key + " = " + canonString(value));
+                    out.print(indent + key + " = " + canonString(value, grappaCompatibilityFormat));
                 } else {
                     out.println(",");
-                    out.print(indent + key + " = " + canonString(value));
+                    out.print(indent + key + " = " + canonString(value, grappaCompatibilityFormat));
                 }
             }
         }

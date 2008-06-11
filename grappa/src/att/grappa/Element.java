@@ -123,7 +123,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
     public boolean printDefaultAttributes = false;
 
     // canonical name
-    String canonName = null;
+    protected String canonName = null;
 
     /**
      * Element constructor needed only during init phase of <A
@@ -190,7 +190,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
      * @see Node#isNode()
      */
     public boolean isNode() {
-        return (false);
+        return false;
     }
 
     /**
@@ -201,7 +201,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
      * @see Edge#isEdge()
      */
     public boolean isEdge() {
-        return (false);
+        return false;
     }
 
     /**
@@ -213,7 +213,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
      * @see Subgraph#isSubgraph()
      */
     public boolean isSubgraph() {
-        return (false);
+        return false;
     }
 
     /**
@@ -230,7 +230,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
      * @return the name of the element.
      */
     public String getName() {
-        return (name);
+        return name;
     }
 
     /**
@@ -265,17 +265,17 @@ public abstract class Element implements att.grappa.GrappaConstants {
             if (state) {
                 deleteCalled = true;
                 if (busy) {
-                    return (false);
+                    return false;
                 } else {
-                    return (busy = true);
+                    return busy = true;
                 }
             } else {
                 deleteCalled = busy = false;
-                return (true);
+                return true;
             }
         } else if (state) {
             if (deleteCalled)
-                return (false);
+                return false;
             return (busy = true);
         } else {
             if (!deleteCalled) {
@@ -284,7 +284,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
                 busy = deleteCalled = false;
                 delete();
             }
-            return (true);
+            return true;
         }
     }
 
@@ -564,7 +564,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
         if (attributes == null) {
             return new EmptyEnumeration<String>();
         }
-        return (attributes.keys());
+        return attributes.keys();
     }
 
     /**
@@ -601,7 +601,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
         if (enm != null && enm.hasMoreElements()) {
             pairs = new Hashtable<String, Attribute>(16);
             while (enm.hasMoreElements()) {
-                Attribute attr = enm.nextElement();
+                final Attribute attr = enm.nextElement();
                 pairs.put(attr.getName(), attr);
             }
         }
@@ -611,7 +611,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
             if (pairs == null)
                 return enm;
             while (enm.hasMoreElements()) {
-                Attribute attr = enm.nextElement();
+                final Attribute attr = enm.nextElement();
                 pairs.put(attr.getName(), attr);
             }
             return pairs.elements();
@@ -652,14 +652,14 @@ public abstract class Element implements att.grappa.GrappaConstants {
         Attribute attr;
         Subgraph sg;
         if (attributes == null)
-            return (null);
+            return null;
         if ((attr = (attributes.get(key))) == null)
-            return (null);
+            return null;
         if ((sg = getSubgraph()) == null)
-            return (attr);
+            return attr;
         if (attr == sg.getAttribute(key))
-            return (null);
-        return (attr);
+            return null;
+        return attr;
     }
 
     /**
@@ -677,8 +677,8 @@ public abstract class Element implements att.grappa.GrappaConstants {
     public Object getThisAttributeValue(String key) {
         final Attribute attr = getThisAttribute(key);
         if (attr == null)
-            return (null);
-        return (attr.getValue());
+            return null;
+        return attr.getValue();
     }
 
     /**
@@ -878,16 +878,19 @@ public abstract class Element implements att.grappa.GrappaConstants {
      *
      * @param out
      *            the print stream for output.
+     * @param grappaCompatibilityFormat
+     *            <code>true</code> if the output should be re-readable by
+     *            grappa, <code>false</code> when exporting to a dot file
      */
-    public void printElement(PrintWriter out) {
-        final String indent = new String(getGraph().getIndent());
+    public void printElement(PrintWriter out, boolean grappaCompatibilityFormat) {
+        final String indent = getGraph().getIndent();
 
         if (Grappa.printVisibleOnly && (!visible || grappaNexus.style.invis))
             return;
 
         out.print(indent + toString());
         getGraph().incrementIndent();
-        printAttributes(out, indent);
+        printAttributes(out, indent, grappaCompatibilityFormat);
         getGraph().decrementIndent();
         out.println();
     }
@@ -901,9 +904,12 @@ public abstract class Element implements att.grappa.GrappaConstants {
      *
      * @param out the print stream for output.
      * @param outerIndent the indent to use for the prefix and suffix.
+     * @param grappaCompatibilityFormat
+     *            <code>true</code> if the output should be re-readable by
+     *            grappa, <code>false</code> when exporting to a dot file
      */
-    private void printAttributes(PrintWriter out, String outerIndent) {
-        final String indent = new String(getGraph().getIndent());
+    private void printAttributes(PrintWriter out, String outerIndent, boolean grappaCompatibilityFormat) {
+        final String indent = getGraph().getIndent();
         final String prefix = " [";
         final String suffix = GrappaConstants.NEW_LINE + outerIndent + "];";
         Attribute attr;
@@ -937,7 +943,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
                         out.println(",");
                     }
                     out.print(indent + key + " = "
-                            + canonString(attr.getStringValue()));
+                            + canonString(attr.getStringValue(), grappaCompatibilityFormat));
                 }
             }
         }
@@ -948,7 +954,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
             } else {
                 out.println(",");
             }
-            out.print(indent + "__nAmE__ = " + canonString(getName()));
+            out.print(indent + "__nAmE__ = " + canonString(getName(), grappaCompatibilityFormat));
         }
         if (!first) {
             out.print(suffix);
@@ -963,9 +969,9 @@ public abstract class Element implements att.grappa.GrappaConstants {
     @Override
     public String toString() {
         if (canonName == null) {
-            canonName = canonString(name);
+            canonName = canonString(name, false);
         }
-        return (canonName);
+        return canonName;
     }
 
     /**
@@ -973,11 +979,14 @@ public abstract class Element implements att.grappa.GrappaConstants {
      *
      * @param input
      *            the string to be quoted, possibly.
+     * @param grappaCompatibilityFormat
+     *            <code>true</code> if the output should be re-readable by
+     *            grappa, <code>false</code> when exporting to a dot file
      * @return the input string, possibly enclosed in double quotes and with
      *         internal double quotes protected.
      */
     // essentially the agstrcanon function from libgraph (by S. C. North)
-    public static String canonString(String input) {
+    public static String canonString(String input, boolean grappaCompatibilityFormat) {
         int len;
 
         if (input == null || (len = input.length()) == 0) {
@@ -991,7 +1000,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
         String tmpstr;
 
         for (int isub = 0; isub < array.length; isub++) {
-            if (array[isub] == '"') {
+            if (array[isub] == '"' || (array[isub] == '\\' && !grappaCompatibilityFormat)) {
                 strbuf.append('\\');
                 has_special = true;
             } else if (array[isub] == '\r') {
@@ -1006,7 +1015,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
             }
             strbuf.append(array[isub]);
         }
-        // Based ona suggestion by Martin Bierkoch to
+        // Based on a suggestion by Martin Bierkoch to
         // keep Grappa from corrupting HTML-like graphviz labels
         if ((tmpstr = strbuf.toString().trim()).startsWith("<")
                 && tmpstr.endsWith(">"))
@@ -1109,7 +1118,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
             return false;
         final String name = getName();
         if (attributes != null && grappaNexus != null) {
-            Enumeration<Attribute> enm = attributes.elements();
+            final Enumeration<Attribute> enm = attributes.elements();
             while (enm.hasMoreElements()) {
                 enm.nextElement().deleteObserver(grappaNexus);
             }
@@ -1380,20 +1389,20 @@ public abstract class Element implements att.grappa.GrappaConstants {
         if (depth >= 0 && level > depth)
             return;
 
-        Vector<Object> input = new Vector<Object>();
+        final Vector<Object> input = new Vector<Object>();
 
         for (int i = 0; i < inbox.size(); i++) {
 
-            Element elem = (Element) inbox.elementAt(i);
+            final Element elem = (Element) inbox.elementAt(i);
 
             if (type == SUBGRAPH) {
 
                 //stack.addElement(elem);
 
                 if (depth < 0 || level <= depth) {
-                    Enumeration<Subgraph> enm = ((Subgraph) elem).subgraphElements();
+                    final Enumeration<Subgraph> enm = ((Subgraph) elem).subgraphElements();
                     while (enm.hasMoreElements()) {
-                        Subgraph subg = (enm.nextElement());
+                        final Subgraph subg = (enm.nextElement());
                         if (subg.visastamp != stamp) {
                             input.addElement(subg);
                             subg.visastamp = stamp;
@@ -1409,7 +1418,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
                 if (depth < 0 || level <= depth) {
                     Enumeration<Edge> enm = ((Node) elem).outEdgeElements();
                     while (enm.hasMoreElements()) {
-                        Edge edge = (enm.nextElement());
+                        final Edge edge = (enm.nextElement());
                         if (edge.goesForward()) {
                             if (edge.getHead().visastamp != stamp) {
                                 input.addElement(edge.getHead());
@@ -1419,7 +1428,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
                     }
                     enm = ((Node) elem).inEdgeElements();
                     while (enm.hasMoreElements()) {
-                        Edge edge = (enm.nextElement());
+                        final Edge edge = (enm.nextElement());
                         if (edge.goesReverse()) {
                             if (edge.getTail().visastamp != stamp) {
                                 input.addElement(edge.getTail());
@@ -1437,7 +1446,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
                     if (((Edge) elem).goesForward()) {
                         Enumeration<Edge> enm = ((Edge) elem).getHead().outEdgeElements();
                         while (enm.hasMoreElements()) {
-                            Edge edge = (enm.nextElement());
+                            final Edge edge = (enm.nextElement());
                             if (edge.goesForward()) {
                                 if (edge.visastamp != stamp) {
                                     input.addElement(edge);
@@ -1447,7 +1456,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
                         }
                         enm = ((Edge) elem).getHead().inEdgeElements();
                         while (enm.hasMoreElements()) {
-                            Edge edge = (enm.nextElement());
+                            final Edge edge = (enm.nextElement());
                             if (edge.goesReverse()) {
                                 if (edge.visastamp != stamp) {
                                     input.addElement(edge);
@@ -1459,7 +1468,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
                     if (((Edge) elem).goesReverse()) {
                         Enumeration<Edge> enm = ((Edge) elem).getTail().outEdgeElements();
                         while (enm.hasMoreElements()) {
-                            Edge edge = (enm.nextElement());
+                            final Edge edge = (enm.nextElement());
                             if (edge.goesForward()) {
                                 if (edge.visastamp != stamp) {
                                     input.addElement(edge);
@@ -1469,7 +1478,7 @@ public abstract class Element implements att.grappa.GrappaConstants {
                         }
                         enm = ((Edge) elem).getTail().inEdgeElements();
                         while (enm.hasMoreElements()) {
-                            Edge edge = (enm.nextElement());
+                            final Edge edge = (enm.nextElement());
                             if (edge.goesReverse()) {
                                 if (edge.visastamp != stamp) {
                                     input.addElement(edge);

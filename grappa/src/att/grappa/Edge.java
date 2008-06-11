@@ -180,11 +180,11 @@ public class Edge extends Element {
         }
         tailNode = tail;
         if (tailPort != null) {
-            tailPortId = new String(tailPort);
+            tailPortId = tailPort;
         }
         headNode = head;
         if (headPort != null) {
-            headPortId = new String(headPort);
+            headPortId = headPort;
         }
         if (name != null) {
             if (subg.getGraph().findEdgeByName(name) != null) {
@@ -254,7 +254,7 @@ public class Edge extends Element {
      */
     public static Edge findEdgeByKey(Node tail, Node head, String key) {
         if (tail == null || head == null || key == null) {
-            return (null);
+            return null;
         }
         return tail.findOutEdgeByKey(head, key);
     }
@@ -267,7 +267,7 @@ public class Edge extends Element {
      */
     @Override
     public boolean isEdge() {
-        return (true);
+        return true;
     }
 
     /**
@@ -278,7 +278,7 @@ public class Edge extends Element {
      */
     @Override
     public int getType() {
-        return (GrappaConstants.EDGE);
+        return GrappaConstants.EDGE;
     }
 
     /**
@@ -371,12 +371,12 @@ public class Edge extends Element {
             if (tailPortId == null) {
                 tail = tailNode.toString();
             } else {
-                tail = tailNode.toString() + ":" + canonString(tailPortId);
+                tail = tailNode.toString() + ":" + canonString(tailPortId, false);
             }
             if (headPortId == null) {
                 head = headNode.toString();
             } else {
-                head = headNode.toString() + ":" + canonString(headPortId);
+                head = headNode.toString() + ":" + canonString(headPortId, false);
             }
 
             if (getGraph().isDirected()) {
@@ -385,7 +385,7 @@ public class Edge extends Element {
                 canonName = tail + " -- " + head;
             }
         }
-        return (canonName);
+        return canonName;
     }
 
     /**
@@ -393,9 +393,12 @@ public class Edge extends Element {
      *
      * @param out
      *            the output stream for writing the description.
+     * @param grappaCompatibilityFormat
+     *            <code>true</code> if the output should be re-readable by
+     *            grappa, <code>false</code> when exporting to a dot file
      */
-    public void printEdge(PrintWriter out) {
-        this.printElement(out);
+    public void printEdge(PrintWriter out, boolean grappaCompatibilityFormat) {
+        this.printElement(out, grappaCompatibilityFormat);
     }
 
     /**
@@ -452,11 +455,11 @@ public class Edge extends Element {
             } else if (hashCode == TAILLP_HASH && attrname.equals(TAILLP_ATTR)) {
                 convtype = POINT_TYPE;
             } else {
-                return (Element.attributeType(attrname));
+                return Element.attributeType(attrname);
             }
         }
 
-        return (convtype);
+        return convtype;
     }
 
     /**

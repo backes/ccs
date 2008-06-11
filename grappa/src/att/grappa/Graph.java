@@ -663,8 +663,11 @@ public class Graph extends Subgraph {
      *
      * @param output
      *            the Writer for writing
+     * @param grappaCompatibilityFormat
+     *            <code>true</code> if the output should be re-readable by
+     *            grappa, <code>false</code> when exporting to a dot file
      */
-    public void printGraph(Writer output) {
+    public void printGraph(Writer output, boolean grappaCompatibilityFormat) {
         PrintWriter out = null;
 
         if (output instanceof PrintWriter) {
@@ -672,7 +675,7 @@ public class Graph extends Subgraph {
         } else {
             out = new PrintWriter(output);
         }
-        getGraph().printSubgraph(out);
+        getGraph().printSubgraph(out, grappaCompatibilityFormat);
         out.flush();
     }
 
@@ -682,9 +685,12 @@ public class Graph extends Subgraph {
      *
      * @param output
      *            the OutputStream for writing
+     * @param grappaCompatibilityFormat
+     *            <code>true</code> if the output should be re-readable by
+     *            grappa, <code>false</code> when exporting to a dot file
      */
-    public void printGraph(OutputStream output) {
-        printGraph(new PrintWriter(output));
+    public void printGraph(OutputStream output, boolean grappaCompatibilityFormat) {
+        printGraph(new PrintWriter(output), grappaCompatibilityFormat);
     }
 
     /**

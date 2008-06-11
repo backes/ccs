@@ -316,9 +316,12 @@ public class Node extends Element {
      *
      * @param out
      *            the output text stream for writing the description.
+     * @param grappaCompatibilityFormat
+     *            <code>true</code> if the output should be re-readable by
+     *            grappa, <code>false</code> when exporting to a dot file
      */
-    public void printNode(PrintWriter out) {
-        this.printElement(out);
+    public void printNode(PrintWriter out, boolean grappaCompatibilityFormat) {
+        this.printElement(out, grappaCompatibilityFormat);
     }
 
     /**
