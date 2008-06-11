@@ -358,7 +358,7 @@ public class CCSParser implements Parser {
             reportProblem(new ParsingProblem(e));
         }
 
-        final Token nextToken = tokens.next();
+        final Token nextToken = tokens.hasNext() ? tokens.next() : null;
         // TODO remove this ambiguousness
         if (!(nextToken instanceof Semicolon) && !(nextToken instanceof Comma)) {
             // only report the error if the expression was read correctly
