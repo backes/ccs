@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -89,15 +91,15 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
                             textViewer.changeTextPresentation(presentation, true);
 
                             if (editor != null) {
-                                IEditorInput input = editor.getEditorInput();
-                                IPath path = input instanceof IFileEditorInput
+                                final IEditorInput input = editor.getEditorInput();
+                                final IPath path = input instanceof IFileEditorInput
                                     ? ((IFileEditorInput)input).getFile().getFullPath()
                                     : null;
                                 final IResource res = path == null ? null : ResourcesPlugin.getWorkspace().getRoot().getFile(path);
                                 if (res != null && res.exists()) {
                                     SafeRunner.run(new SafeRunnable() {
                                         public void run() throws CoreException {
-                                            ParsingResult parsingResult = result.getParsingResult();
+                                            final ParsingResult parsingResult = result.getParsingResult();
                                             if (parsingResult != null)
                                                 updateMarkers(res, parsingResult);
                                         }
@@ -311,8 +313,15 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
 
         presentation.setDefaultStyleRange(new StyleRange(0, result.inputLength, null, null));
 
+        // the styles have to be in order. so we first add them to this sorted set
+        final SortedSet<StyleRange> styleSet = new TreeSet<StyleRange>(new Comparator<StyleRange>() {
+            public int compare(StyleRange o1, StyleRange o2) {
+                return o1.start - o2.start;
+            }
+        });
+
         for (final ReadComment comment: result.comments) {
-            presentation.addStyleRange(new StyleRange(comment.startPosition,
+            styleSet.add(new StyleRange(comment.startPosition,
                     comment.endPosition - comment.startPosition + 1,
                     colorManager.getColor(Constants.COMMENT_FOREGROUND_RGB),
                     colorManager.getColor(Constants.COMMENT_BACKGROUND_RGB),
@@ -368,14 +377,16 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
             }
 
             if (foregroundRGB != null || backgroundRGB != null || fontStyle != SWT.NORMAL) {
-                final StyleRange style = new StyleRange(tok.getStartPosition(),
+                styleSet.add(new StyleRange(tok.getStartPosition(),
                     tok.getLength(),
                     colorManager.getColor(foregroundRGB),
                     colorManager.getColor(backgroundRGB),
-                    fontStyle);
-                presentation.addStyleRange(style);
+                    fontStyle));
             }
         }
+
+        for (final StyleRange s: styleSet)
+            presentation.addStyleRange(s);
     }
 
     public void inputDocumentAboutToBeChanged(IDocument oldInput, IDocument newInput) {
