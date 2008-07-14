@@ -10,6 +10,8 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import de.unisb.cs.depend.ccs_sem.evaluators.EvaluationMonitor;
 import de.unisb.cs.depend.ccs_sem.evaluators.Evaluator;
@@ -36,7 +38,7 @@ import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
 public class Main implements IParsingProblemListener {
 
-    private static long startTime;
+    private static AtomicLong startTime = new AtomicLong(0);
     private File inputFile = null;
     private Evaluator evaluator = null;
     private final List<FileWrapperExporter> exporters = new ArrayList<FileWrapperExporter>(2);
@@ -387,10 +389,11 @@ public class Main implements IParsingProblemListener {
 
     public static void log(String output) {
         final long newTime = System.nanoTime();
-        if (startTime == 0)
-            startTime = newTime;
+        long start = startTime.get();
+        if (start == 0)
+            start = startTime.compareAndSet(0, newTime) ? newTime : startTime.get();
 
-        final long diff = newTime - startTime;
+        final long diff = newTime - start;
 
         System.out.format((Locale)null, "[%7.3f] %s%n", 1e-9 * diff, output);
     }
@@ -590,8 +593,8 @@ public class Main implements IParsingProblemListener {
 
         private static final int EVALUATION_INTERVAL = 10000;
         private static final int MINIMIZATION_INTERVAL = 1000000;
-        private int transitions = 0;
-        private int states = 0;
+        private final AtomicInteger transitions = new AtomicInteger(0);
+        private final AtomicInteger states = new AtomicInteger(0);
         private final boolean isMinimization;
         private final int showInterval;
 
@@ -601,18 +604,18 @@ public class Main implements IParsingProblemListener {
                     : EVALUATION_INTERVAL;
         }
 
-        public synchronized void newTransitions(int size) {
-            transitions += size;
+        public void newTransitions(int count) {
+            transitions.addAndGet(count);
         }
 
-        public synchronized void newState() {
-            ++states;
-            if (states % showInterval == 0)
-                log(states + " states, " + transitions
+        public void newState() {
+            final int totalStates = states.incrementAndGet();
+            if (totalStates % showInterval == 0)
+                log(totalStates + " states, " + transitions
                         + " transitions so far...");
         }
 
-        public synchronized void ready() {
+        public void ready() {
             log((isMinimization ? "Minimized " : "Evaluated ") + states
                     + " states and " + transitions + " transitions.");
         }
@@ -623,7 +626,7 @@ public class Main implements IParsingProblemListener {
                     + errorString);
         }
 
-        public synchronized void newState(int numTransitions) {
+        public void newState(int numTransitions) {
             newTransitions(numTransitions);
             newState();
         }
