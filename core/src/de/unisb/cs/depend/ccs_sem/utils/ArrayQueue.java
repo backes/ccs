@@ -722,7 +722,6 @@ public class ArrayQueue<E> extends AbstractCollection<E> implements Queue<E>,
      *
      * @return a copy of this queue
      */
-    @SuppressWarnings("unchecked")
     @Override
     public ArrayQueue<E> clone() {
         return new ArrayQueue<E>(this);
