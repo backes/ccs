@@ -36,6 +36,8 @@ public class ParallelEvaluator implements Evaluator {
 
     protected volatile boolean errorOccured = false;
 
+    public volatile boolean readyNotified = false;
+
     public ParallelEvaluator(int numThreads) {
         this.numThreads = numThreads;
     }
@@ -164,6 +166,7 @@ public class ParallelEvaluator implements Evaluator {
         monitor = monitor2;
 
         errorOccured = false;
+        readyNotified = false;
     }
 
     protected ExecutorService getExecutor(final int threadsToInstantiate,
@@ -290,9 +293,12 @@ public class ParallelEvaluator implements Evaluator {
             // the main thread that we are ready
             if (currentlyEvaluating != null && currentlyEvaluating.isEmpty()) {
                 synchronized (readyLock) {
-                    if (monitor != null)
-                        monitor.ready();
-                    readyLock.notifyAll();
+                    if (!readyNotified) {
+                        if (monitor != null)
+                            monitor.ready();
+                        readyLock.notifyAll();
+                        readyNotified  = true;
+                    }
                 }
             }
         }
