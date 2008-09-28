@@ -208,6 +208,13 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
         final Lock resourceLock = getLock(res);
         assert resourceLock != null;
 
+        final String[] attributeNames = new String[] {
+                IMarker.SEVERITY,
+                IMarker.CHAR_START,
+                IMarker.CHAR_END,
+                IMarker.LINE_NUMBER,
+                IMarker.MESSAGE,
+        };
         resourceLock.lock();
         try {
             final IMarker[] oldMarkersArray = res.findMarkers(Constants.MARKER_PROBLEM, true, IResource.DEPTH_INFINITE);
@@ -219,23 +226,22 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
             });
 
             for (final ParsingProblem problem: result.parsingProblems) {
-                final int severity;
+                final Integer severity;
                 if (problem.getType() == ParsingProblem.ERROR)
                     severity = IMarker.SEVERITY_ERROR;
                 else if (problem.getType() == ParsingProblem.WARNING)
                     severity = IMarker.SEVERITY_WARNING;
                 else
                     continue;
-                int start = problem.getStartPosition();
-                int end;
+                Integer start = problem.getStartPosition();
+                Integer end;
                 if (start == -1)
                     end = -1;
-                else {
+                else if (problem.getEndPosition() == -1)
+                    end = start + 1;
+                else
                     end = problem.getEndPosition()+1;
-                    if (end == 0) // endPosition was -1, but startPosition is != -1
-                        end = start+1;
-                }
-                int line = result.getLineOfOffset(start);
+                Integer line = result.getLineOfOffset(start);
                 // check if the marked position is after the document end (e.g.
                 // "unexpected eof" markers)
                 if (start == result.inputLength && end == start+1) {
@@ -249,24 +255,28 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
                 while (oldIt.hasNext()) {
                     final IMarker old = oldIt.next();
 
-                    final int oldStart = old.getAttribute(IMarker.CHAR_START, -1);
-                    final int oldEnd = old.getAttribute(IMarker.CHAR_END, -1);
-                    final int oldLine = old.getAttribute(IMarker.LINE_NUMBER, -1);
+                    final Map<?, ?> oldAttributes = old.getAttributes();
 
-                    if (oldStart > problem.getStartPosition())
+                    final Object oldStart = oldAttributes.get(IMarker.CHAR_START);
+                    final Object oldEnd = old.getAttribute(IMarker.CHAR_END);
+                    final Object oldLine = old.getAttribute(IMarker.LINE_NUMBER);
+
+                    if (oldStart instanceof Integer && (Integer)oldStart > problem.getStartPosition())
                         break;
-                    if (oldEnd < problem.getEndPosition() && oldEnd != -1) {
+                    if (oldEnd instanceof Integer && (Integer)oldEnd < problem.getEndPosition()) {
                         // this marker was not removed before, so it is not needed any more.
                         // remove it.
                         old.delete();
                         oldIt.remove();
                         continue;
                     }
-                    if (old.getAttribute(IMarker.SEVERITY, severity+1) == severity
-                            && oldStart == start && oldEnd == end && oldLine == line
-                            && (problem.getMessage() == null
-                                ? old.getAttribute(IMarker.MESSAGE) == null
-                                : problem.getMessage().equals(old.getAttribute(IMarker.MESSAGE)))) {
+                    if (severity.equals(oldAttributes.get(IMarker.SEVERITY))
+                        && start.equals(oldStart)
+                        && end.equals(oldEnd)
+                        && line.equals(oldLine)
+                        && (problem.getMessage() == null
+                            ? old.getAttribute(IMarker.MESSAGE) == null
+                            : problem.getMessage().equals(old.getAttribute(IMarker.MESSAGE)))) {
                         // found an equal marker!
                         found = true;
                         break;
@@ -279,15 +289,10 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
 
                 // it was not found, so create a new marker
                 final IMarker marker = res.createMarker(Constants.MARKER_PROBLEM);
-                marker.setAttribute(IMarker.SEVERITY,
-                    severity);
-                if (start != -1)
-                    marker.setAttribute(IMarker.CHAR_START, start);
-                if (end != -1)
-                    marker.setAttribute(IMarker.CHAR_END, end);
-                if (line != -1)
-                    marker.setAttribute(IMarker.LINE_NUMBER, line);
-                marker.setAttribute(IMarker.MESSAGE, problem.getMessage());
+                marker.setAttributes(attributeNames,
+                    new Object[] {
+                        severity, start, end, line, problem.getMessage(),
+                    });
             }
             // if there are old markers, remove them
             for (final IMarker old: oldMarkers)
