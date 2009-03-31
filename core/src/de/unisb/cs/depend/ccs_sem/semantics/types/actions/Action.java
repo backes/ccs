@@ -1,5 +1,6 @@
 package de.unisb.cs.depend.ccs_sem.semantics.types.actions;
 
+import java.util.LinkedList;
 import java.util.Map;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ArithmeticError;
@@ -11,9 +12,26 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.Channel;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 import de.unisb.cs.depend.ccs_sem.utils.LazyCreatedMap;
 
-
 public abstract class Action implements Comparable<Action> {
 
+	private LinkedList<Boolean> leftRightTrace;
+	
+	/**
+	 * Important for the white-box tau semantics
+	 * @param b - the added direction, false = left; true = right
+	 */
+	public void addToLRTrace(boolean b) {
+		leftRightTrace.addLast(b);
+	}
+	
+	public LinkedList<Boolean> getLRTrace() {
+		return leftRightTrace;
+	}
+	
+	public Action() {
+		leftRightTrace = new LinkedList<Boolean> ();	
+	}
+	
     public abstract String getLabel();
 
     public abstract Channel getChannel();
@@ -54,4 +72,13 @@ public abstract class Action implements Comparable<Action> {
 
     public abstract int hashCode(Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences);
 
+    public Action copy() {
+    	Action a = copySubAction();
+    	
+    	// copy trace
+    	a.leftRightTrace = new LinkedList<Boolean> (leftRightTrace);
+    	return a;
+    }
+    
+    protected abstract Action copySubAction();
 }

@@ -120,4 +120,9 @@ public class OutputAction extends Action {
         return true;
     }
 
+	@Override
+	protected Action copySubAction() {
+		return new OutputAction(channel,value);
+	}
+
 }

@@ -1,5 +1,7 @@
 package de.unisb.cs.depend.ccs_sem.commandline;
 
+import gov.nasa.ltl.trans.ParseErrorException;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -12,6 +14,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+
+import ltlcheck.Counterexample;
 
 import de.unisb.cs.depend.ccs_sem.evaluators.EvaluationMonitor;
 import de.unisb.cs.depend.ccs_sem.evaluators.Evaluator;
@@ -34,6 +38,8 @@ import de.unisb.cs.depend.ccs_sem.parser.IParsingProblemListener;
 import de.unisb.cs.depend.ccs_sem.parser.ParsingProblem;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
+import de.unisb.cs.depend.ltlchecker.ExpressionLTLChecker;
+import de.unisb.cs.depend.ltlchecker.LTLSyntaxChecker;
 
 
 public class Main implements IParsingProblemListener {
@@ -51,6 +57,7 @@ public class Main implements IParsingProblemListener {
     private static final boolean allowUnguarded = true; // false;
     private static final boolean allowUnregular = true; // false;
 
+    private String ltlFormula = null;
 
     public Main(String[] args) {
         parseCommandLine(args);
@@ -148,7 +155,26 @@ public class Main implements IParsingProblemListener {
             final EvaluationMonitor minimizationMonitor = new EvalMonitor(true);
             program.minimizeTransitions(evaluator, minimizationMonitor, true);
         }
-
+        
+        /*
+         * check the LTL formula
+         */
+        if( ltlFormula != null) {
+        	log("Checking LTL-formula...");
+        	try {
+				Counterexample ce = ExpressionLTLChecker.check(
+						program.getMainExpression(),
+						ltlFormula);
+				log("    Result: " + 
+						(ce != null ? 
+							(ltlFormula + " violated\n\n" + ce.toString()) : 
+							(ltlFormula + " satisfied") )
+						);
+			} catch (ParseErrorException e) {
+				log("WARNING: Cannot check LTL property: " + e.getMessage() );
+				e.printStackTrace();
+			}
+        }
 
         log("Exporting...");
         boolean errors = false;
@@ -293,6 +319,15 @@ public class Main implements IParsingProblemListener {
             } else if (arg.length() > 0 && !arg.startsWith("-")
                     && inputFile == null) {
                 inputFile = new File(arg);
+                
+            } else if(arg.length() > 0 && !arg.startsWith("-") && inputFile!=null ) {
+            	/*
+                 *  if there is an command after the input file, it's the
+                 *  LTL formula 
+                 */
+            	
+            	if( LTLSyntaxChecker.correctSyntax(arg) )
+            		ltlFormula = arg;
             } else {
                 System.err.println("Illegal parameter: \"" + arg + "\"");
                 printHelp(System.err);
@@ -357,7 +392,7 @@ public class Main implements IParsingProblemListener {
     }
 
     private void printHelp(PrintStream out) {
-        out.println("usage: java " + getClass().getName() + " <parameter> <input file>");
+        out.println("usage: java " + getClass().getName() + " <parameter> <input file> [<LTL Formula>]");
         out.println("  where <parameter> can be:");
         out.println();
         out.println("  -h, --help");
@@ -385,6 +420,10 @@ public class Main implements IParsingProblemListener {
         out.println("     1 means: evaluate sequentially (this is sometimes faster than parallel evaluation of a dual-core system)");
         out.println("     any other number means: take that much threads for parallel evaluation.");
         out.println();
+        out.println(" and <LTL Formula> is given by following grammer: ");
+        out.println("     p = true | did(action) | can(action) | p1 U p2 | O p | <> p | []p | (p)");
+        out.println();
+        out.println(" and <input> is an ccs-File");
     }
 
     public static void log(String output) {

@@ -3,6 +3,7 @@ package de.unisb.cs.depend.ccs_sem.utils;
 import java.util.concurrent.ConcurrentHashMap;
 
 import de.unisb.cs.depend.ccs_sem.evaluators.Evaluator;
+import de.unisb.cs.depend.ccs_sem.evaluators.SequentialEvaluator;
 import de.unisb.cs.depend.ccs_sem.evaluators.ThreadBasedEvaluator;
 import de.unisb.cs.depend.ccs_sem.exceptions.SystemException;
 
@@ -53,7 +54,9 @@ public final class Globals {
     }
 
     public static Evaluator getDefaultEvaluator() {
-        return new ThreadBasedEvaluator();
+    	// TODO change to ThreadBased after Bug is found
+//        return new ThreadBasedEvaluator();
+    	return new SequentialEvaluator();
     }
 
 }

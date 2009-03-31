@@ -647,7 +647,7 @@ public class CCSParser implements Parser {
             if (tokens.peek() instanceof Exclamation)
                 throw new ParseException("Tau cannot be used as output channel",
                     tokens.peek());
-            return TauAction.get();
+            return TauAction.get(null,null);
         }
 
         if (tokens.peek() instanceof QuestionMark) {

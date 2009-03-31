@@ -73,4 +73,9 @@ public class SimpleAction extends Action {
         return channel.toString();
     }
 
+	@Override
+	protected Action copySubAction() {
+		return new SimpleAction(channel);
+	}
+
 }

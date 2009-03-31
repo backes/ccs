@@ -266,11 +266,10 @@ public class ProcessVariable {
         if (getClass() != obj.getClass())
             return false;
         final ProcessVariable other = (ProcessVariable) obj;
-        // TODO uncomment
-        /*
-        if (hashCode() != other.hashCode())
+      
+        if (hashCode() != other.hashCode()) // hashcode() cached -> cheaper
             return false;
-        */
+      
         if (!name.equals(other.name))
             return false;
         if (!parameters.equals(other.parameters, parameterOccurences))

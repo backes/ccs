@@ -19,9 +19,18 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterReference;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 import de.unisb.cs.depend.ccs_sem.utils.LazyCreatedMap;
 
-
 public abstract class Expression {
 
+	private static boolean isVisibleTau = true;
+	
+	public static boolean getVisibleTau() {
+		return isVisibleTau;
+	}
+	
+	public static void setVisibleTau( boolean tau ) {
+		isVisibleTau = tau;
+	}
+	
     private volatile List<Transition> transitions = null;
 
     // stores the hashcode of this expression
@@ -174,11 +183,9 @@ public abstract class Expression {
         if (getClass() != obj.getClass())
             return false;
         // hashCode is cached, so we compare it first (it's cheap)
-        // TODO uncomment
-        /*
         if (hashCode() != ((Expression)obj).hashCode())
             return false;
-        */
+        
         return equals(obj, new LazyCreatedMap<ParameterOrProcessEqualsWrapper, Integer>(4));
     }
 

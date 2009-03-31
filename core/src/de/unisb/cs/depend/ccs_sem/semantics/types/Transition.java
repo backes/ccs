@@ -4,7 +4,6 @@ import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.InputAction;
 
-
 public class Transition {
 
     private final Action action;
@@ -12,7 +11,7 @@ public class Transition {
 
     public Transition(Action action, Expression target) {
         super();
-        this.action = action;
+        this.action = Expression.getVisibleTau() ? action.copy() : action;
         this.target = target;
     }
 

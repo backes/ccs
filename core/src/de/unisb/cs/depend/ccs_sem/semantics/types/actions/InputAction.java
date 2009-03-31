@@ -185,4 +185,9 @@ public class InputAction extends Action {
         return true;
     }
 
+	@Override
+	protected Action copySubAction() {
+		return (param == null ? new InputAction(channel,value) : new InputAction(channel,param) );
+	}
+
 }
