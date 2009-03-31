@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -77,6 +78,21 @@ public abstract class Expression {
 
     public boolean isEvaluated() {
         return transitions != null;
+    }
+    
+    public void resetEval() {
+    	if( transitions != null ) {
+    		// first copy the list to avoid divergence
+    		List<Transition> list = transitions;
+    		transitions = null;
+    		
+    		for(Transition trans : list ) {
+    			trans.getTarget().resetEval();
+    		}
+    		for( Expression e : getChildren() ) {
+    			e.resetEval();
+    		}
+    	}
     }
 
     // precondition: children have been evaluated

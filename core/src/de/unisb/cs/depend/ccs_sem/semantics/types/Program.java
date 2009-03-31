@@ -94,6 +94,10 @@ public class Program {
     public boolean isMinimized() {
         return isMinimized;
     }
+    
+    public void resetEvaluation() {
+    	mainExpression.resetEval();
+    }
 
     /**
      * Before calling this method, the program must be evaluated.

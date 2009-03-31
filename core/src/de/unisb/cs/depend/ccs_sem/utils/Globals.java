@@ -54,9 +54,8 @@ public final class Globals {
     }
 
     public static Evaluator getDefaultEvaluator() {
-    	// TODO change to ThreadBased after Bug is found
-//        return new ThreadBasedEvaluator();
-    	return new SequentialEvaluator();
+        return new ThreadBasedEvaluator();
+//    	return new SequentialEvaluator();
     }
 
 }
