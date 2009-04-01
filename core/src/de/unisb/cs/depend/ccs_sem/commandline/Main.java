@@ -164,7 +164,7 @@ public class Main implements IParsingProblemListener {
         	try {
 				Counterexample ce = ExpressionLTLChecker.check(
 						program.getMainExpression(),
-						ltlFormula);
+						ltlFormula, null);
 				log("    Result: " + 
 						(ce != null ? 
 							(ltlFormula + " violated\n\n" + ce.toString()) : 

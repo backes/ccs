@@ -5,6 +5,7 @@ import java.util.HashMap;
 import gov.nasa.ltl.graph.*;
 import gov.nasa.ltl.trans.ParseErrorException;
 import ltlcheck.Counterexample;
+import ltlcheck.IModelCheckingMonitor;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 
@@ -44,7 +45,18 @@ public class ExpressionLTLChecker {
 	 * @return a counter example or <code>null</code> if the formula is satisfied
 	 * @throws ParseErrorException
 	 */
-	public static Counterexample check(Expression exp, String formula) throws ParseErrorException {
+	public static Counterexample check(Expression exp, String formula,
+				IModelCheckingMonitor monitor) throws ParseErrorException
+	{
+		if( monitor == null ) {
+			monitor = new IModelCheckingMonitor() {
+				public void subTask(String str) {
+					System.out.println(str);
+				}
+			};
+		}
+		
+		monitor.subTask("Prepare LTL formula...");
 		formula = LTLFormula.prepare(formula);
 		
 		Graph graph = null;
@@ -52,6 +64,7 @@ public class ExpressionLTLChecker {
 			graph = lastGraph;
 		}
 		
+		monitor.subTask("Building CCS Graph...");
 		if( graph == null ) {
 			graph = new Graph();
 		
@@ -69,6 +82,6 @@ public class ExpressionLTLChecker {
 		}
 		
 		// run model-checker for this graph structure
-		return ltlcheck.LtlModelChecker.check(graph, formula);
+		return ltlcheck.LtlModelChecker.check(graph, formula, monitor);
 	}
 }
