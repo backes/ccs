@@ -33,6 +33,7 @@ public class EvaluationJob extends Job {
 
 
     protected final boolean minimize;
+    protected boolean reset;
 
     protected final String ccsCode;
 
@@ -51,6 +52,11 @@ public class EvaluationJob extends Job {
         setUser(true);
         setPriority(INTERACTIVE);
         setRule(rule);
+        reset = false;
+    }
+    
+    public void setResetEval(boolean r) {
+    	reset = true;
     }
 
     @Override
@@ -208,6 +214,9 @@ public class EvaluationJob extends Job {
                 monitor.subTask("Evaluating...");
                 final Evaluator evaluator = Globals.getDefaultEvaluator();
                 final EvalMonitor evalMonitor = new EvalMonitor(monitor, "Evaluating... ", 100);
+                if( reset ) {
+                	ccsProgram.resetEvaluation();
+                }
                 if (!ccsProgram.evaluate(evaluator, evalMonitor)) {
                     final String error = evalMonitor.getErrorString();
                     return new EvaluationStatus(IStatus.ERROR,

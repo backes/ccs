@@ -17,6 +17,8 @@ public class MyPreferenceStore {
 
     private static final String PREFERENCE_UNREGULAR_ERROR_TYPE_KEY = "unregularErrorType";
     private static final String PREFERENCE_UNGUARDED_ERROR_TYPE_KEY = "unguardedErrorType";
+    
+    private static final String PREFERENCE_MAX_GRAPH_SIZE = "maxGraphSize";
 
     private MyPreferenceStore() {
         // this private constructor is never called
@@ -28,6 +30,7 @@ public class MyPreferenceStore {
         preferenceStore.setDefault(PREFERENCE_DOT_KEY, PREFERENCE_DEFAULT_DOT);
         preferenceStore.setDefault(PREFERENCE_UNREGULAR_ERROR_TYPE_KEY, ParsingProblem.WARNING);
         preferenceStore.setDefault(PREFERENCE_UNGUARDED_ERROR_TYPE_KEY, ParsingProblem.ERROR);
+        preferenceStore.setDefault(PREFERENCE_MAX_GRAPH_SIZE, 300);
     }
 
     public static IPreferenceStore getStore() {
@@ -57,5 +60,12 @@ public class MyPreferenceStore {
     public static int getUnguardedErrorType() {
         return getStore().getInt(getUnguardedErrorTypeKey());
     }
-
+    
+    public static String getMaxGraphSizeKey() {
+    	return PREFERENCE_MAX_GRAPH_SIZE;
+    }
+    
+    public static int getMaxGraphSize() {
+    	return getStore().getInt(getMaxGraphSizeKey());
+    }
 }

@@ -9,7 +9,11 @@ public class Global {
         "de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView";
     private static final String STEP_BY_STEP_TRAVERSE_VIEW_ID =
         "de.unisb.cs.depend.ccs_sem.plugin.views.StepByStepTraverseView";
-
+    private static final String LTL_CHECKER_VIEW_ID = 
+    	"de.unisb.cs.depend.ccs_sem.plugin.views.LTLCheckerView";
+    private static final String COUNTER_EXAMPLE_VIEW_ID = 
+    	"de.unisb.cs.depend.ccs_sem.plugin.views.CounterExampleView";
+    
     private static final String ACTION_SET_ID = "de.unisb.cs.depend.ccs_sem.plugin.actionSet";
 
     private static final String NATURE_ID = "de.unisb.cs.depend.ccs_sem.plugin.ccsNature";
@@ -19,6 +23,7 @@ public class Global {
 
     private static final String NEW_CCS_FILE_WIZARD_ID = "de.unisb.cs.depend.ccs_sem.plugin.wizards.NewCCSFileWizard";
     private static final String NEW_CCS_PROJECT_WIZARD_ID = "de.unisb.cs.depend.ccs_sem.plugin.wizards.NewCCSProjectWizard";
+    private static final String EXPORT_LTL_WIZARD_ID = "de.unisb.cs.depend.ccs_sem.plugin.wizards.ExportLTLWizard";
 
     private Global() {
         // this constructor is never called
@@ -35,6 +40,14 @@ public class Global {
 
     public static String getStepByStepTraverseViewId() {
         return STEP_BY_STEP_TRAVERSE_VIEW_ID;
+    }
+    
+    public static String getLTLCheckerViewId() {
+        return LTL_CHECKER_VIEW_ID;
+    }
+    
+    public static String getCounterExampleViewId() {
+        return COUNTER_EXAMPLE_VIEW_ID;
     }
 
     public static String getActionSetId() {
@@ -59,6 +72,10 @@ public class Global {
 
     public static String getNewCCSProjectWizardId() {
         return NEW_CCS_PROJECT_WIZARD_ID;
+    }
+    
+    public static String getExportLTLWizardId() {
+    	return EXPORT_LTL_WIZARD_ID;
     }
 
     public static boolean isWindows() {

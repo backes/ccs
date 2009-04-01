@@ -1,5 +1,6 @@
 package de.unisb.cs.depend.ccs_sem.plugin.grappa;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Frame;
@@ -8,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Vector;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -15,6 +17,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
@@ -36,7 +39,6 @@ import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.GraphUpdateJob;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.EvaluationJob.EvaluationStatus;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.GraphUpdateJob.GraphUpdateStatus;
-
 
 public class GrappaFrame extends Composite {
 
@@ -62,6 +64,8 @@ public class GrappaFrame extends Composite {
     protected volatile Graph graph;
     protected volatile EvaluationStatus lastEvalStatus;
 
+    private volatile String[] trace;
+    
     public GrappaFrame(Composite parent, int style, CCSEditor editor) {
         super(parent, style);
 
@@ -152,6 +156,14 @@ public class GrappaFrame extends Composite {
     }
 
     protected void setGraph(GraphUpdateStatus status) {
+    	// Check error status
+    	if( status.getSeverity() == IStatus.ERROR ) {
+    		ErrorDialog dia = new ErrorDialog(getShell(),"Graph Error",null,
+        			status, IStatus.ERROR);
+    		dia.open();
+    		return;
+    	}
+    	
         graphLock.lock();
         try {
             Graph newGraph = status.getGraph();
@@ -255,7 +267,11 @@ public class GrappaFrame extends Composite {
     }
 
     public void update(EvaluationStatus evalStatus) {
-        if (graphUpdateJob != null)
+        getUpdateJob(evalStatus).schedule();
+    }
+    
+    public GraphUpdateJob getUpdateJob(EvaluationStatus evalStatus) {
+    	if (graphUpdateJob != null)
             graphUpdateJob.cancel();
         if (evalStatus == null)
             evalStatus = lastEvalStatus;
@@ -273,7 +289,19 @@ public class GrappaFrame extends Composite {
             }
 
         });
-        graphUpdateJob.schedule();
+        
+        // if trace exists -> mark
+        if( trace != null ) {
+        	graphUpdateJob.addJobChangeListener(new JobChangeAdapter() {
+        		@Override
+        		public void done(IJobChangeEvent event) {
+        			markTrace();
+        			redraw();
+        		}
+        	});
+        }
+        
+        return graphUpdateJob;
     }
 
     public synchronized void updateGraph() {
@@ -348,6 +376,88 @@ public class GrappaFrame extends Composite {
         } finally {
             graphLock.unlock();
         }
+    }
+    
+    /**
+     * Marks a trace in the graph orange.
+     * 
+     * @param exp - the name of the start expression
+     * @param trace - the trace to mark
+     */
+    public void markTrace() {
+    	if( trace == null || trace.length == 0) {
+    		graphLock.lock();
+    		graph = createErrorGraph("Kann Trace nicht markieren.");
+    		graphLock.unlock();
+    		return;
+    	}
+    	
+    	LinkedList<HashSet<Edge>> toMark = new LinkedList<HashSet<Edge>> ();
+    	for(int i=0; i<trace.length; i++) {
+    		toMark.add(
+    				new HashSet<Edge> ()
+    				);
+    	}
+    	
+    	// find start node
+    	graphLock.lock();
+        try {
+        	Node startNode = null;
+            final Enumeration<Node> nodes = graph.nodeElements();
+            while (nodes.hasMoreElements()) {
+                final Node node = nodes.nextElement();
+                if (node.getName().equals("node_0")) { // node_0 = startnode
+                	startNode = node;
+                }
+            }
+            
+            
+            // search trace
+            Enumeration<Edge> edgesEnum = startNode.edgeElements();
+            HashSet<Edge> edge = new HashSet<Edge> ();
+            while( edgesEnum.hasMoreElements()) {
+            	edge.add(edgesEnum.nextElement());
+            }
+            
+            for(int i=0;i<trace.length;i++ ) { // mark every edge
+            	HashSet<Edge> nextSet = toMark.get(i);
+            	HashSet<Node> nextNodes = new HashSet<Node> ();
+            	
+            	for( Edge nextEdge : edge ) {
+            		String attrib = nextEdge.getAttribute(GrappaConstants.LABEL_ATTR).getStringValue();
+            		if( trace[i].equals(attrib) ) {
+            			nextSet.add(nextEdge);
+            			nextNodes.add(nextEdge.getHead());
+            		}
+            	}
+            	// Insert for next iteration
+            	edge = new HashSet<Edge> ();
+            	for( Node n : nextNodes ) {
+            		edgesEnum = n.edgeElements();
+            		while( edgesEnum.hasMoreElements()) {
+            			edge.add(edgesEnum.nextElement());
+            		}
+            	}
+            }
+            
+            // mark trace
+            for( HashSet<Edge> set : toMark ) {
+            	for( Edge e : set ) {
+            		e.setAttribute(GrappaConstants.COLOR_ATTR, Color.ORANGE);
+            	}
+            }
+        } finally {
+            graphLock.unlock();
+        }
+    }
+    
+    public void selectTrace(String[] trace) {
+    	if( trace!=null && trace.length==0 ) return;
+    	this.trace = trace;
+    }
+    
+    public void selectPartOfTrace() {
+    	// TODO GRAPPA selects a part of the trace
     }
 
     private void unselectAll() {

@@ -17,6 +17,7 @@ import org.eclipse.swt.widgets.Listener;
 
 import de.unisb.cs.depend.ccs_sem.plugin.grappa.GrappaFrame;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.EvaluationJob.EvaluationStatus;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 
 
 public class OptionsTab extends CTabItem {
@@ -65,12 +66,16 @@ public class OptionsTab extends CTabItem {
         buttonZoomOut.setText("Zoom out");
         buttonZoomOut.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
 
-
         final Button buttonMinimize = new Button(optionsComp, SWT.CHECK);
         buttonMinimize.setSelection(false);
         buttonMinimize.setText("Minimize LTS");
         buttonMinimize.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-
+        
+        final Button buttonSemanticSwitch = new Button(optionsComp, SWT.CHECK);
+        buttonSemanticSwitch.setSelection(Expression.getVisibleTau());
+        buttonSemanticSwitch.setText("Tau visible");
+        buttonMinimize.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        
         final Group layoutGroup = new Group(optionsComp, SWT.NONE);
         layoutGroup.setText("Layout");
         layoutGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
@@ -144,6 +149,15 @@ public class OptionsTab extends CTabItem {
                 ccsFrame.setMinimize(buttonMinimize.getSelection(), true);
             }
 
+        });
+        
+        buttonSemanticSwitch.addListener(SWT.Selection, new Listener() {
+
+			public void handleEvent(Event event) {
+				Expression.setVisibleTau(buttonSemanticSwitch.getSelection());
+				ccsFrame.updateEvaluation(true);
+			}
+        	
         });
 
         buttonLayoutTopToBottom.addListener(SWT.Selection, new Listener() {

@@ -23,6 +23,21 @@
             id="de.unisb.cs.depend.ccs_sem.plugin.views.StepByStepTraverseView"
             name="Step by step traverse">
       </view>
+      <view
+            allowMultiple="false"
+            category="de.unisb.cs.depend.ccs_sem.plugin.views.CCS_category"
+            class="de.unisb.cs.depend.ccs_sem.plugin.views.LTLCheckerView"
+            id="de.unisb.cs.depend.ccs_sem.plugin.views.LTLCheckerView"
+            name="LTL Checker">
+      </view>
+      <view
+            allowMultiple="false"
+            category="de.unisb.cs.depend.ccs_sem.plugin.views.CCS_category"
+            class="de.unisb.cs.depend.ccs_sem.plugin.views.CounterExampleView"
+            id="de.unisb.cs.depend.ccs_sem.plugin.views.CounterExampleView"
+            name="CounterExample"
+            restorable="true">
+      </view>
    </extension>
    <extension
          point="org.eclipse.ui.perspectives">
@@ -67,6 +82,14 @@
             id="de.unisb.cs.depend.ccs_sem.plugin.wizards.NewCCSProjectWizard"
             name="CCS Project"
             project="true">
+      </wizard>
+      <wizard
+            category="de.unisb.cs.depend.ccs_sem.plugin.CCS_category"
+            class="de.unisb.cs.depend.ccs_sem.plugin.wizards.ExportWizard"
+            hasPages="true"
+            id="de.unisb.cs.depend.ccs_sem.plugin.wizards.ExportLTLWizard"
+            name="Export LTL"
+            project="false">
       </wizard>
    </extension>
    <extension

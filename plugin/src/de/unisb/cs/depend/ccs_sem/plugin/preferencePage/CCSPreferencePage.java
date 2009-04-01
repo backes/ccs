@@ -12,6 +12,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.FileFieldEditor;
+import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
@@ -53,6 +54,7 @@ public class CCSPreferencePage
 
     private ComboFieldEditor ungardedErrorTypeEditor;
     private ComboFieldEditor unregularErrorTypeEditor;
+    private StringFieldEditor maxGraphSizeFieldEditor;
     private int lastUnguardedErrorType;
     private int lastUnregularErrorType;
 
@@ -99,6 +101,12 @@ public class CCSPreferencePage
             },
             getFieldEditorParent());
         addField(ungardedErrorTypeEditor);
+        
+        // Maximal Graph Size
+        maxGraphSizeFieldEditor = new StringFieldEditor(MyPreferenceStore.getMaxGraphSizeKey(),
+        		"Maximal displayed graph size\n(0 for unlimited)",
+        		getFieldEditorParent());
+        addField(maxGraphSizeFieldEditor);
     }
 
     /* (non-Javadoc)

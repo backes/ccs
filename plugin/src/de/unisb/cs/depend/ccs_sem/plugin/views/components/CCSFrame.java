@@ -46,15 +46,19 @@ public class CCSFrame extends SashForm {
     }
 
     public void showGraph(boolean updateGraph) {
-        updateEvaluation();
+        updateEvaluation(false);
         /*
         if (updateGraph)
             gFrame.updateGraph();
         */
     }
 
-    public synchronized void updateEvaluation() {
-        if (evaluationJob != null)
+    public synchronized void updateEvaluation(boolean resetEval) {
+        getUpdateJob(resetEval).schedule();
+    }
+    
+    public synchronized EvaluationJob getUpdateJob(boolean resetEval) {
+    	if (evaluationJob != null)
             evaluationJob.cancel();
         evaluationJob = new EvaluationJob(ccsEditor.getText(), minimize);
         evaluationJob.addJobChangeListener(new JobChangeAdapter() {
@@ -71,7 +75,9 @@ public class CCSFrame extends SashForm {
                 }
             }
         });
-        evaluationJob.schedule();
+        
+        evaluationJob.setResetEval(resetEval);
+        return evaluationJob;
     }
 
     public void setMinimize(boolean minimize, boolean update) {
@@ -80,7 +86,7 @@ public class CCSFrame extends SashForm {
 
         this.minimize = minimize;
         if (update)
-            updateEvaluation();
+            updateEvaluation(false);
     }
 
     public boolean isMinimize() {
@@ -91,4 +97,7 @@ public class CCSFrame extends SashForm {
         return gFrame.getGraph();
     }
 
+	public GrappaFrame getGrappaFrame() {
+		return gFrame;
+	}
 }

@@ -34,12 +34,15 @@ import de.unisb.cs.depend.ccs_sem.exporters.GraphVizExporter;
 import de.unisb.cs.depend.ccs_sem.plugin.actions.Evaluate;
 import de.unisb.cs.depend.ccs_sem.plugin.actions.ExportGraph;
 import de.unisb.cs.depend.ccs_sem.plugin.actions.ExportProgram;
+import de.unisb.cs.depend.ccs_sem.plugin.actions.Help;
 import de.unisb.cs.depend.ccs_sem.plugin.actions.StepByStepTraverse;
 import de.unisb.cs.depend.ccs_sem.plugin.dotExporters.GifDotExporter;
 import de.unisb.cs.depend.ccs_sem.plugin.dotExporters.PNGDotExporter;
 import de.unisb.cs.depend.ccs_sem.plugin.dotExporters.PostscriptDotExporter;
 import de.unisb.cs.depend.ccs_sem.plugin.dotExporters.SVGDotExporter;
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor;
+import de.unisb.cs.depend.ccs_sem.plugin.grappa.GrappaFrame;
+import de.unisb.cs.depend.ccs_sem.plugin.jobs.EvaluationJob;
 import de.unisb.cs.depend.ccs_sem.plugin.views.components.CCSFrame;
 
 
@@ -88,6 +91,7 @@ public class CCSGraphView extends ViewPart implements ISelectionListener, IPartL
     private void fillToolbar(IToolBarManager toolBarManager) {
         toolBarManager.add(new Evaluate());
         toolBarManager.add(new StepByStepTraverse());
+//        toolBarManager.add(new Help("CCSGraphView"));
     }
 
     private void fillMenu(IMenuManager menuManager) {
@@ -121,6 +125,8 @@ public class CCSGraphView extends ViewPart implements ISelectionListener, IPartL
             new String[] { "*.gif", "GIF File (*.gif)" }));
 
         menuManager.add(exportMenu);
+        
+//        menuManager.add(new Help("index"));
     }
 
     @Override
@@ -141,8 +147,15 @@ public class CCSGraphView extends ViewPart implements ISelectionListener, IPartL
 
     public synchronized void update() {
         if (currentPage instanceof CCSFrame) {
-            ((CCSFrame)currentPage).updateEvaluation();
+            ((CCSFrame)currentPage).updateEvaluation(false);
         }
+    }
+    
+    public synchronized EvaluationJob getUpdateJob() {
+    	if (currentPage instanceof CCSFrame) {
+            return ((CCSFrame)currentPage).getUpdateJob(false);
+        }
+    	return null;
     }
 
     public synchronized void showGraphFor(IEditorPart activeEditor, boolean updateGraph) {
@@ -208,4 +221,10 @@ public class CCSGraphView extends ViewPart implements ISelectionListener, IPartL
         return null;
     }
 
+    public GrappaFrame getGrappaFrame() {
+        final Control page = currentPage;
+        if (page instanceof CCSFrame)
+            return ((CCSFrame)page).getGrappaFrame();
+        return null;
+    }
 }

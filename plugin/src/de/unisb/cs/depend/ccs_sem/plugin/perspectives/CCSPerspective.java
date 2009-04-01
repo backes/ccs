@@ -59,11 +59,14 @@ public class CCSPerspective implements IPerspectiveFactory {
                 "bottom");
 
         leftTop.addView(IPageLayout.ID_RES_NAV);
+        leftTop.addView( Global.getCounterExampleViewId() );
         leftBottom.addView(IPageLayout.ID_OUTLINE);
         bottom.addView(IPageLayout.ID_PROBLEM_VIEW);
         bottom.addPlaceholder(IConsoleConstants.ID_CONSOLE_VIEW);
+        
         center.addView(Global.getGraphViewId());
         center.addView(Global.getStepByStepTraverseViewId());
+        center.addView(Global.getLTLCheckerViewId());
     }
 
     private void addActionSets() {

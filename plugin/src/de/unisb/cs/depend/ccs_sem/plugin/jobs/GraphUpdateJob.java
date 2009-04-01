@@ -1,5 +1,6 @@
 package de.unisb.cs.depend.ccs_sem.plugin.jobs;
 
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
@@ -14,12 +15,12 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.Job;
-
 import att.grappa.Edge;
 import att.grappa.Graph;
 import att.grappa.GrappaConstants;
 import att.grappa.Node;
 import de.unisb.cs.depend.ccs_sem.plugin.Global;
+import de.unisb.cs.depend.ccs_sem.plugin.MyPreferenceStore;
 import de.unisb.cs.depend.ccs_sem.plugin.grappa.GraphHelper;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.EvaluationJob.EvaluationStatus;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
@@ -55,7 +56,6 @@ public class GraphUpdateJob extends Job {
 
     @Override
     protected IStatus run(IProgressMonitor monitor) {
-
         final ConcurrentJob job = new ConcurrentJob(monitor);
         final FutureTask<GraphUpdateStatus> status = new FutureTask<GraphUpdateStatus>(job);
         final Thread executingThread = new Thread(status, getClass().getSimpleName() + " worker");
@@ -134,6 +134,19 @@ public class GraphUpdateJob extends Job {
             }
 
             monitor.worked(WORK_CREATE_GRAPH);
+            // check weather graph is too large
+            long size = 0;
+            Enumeration<Node> nodes = graph.nodeElements();
+            while(nodes.hasMoreElements() ) {
+            	nodes.nextElement();
+            	size++;
+            }
+            if( size > MyPreferenceStore.getMaxGraphSize() && 
+            		MyPreferenceStore.getMaxGraphSize() != 0 ) {
+            	return new GraphUpdateStatus(IStatus.ERROR,
+            			"The Graph is too large. (More than "+MyPreferenceStore.getMaxGraphSize()+" Nodes)\n"+
+            			"You can change the limit in the CCS-Preferences. (exact size of current graph is: "+size+")");            	
+            }
 
             if (monitor.isCanceled())
                 return new GraphUpdateStatus(IStatus.CANCEL, "cancelled");
