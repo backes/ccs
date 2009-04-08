@@ -232,7 +232,7 @@ public class GraphUpdateJob extends Job {
                 for (final Transition trans: e.getTransitions()) {
                     final Node headNode = getNode(nodes, trans.getTarget());
                     final Edge edge = new Edge(graph, tailNode, headNode, "edge_" + edgeCnt++);
-                    final String label = showEdgeLabels ? trans.getAction().getLabel() : "";
+                    final String label = showEdgeLabels ? trans.getAction().toString() : "";
                     edge.setAttribute(GrappaConstants.LABEL_ATTR, label);
                     final StringBuilder tipBuilder = new StringBuilder(230);
                     tipBuilder.append("<html><table border=0>");

@@ -34,7 +34,6 @@ import de.unisb.cs.depend.ccs_sem.exporters.GraphVizExporter;
 import de.unisb.cs.depend.ccs_sem.plugin.actions.Evaluate;
 import de.unisb.cs.depend.ccs_sem.plugin.actions.ExportGraph;
 import de.unisb.cs.depend.ccs_sem.plugin.actions.ExportProgram;
-import de.unisb.cs.depend.ccs_sem.plugin.actions.Help;
 import de.unisb.cs.depend.ccs_sem.plugin.actions.StepByStepTraverse;
 import de.unisb.cs.depend.ccs_sem.plugin.dotExporters.GifDotExporter;
 import de.unisb.cs.depend.ccs_sem.plugin.dotExporters.PNGDotExporter;

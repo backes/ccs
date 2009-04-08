@@ -39,7 +39,6 @@ import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 
-
 public class StepByStepTraverseFrame extends Composite {
 
     private final IParsingListener parsingListener = new IParsingListener() {
@@ -129,7 +128,7 @@ public class StepByStepTraverseFrame extends Composite {
                 Transition trans = transitions.get(index);
                 Expression target = trans.getTarget();
                 if (evaluateProtected(target)) {
-                    item.setText(new String[] { trans.getAction().getLabel(), target.toString() });
+                    item.setText(new String[] { trans.getAction().toString(), target.toString() });
                     item.setData(target);
                     item.setItemCount(target.getTransitions().size());
                 } else {
