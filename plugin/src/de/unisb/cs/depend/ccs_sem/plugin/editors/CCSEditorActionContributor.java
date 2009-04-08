@@ -11,7 +11,9 @@ import de.unisb.cs.depend.ccs_sem.exporters.CCSExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.ETMCCExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.GraphVizExporter;
 import de.unisb.cs.depend.ccs_sem.plugin.actions.ExportGraph;
+import de.unisb.cs.depend.ccs_sem.plugin.actions.ExportAll;
 import de.unisb.cs.depend.ccs_sem.plugin.actions.ExportProgram;
+import de.unisb.cs.depend.ccs_sem.plugin.actions.Help;
 import de.unisb.cs.depend.ccs_sem.plugin.actions.ShowGraph;
 import de.unisb.cs.depend.ccs_sem.plugin.actions.StepByStepTraverse;
 import de.unisb.cs.depend.ccs_sem.plugin.dotExporters.GifDotExporter;
@@ -63,10 +65,15 @@ public class CCSEditorActionContributor extends BasicTextEditorActionContributor
             null,
             new String[] { "*.gif", "GIF File (*.gif)" }));
 
+        exportMenu.add(new Separator());
+        
+        exportMenu.add(new ExportAll());
+        
         ccsMenu.add(exportMenu);
 
+        ccsMenu.add(new Help("index"));
+        
         menu.add(ccsMenu);
-
     }
 
     @Override
@@ -74,6 +81,8 @@ public class CCSEditorActionContributor extends BasicTextEditorActionContributor
         super.contributeToToolBar(toolBarManager);
         toolBarManager.add(new ShowGraph());
         toolBarManager.add(new StepByStepTraverse());
+//        toolBarManager.add(new ExportAll());
+//        toolBarManager.add(new Help("CCSDocument"));
     }
 
 }
