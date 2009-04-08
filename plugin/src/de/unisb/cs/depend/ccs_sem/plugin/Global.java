@@ -5,6 +5,7 @@ public class Global {
 
     private static final String PLUGIN_ID = "de.unisb.cs.depend.ccs_sem.plugin";
 
+    // CCS Perspective
     private static final String GRAPH_VIEW_ID =
         "de.unisb.cs.depend.ccs_sem.plugin.views.CCSGraphView";
     private static final String STEP_BY_STEP_TRAVERSE_VIEW_ID =
@@ -13,6 +14,13 @@ public class Global {
     	"de.unisb.cs.depend.ccs_sem.plugin.views.LTLCheckerView";
     private static final String COUNTER_EXAMPLE_VIEW_ID = 
     	"de.unisb.cs.depend.ccs_sem.plugin.views.CounterExampleView";
+    // Simulation Perspective
+    private static final String TRACE_VIEW_ID =
+    	"de.unisb.cs.depend.ccs_sem.plugin.views.simulation.TraceView";
+    private static final String CHOOSE_ACTION_VIEW_ID =
+    	"de.unisb.cs.depend.ccs_sem.plugin.views.simulation.ChooseActionView";
+    private static final String TOP_LEVEL_GRAPH_VIEW_ID =
+    	"de.unisb.cs.depend.ccs_sem.plugin.views.simulation.TopLevelGraphView";
     
     private static final String ACTION_SET_ID = "de.unisb.cs.depend.ccs_sem.plugin.actionSet";
 
@@ -82,5 +90,16 @@ public class Global {
         final String os = System.getProperty("os.name");
         return os != null && os.toLowerCase().contains("win");
     }
+    
+    public static String getTraceViewId() {
+    	return TRACE_VIEW_ID;
+    }
+    
+    public static String getChooseActionViewId() {
+    	return CHOOSE_ACTION_VIEW_ID;
+    }
 
+    public static String getTopLevelGraphViewId() {
+    	return TOP_LEVEL_GRAPH_VIEW_ID;
+    }
 }

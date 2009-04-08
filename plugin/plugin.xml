@@ -38,6 +38,30 @@
             name="CounterExample"
             restorable="true">
       </view>
+      <view
+            allowMultiple="false"
+            category="de.unisb.cs.depend.ccs_sem.plugin.views.CCS_category"
+            class="de.unisb.cs.depend.ccs_sem.plugin.views.simulation.TraceView"
+            id="de.unisb.cs.depend.ccs_sem.plugin.views.simulation.TraceView"
+            name="Trace"
+            restorable="true">
+      </view>
+      <view
+            allowMultiple="false"
+            category="de.unisb.cs.depend.ccs_sem.plugin.views.CCS_category"
+            class="de.unisb.cs.depend.ccs_sem.plugin.views.simulation.ChooseActionView"
+            id="de.unisb.cs.depend.ccs_sem.plugin.views.simulation.ChooseActionView"
+            name="Choose Action"
+            restorable="true">
+      </view>
+      <view
+            allowMultiple="false"
+            category="de.unisb.cs.depend.ccs_sem.plugin.views.CCS_category"
+            class="de.unisb.cs.depend.ccs_sem.plugin.views.simulation.TopLevelGraphView"
+            id="de.unisb.cs.depend.ccs_sem.plugin.views.simulation.TopLevelGraphView"
+            name="Top Level Graph"
+            restorable="true">
+      </view>
    </extension>
    <extension
          point="org.eclipse.ui.perspectives">
@@ -47,6 +71,12 @@
             icon="resources/icons/ccs.gif"
             id="de.unisb.cs.depend.ccs_sem.plugin.perspectives.CCSPerspective"
             name="CCS">
+      </perspective>
+      <perspective
+            class="de.unisb.cs.depend.ccs_sem.plugin.perspectives.SimulationPerspective"
+            fixed="false"
+            id="de.unisb.cs.depend.ccs_sem.plugin.perspectives.SimulationPerspective"
+            name="Interactive Simulation">
       </perspective>
    </extension>
    <extension
