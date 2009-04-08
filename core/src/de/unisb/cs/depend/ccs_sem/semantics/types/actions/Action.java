@@ -76,7 +76,12 @@ public abstract class Action implements Comparable<Action> {
     	Action a = copySubAction();
     	
     	// copy trace
-    	a.leftRightTrace = new LinkedList<Boolean> (leftRightTrace);
+    	try {
+    		a.leftRightTrace = new LinkedList<Boolean> ();
+    		a.leftRightTrace.addAll(leftRightTrace);
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    	}
     	return a;
     }
     

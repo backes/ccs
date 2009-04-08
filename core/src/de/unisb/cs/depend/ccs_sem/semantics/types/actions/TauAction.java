@@ -10,8 +10,6 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.values.TauChannel;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 
 public class TauAction extends Action {
-
-	// TODO TAU evaluate syncLeft,syncRight informations
 	
     private static TauAction instance = new TauAction();
 
@@ -26,6 +24,8 @@ public class TauAction extends Action {
     }
     
     public TauAction(Action syncedLeft, Action syncedRight) {
+    	if( syncedLeft == null || syncedRight == null )
+    		throw new IllegalArgumentException("Tau Action mit null Argument aufgerufen!");
     	channel = TauChannel.get();
     	this.syncedLeft = syncedLeft;
     	this.syncedRight = syncedRight;
@@ -99,6 +99,7 @@ public class TauAction extends Action {
 				: "");
     }
 
+    // TODO TAU evaluate syncLeft,syncRight informations
 	@Override
 	protected Action copySubAction() {
 		return new TauAction(syncedLeft,syncedRight);

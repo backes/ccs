@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.Map.Entry;
 
@@ -120,82 +119,25 @@ public class ParallelExpression extends Expression {
 
                 if (newFromLeft != null) {
                     final Expression newTarget = create(newFromLeft, rightTrans.getTarget());
+                    Action left = leftTrans.getAction().copy();
+                    left.addToLRTrace(false);
+                    Action right = rightTrans.getAction().copy();
+                    right.addToLRTrace(true);
                     final Transition newTransition = new Transition(
-                    		TauAction.get(leftTrans.getAction(), rightTrans.getAction()), newTarget); // TODO newTransition
+                    		TauAction.get(left, right), newTarget);
                     transitions.add(newTransition);
                 } else if (newFromRight != null) {
                     final Expression newTarget = create(leftTrans.getTarget(), newFromRight);
+                    Action left = leftTrans.getAction().copy();
+                    left.addToLRTrace(false);
+                    Action right = rightTrans.getAction().copy();
+                    right.addToLRTrace(true);
                     final Transition newTransition = new Transition(
-                    		TauAction.get(leftTrans.getAction(),rightTrans.getAction()), newTarget); // TODO newTransition
+                    		TauAction.get(left,right), newTarget);
                     transitions.add(newTransition);
                 }
             }
     }
-
-//    private void combineUsingComplexWay(final List<Transition> leftTransitions,
-//            final List<Transition> rightTransitions,
-//            final Set<Transition> transitions) {
-//        // we use maps that list for each channel the correspoding input actions
-//        final Map<String, List<Transition>> leftInput =
-//            new HashMap<String, List<Transition>>(leftTransitions.size());
-//        final Map<String, List<Transition>> rightInput =
-//            new HashMap<String, List<Transition>>(rightTransitions.size());
-//
-//        // fill the map leftInput
-//        for (final Transition leftTrans: leftTransitions) {
-//            if (leftTrans.getAction() instanceof InputAction) {
-//                final String channelString = leftTrans.getAction().getChannel().getStringValue();
-//                List<Transition> list = leftInput.get(channelString);
-//                if (list == null)
-//                    leftInput.put(channelString, list = new ArrayList<Transition>(2));
-//                list.add(leftTrans);
-//            }
-//        }
-//        // fill the map rightInput and check for matches with leftInput
-//        for (final Transition rightTrans: rightTransitions) {
-//            if (rightTrans.getAction() instanceof InputAction) {
-//                final String channelString = rightTrans.getAction().getChannel().getStringValue();
-//                List<Transition> list = rightInput.get(channelString);
-//                if (list == null)
-//                    rightInput.put(channelString, list = new ArrayList<Transition>(2));
-//                list.add(rightTrans);
-//            }
-//            if (rightTrans.getAction() instanceof OutputAction) {
-//                // search for corresponding input action
-//                final List<Transition> inputTransitions = leftInput.get(
-//                    rightTrans.getAction().getChannel().getStringValue());
-//                if (inputTransitions != null) {
-//                    for (final Transition inputTrans: inputTransitions) {
-//                        final Expression newLeftTarget = inputTrans.synchronizeWith(rightTrans.getAction());
-//                        if (newLeftTarget != null) {
-//                            // i.e. there was a match
-//                            final Expression newTarget = create(newLeftTarget, rightTrans.getTarget());
-//                            final Transition newTrans = new Transition(TauAction.get(rightTrans.getAction()), newTarget); // TODO newTransition
-//                            transitions.add(newTrans);
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//        // search for matching pairs vice-versa
-//        for (final Transition leftTrans: leftTransitions) {
-//            if (!(leftTrans.getAction() instanceof OutputAction))
-//                continue;
-//            // search for corresponding input action
-//            final List<Transition> inputTransitions = rightInput.get(
-//                leftTrans.getAction().getChannel().getStringValue());
-//            if (inputTransitions != null) {
-//                for (final Transition inputTrans: inputTransitions) {
-//                    final Expression newRightTarget = inputTrans.synchronizeWith(leftTrans.getAction());
-//                    if (newRightTarget != null) {
-//                        final Expression newTarget = create(leftTrans.getTarget(), newRightTarget);
-//                        final Transition newTrans = new Transition(TauAction.get(leftTrans.getAction()), newTarget); // TODO newTransition
-//                        transitions.add(newTrans);
-//                    }
-//                }
-//            }
-//        }
-//    }
 
     @Override
     public Expression replaceRecursion(List<ProcessVariable> processVariables)
