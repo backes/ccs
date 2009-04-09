@@ -43,7 +43,8 @@ public class StepByStepTraverseFrame extends Composite {
 
     private final IParsingListener parsingListener = new IParsingListener() {
 
-        public void parsingDone(final IDocument document, final ParseStatus result) {        	
+        public void parsingDone(final IDocument document, final ParseStatus result) {
+
             if (isDisposed()) {
                 // oops, we are disposed...
                 if (document instanceof CCSDocument) {
@@ -51,7 +52,6 @@ public class StepByStepTraverseFrame extends Composite {
                 }
                 return;
             }
-            
             Runnable runnable = new Runnable() {
                 public void run() {
                     synchronized (StepByStepTraverseFrame.this) {
@@ -68,18 +68,20 @@ public class StepByStepTraverseFrame extends Composite {
                             tree.setEnabled(false);
                             tree.setItemCount(0);
                             tree.clearAll(true);
+                            currentExpression = null;
                         } else {
                             Expression newExpr = program.getExpression();
-                            
-                            currentExpression = newExpr;
-                            if (evaluateProtected(newExpr)) {
-                                tree.setEnabled(true);
-                                tree.setItemCount(newExpr.getTransitions().size());
-                            } else {
-                                tree.setEnabled(false);
-                                tree.setItemCount(1);
+                            if (newExpr != currentExpression) {
+                                currentExpression = newExpr;
+                                if (evaluateProtected(newExpr)) {
+                                    tree.setEnabled(true);
+                                    tree.setItemCount(newExpr.getTransitions().size());
+                                } else {
+                                    tree.setEnabled(false);
+                                    tree.setItemCount(1);
+                                }
+                                tree.clearAll(true);
                             }
-                            tree.clearAll(true);
                         }
                     }
                 }
