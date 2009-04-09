@@ -1,21 +1,27 @@
 package de.unisb.cs.depend.ccs_sem.plugin.views.simulation;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.part.PageBook;
 import org.eclipse.ui.part.ViewPart;
 
 import de.unisb.cs.depend.ccs_sem.evaluators.Evaluator;
+import de.unisb.cs.depend.ccs_sem.plugin.Global;
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSDocument;
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.ParseCCSProgramJob.ParseStatus;
@@ -35,21 +41,28 @@ import de.unisb.cs.depend.ccs_sem.utils.Globals;
  * -> kombiniere wer mit wem syncen kann
  * => Map: Position -> Expression (2 for sync)
  */
-public class ChooseActionView extends ViewPart implements IUndoListener {
+public class ChooseActionView extends ViewPart implements IUndoListener, SelectionListener {
 
+	private final String process = "Prozess ";
+	
 	private Composite mainComp;
 	private List list;
-	private LinkedList<Expression> parallelExps;
+	private Button doButton;
+	
 	private PageBook myPageBook;
+	private TraceView traceView;
+	
+	private LinkedList<Expression> parallelExps;
 	private LinkedList<LinkedList<Expression>> history;
+	private HashMap<Integer,Transition> listToTransMap;
 	
 	private class MyComponent extends SashForm {
 
 		public MyComponent(Composite parent) {
 			super(parent, SWT.VERTICAL);
 			
-			list = new List(this,SWT.BORDER | SWT.V_SCROLL | SWT.SINGLE);
-			Button doButton = new Button(this,SWT.None);
+			list = new List(this,SWT.BORDER | SWT.V_SCROLL | SWT.MULTI);
+			doButton = new Button(this,SWT.None);
 			doButton.setText("Do action");
 			
 			this.setWeights(new int[] {10,1});
@@ -59,6 +72,7 @@ public class ChooseActionView extends ViewPart implements IUndoListener {
 	
 	public ChooseActionView() {
 		history = new LinkedList<LinkedList<Expression>> ();
+		listToTransMap = new HashMap<Integer, Transition> ();
 	}
 	
 	@Override
@@ -78,6 +92,8 @@ public class ChooseActionView extends ViewPart implements IUndoListener {
 			new Label(mainComp,SWT.None).setText("No active Page or no Editor.");	
 		}
 		myPageBook.showPage(mainComp);
+		
+		// TODO ChooseActionView addWorkbenchListener
 	}
 	
 	public void initPage(final CCSEditor editor) {
@@ -85,6 +101,7 @@ public class ChooseActionView extends ViewPart implements IUndoListener {
 		
 		mainComp.setLayout(new FillLayout(SWT.VERTICAL));
 		mainComp = new MyComponent(myPageBook);
+		doButton.addSelectionListener(this);
 		
 		actualizeActions(editor);
 	}
@@ -134,21 +151,35 @@ public class ChooseActionView extends ViewPart implements IUndoListener {
 		history.add(parallelExps);
 		
 		list.getDisplay().syncExec(new Runnable() {
-			
 			public void run() {
-				int i=0;
-				for(Expression e : parallelExps) {
-					if( !e.isEvaluated() )
-						e.evaluate();
-					
-					list.add("Prozess "+i+":");
-					for(Transition t : e.getTransitions() ) {
-						list.add( "  " + t.getAction().toString());
-					}
-					i++;
-				}
+				fillList();
 			}
 		});
+	}
+	
+	private void fillList() {		
+		int i=0;
+		for(Expression e : parallelExps) {
+			if( !e.isEvaluated() )
+				e.evaluate();
+			
+			listToTransMap.put(list.getItemCount(),null); // the process+i
+			list.add(process+i+":");
+			for(Transition t : e.getTransitions() ) {
+				// Before add the next element -> getItemCount = nr of next added item
+				listToTransMap.put(list.getItemCount(),t);
+				
+				list.add( "  " + t.getAction().toString());
+			}
+			i++;
+		}
+	}
+	
+	private void refillList() {
+		list.removeAll();
+		listToTransMap.clear();
+		
+		fillList();
 	}
 
 	@Override
@@ -157,7 +188,96 @@ public class ChooseActionView extends ViewPart implements IUndoListener {
 	}
 
 	public void notifyUndo() {
-		// TODO ChooseActionView undo
+		if( history.size() > 1 ) {
+			history.removeLast();
+			parallelExps = history.getLast();
+			
+			refillList();
+		}
 	}
 
+	public void widgetSelected(SelectionEvent e) {
+		// Do selected action
+		int[] selected = list.getSelectionIndices();
+		
+		if( selected.length == 1
+				&& !list.getSelection()[0].startsWith(process) ) {
+			doAction( selected[0] );
+		} else if( selected.length == 2 
+				&& !list.getSelection()[0].startsWith(process) 
+				&& !list.getSelection()[1].startsWith(process) ) {
+			doSynchronousAction( selected[0], selected[1] );
+		} else {
+			// TODO ChooseActionView notifyUser about bad usage of the view
+		}
+	}
+	
+	public void widgetDefaultSelected(SelectionEvent e) {} // ignore
+
+
+	private void doSynchronousAction(int i, int j) {
+		// TODO Auto-generated method stub
+	}
+
+	private void doAction(int selectedItem) {
+		Transition t = listToTransMap.get(selectedItem);
+		
+		int prozessNr = 0;
+		for( int j=0; j<selectedItem; j++ ) {
+			if(list.getItem(j).startsWith(process)) {
+				prozessNr++;
+			}
+		}
+		LinkedList<Expression> next = new LinkedList<Expression> (parallelExps);
+		next.remove(prozessNr-1);
+		Expression target = t.getTarget();
+		if( !target.isEvaluated() ) {
+			target.evaluate();
+		}
+		next.add(prozessNr-1, target);
+		history.add(next);
+		parallelExps = next;
+		
+		reportToTrace( list.getItem(selectedItem) );
+		debugOutput(); // DEBUG output call
+		
+		refillList();
+	}
+	
+	private void reportToTrace(String act) {
+		if( traceView == null ) {
+			// TODO NullPointer-Exception possible
+			
+			for( IViewReference viewRef : getSite().getPage().getViewReferences() ) {
+				IViewPart viewPart = viewRef.getView(false);
+				if( viewPart instanceof TraceView ) {
+					traceView = (TraceView) viewPart;
+					traceView.addUndoListener(this);
+				}
+			}
+		}
+		
+		if(traceView != null) {
+			traceView.addAction(act);
+		}
+	}
+	
+	// DEBUG methods
+	private void debugOutput() {
+		System.out.println("---------------------------------------");
+//		for( LinkedList<Expression> paraExp : history )
+			printExpList(parallelExps);
+		System.out.println("---------------------------------------");
+	}
+
+	private void printExpList(LinkedList<Expression> paraExp) {
+		for( Expression e : paraExp ) {
+			System.out.println(e.toString());
+			System.out.println("----------");
+			for( Transition t : e.getTransitions() ) {
+				System.out.println(t.toString());
+			}
+			System.out.println("----------");
+		}
+	}
 }

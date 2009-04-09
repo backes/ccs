@@ -29,7 +29,6 @@ public class TraceView extends ViewPart implements SelectionListener, IUndoObser
 			
 			this.setWeights(new int[] {10,1});
 		}
-		
 	}
 	
 	public TraceView() {
@@ -44,7 +43,7 @@ public class TraceView extends ViewPart implements SelectionListener, IUndoObser
 	@Override
 	public void setFocus() {}
 
-	public void widgetDefaultSelected(SelectionEvent e) {
+	public void widgetSelected(SelectionEvent e) {
 		traceList.remove(traceList.getItemCount()-1);
 
 		for( IUndoListener listener : observer ) {
@@ -52,10 +51,14 @@ public class TraceView extends ViewPart implements SelectionListener, IUndoObser
 		}
 	}
 
-	public void widgetSelected(SelectionEvent e) {}
+	public void widgetDefaultSelected(SelectionEvent e) {} // ignore
 
 	public void addAction(Action act) {
 		traceList.add(act.toString());
+	}
+	
+	public void addAction(String act) {
+		traceList.add(act);
 	}
 
 	public void addUndoListener(IUndoListener listener) {

@@ -14,7 +14,11 @@ public class Global {
     	"de.unisb.cs.depend.ccs_sem.plugin.views.LTLCheckerView";
     private static final String COUNTER_EXAMPLE_VIEW_ID = 
     	"de.unisb.cs.depend.ccs_sem.plugin.views.CounterExampleView";
+    
     // Simulation Perspective
+    private static final String SIMULATION_PERSPECTIVE_ID =
+    	"de.unisb.cs.depend.ccs_sem.plugin.perspectives.SimulationPerspective";
+    
     private static final String TRACE_VIEW_ID =
     	"de.unisb.cs.depend.ccs_sem.plugin.views.simulation.TraceView";
     private static final String CHOOSE_ACTION_VIEW_ID =
@@ -101,5 +105,9 @@ public class Global {
 
     public static String getTopLevelGraphViewId() {
     	return TOP_LEVEL_GRAPH_VIEW_ID;
+    }
+    
+    public static String getSimulationPerspectiveID() {
+    	return SIMULATION_PERSPECTIVE_ID;
     }
 }
