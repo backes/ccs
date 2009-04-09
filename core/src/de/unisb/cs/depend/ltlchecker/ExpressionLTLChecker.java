@@ -40,7 +40,7 @@ public class ExpressionLTLChecker {
 	
 	/**
 	 * 
-	 * @param exp
+	 * @param exp - The expression to check (it has to be evaluated before!)
 	 * @param formula
 	 * @return a counter example or <code>null</code> if the formula is satisfied
 	 * @throws ParseErrorException
@@ -48,6 +48,8 @@ public class ExpressionLTLChecker {
 	public static Counterexample check(Expression exp, String formula,
 				IModelCheckingMonitor monitor) throws ParseErrorException
 	{
+		assert exp!=null && exp.isEvaluated();
+		
 		if( monitor == null ) {
 			monitor = new IModelCheckingMonitor() {
 				public void subTask(String str) {
@@ -65,7 +67,6 @@ public class ExpressionLTLChecker {
 		}
 		
 		monitor.subTask("Building CCS Graph...");
-		// TODO build and minimize CCS Graph!!!!
 		if( graph == null ) {
 			graph = new Graph();
 		
@@ -75,8 +76,7 @@ public class ExpressionLTLChecker {
 			graph.setInit(n);
 			nodes.put(exp, n);
 		
-			exp.evaluate();
-			addChildren(graph, exp);
+			addChildren(graph, exp); // via getTransitions
 			
 			lastExp = exp;
 			lastGraph = graph;
