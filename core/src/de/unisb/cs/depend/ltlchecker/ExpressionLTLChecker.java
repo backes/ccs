@@ -65,6 +65,7 @@ public class ExpressionLTLChecker {
 		}
 		
 		monitor.subTask("Building CCS Graph...");
+		// TODO build and minimize CCS Graph!!!!
 		if( graph == null ) {
 			graph = new Graph();
 		

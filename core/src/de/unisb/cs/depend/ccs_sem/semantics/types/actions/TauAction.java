@@ -78,6 +78,10 @@ public class TauAction extends Action {
 
     @Override
     public String toString() {
+    	if( syncedLeft == null || syncedRight==null) {
+    		return "i";
+    	}
+    	
     	StringBuilder strb = new StringBuilder();
     	for( Boolean b : syncedLeft.getLRTrace() ) {
     		strb.append(b ? "r" : "l" );
