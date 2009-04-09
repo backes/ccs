@@ -16,6 +16,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrappe
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.TauAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterReference;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 import de.unisb.cs.depend.ccs_sem.utils.LazyCreatedMap;
@@ -88,6 +89,7 @@ public abstract class Expression {
     		
     		for(Transition trans : list ) {
     			trans.getTarget().resetEval();
+    			trans.getAction().getLRTrace().clear();
     		}
     		for( Expression e : getChildren() ) {
     			e.resetEval();
