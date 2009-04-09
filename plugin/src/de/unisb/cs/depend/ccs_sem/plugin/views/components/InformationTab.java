@@ -156,12 +156,12 @@ public class InformationTab extends CTabItem implements SelectionListener {
         informationComp.setLayout(informationCompGridLayout);
 
         final Label noStatesLabel = new Label(informationComp, SWT.NONE);
-        noStatesLabel.setText("No States:");
+        noStatesLabel.setText("No. States:");
         noStates = new Label(informationComp, SWT.NONE);
         noStates.setText("--");
 
         final Label noTransitionsLabel = new Label(informationComp, SWT.NONE);
-        noTransitionsLabel.setText("No Transitions:");
+        noTransitionsLabel.setText("No. Transitions:");
         noTransitions = new Label(informationComp, SWT.NONE);
         noTransitions.setText("--");
 
