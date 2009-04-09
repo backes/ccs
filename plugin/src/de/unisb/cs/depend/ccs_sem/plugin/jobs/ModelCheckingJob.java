@@ -115,10 +115,12 @@ public class ModelCheckingJob extends Job {
 		
 		try {
 			prog.evaluate(Globals.getDefaultEvaluator());
+			monitor.subTask("Minimizing CCS Graph...");
+			prog.minimizeTransitions(Globals.getDefaultEvaluator(),null,true);
 		} catch (InterruptedException e) { // Should'nt happen
 			e.printStackTrace();
 		}
-		exp = prog.getExpression();
+		exp = prog.getMinimizedExpression();
 		if( exp == null )
 			return new ModelCheckingStatus(IStatus.ERROR, "Expresion is null!");
 		monitor.worked(WORK_GETEXPRESSION);
