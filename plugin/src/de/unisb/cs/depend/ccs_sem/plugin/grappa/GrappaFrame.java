@@ -384,6 +384,7 @@ public class GrappaFrame extends Composite {
      * @param exp - the name of the start expression
      * @param trace - the trace to mark
      */
+    // TODO IMPROVE!!!
     public void markTrace() {
     	if( trace == null || trace.length == 0) {
     		graphLock.lock();
@@ -454,10 +455,6 @@ public class GrappaFrame extends Composite {
     public void selectTrace(String[] trace) {
     	if( trace!=null && trace.length==0 ) return;
     	this.trace = trace;
-    }
-    
-    public void selectPartOfTrace() {
-    	// TODO GRAPPA selects a part of the trace
     }
 
     private void unselectAll() {

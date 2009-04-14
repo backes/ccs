@@ -21,7 +21,6 @@ import org.eclipse.ui.part.PageBook;
 import org.eclipse.ui.part.ViewPart;
 
 import de.unisb.cs.depend.ccs_sem.evaluators.Evaluator;
-import de.unisb.cs.depend.ccs_sem.plugin.Global;
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSDocument;
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.ParseCCSProgramJob.ParseStatus;
@@ -36,8 +35,6 @@ import de.unisb.cs.depend.ccs_sem.utils.Globals;
 //TODO ChooseAction syntax check
 /*
  * TODO ChooseAction doAction
- * update von wo bis wo welche exp aus der liste ist
- * refuelle liste
  * -> kombiniere wer mit wem syncen kann
  * => Map: Position -> Expression (2 for sync)
  */
@@ -56,16 +53,36 @@ public class ChooseActionView extends ViewPart implements IUndoListener, Selecti
 	private LinkedList<LinkedList<Expression>> history;
 	private HashMap<Integer,Transition> listToTransMap;
 	
-	private class MyComponent extends SashForm {
+	private class MyComponent extends SashForm implements SelectionListener {
 
 		public MyComponent(Composite parent) {
 			super(parent, SWT.VERTICAL);
 			
 			list = new List(this,SWT.BORDER | SWT.V_SCROLL | SWT.MULTI);
+			list.addSelectionListener(this);
 			doButton = new Button(this,SWT.None);
 			doButton.setText("Do action");
 			
 			this.setWeights(new int[] {10,1});
+		}
+
+		public void widgetDefaultSelected(SelectionEvent e) {
+			LinkedList<Integer> newSelection = new LinkedList<Integer>();
+			for(int i : list.getSelectionIndices()) {
+				if( !list.getItem(i).startsWith(process)) {
+					newSelection.add(i);
+				}
+			}
+			int[] arr = new int[newSelection.size()];
+			int size = newSelection.size();
+			for( int i=0; i<size; i++) {
+				arr[i] = newSelection.poll();
+			}
+			list.setSelection(arr);
+		}
+
+		public void widgetSelected(SelectionEvent e) {
+			widgetDefaultSelected(e);
 		}
 		
 	}
@@ -145,9 +162,8 @@ public class ChooseActionView extends ViewPart implements IUndoListener, Selecti
 				parallelExps.add(exp);
 			}
 		}
-		for( Expression e : parallelExps ) {
-			e.evaluate();
-		}
+		
+		mainExp.resetEval();
 		history.add(parallelExps);
 		
 		list.getDisplay().syncExec(new Runnable() {
@@ -160,8 +176,13 @@ public class ChooseActionView extends ViewPart implements IUndoListener, Selecti
 	private void fillList() {		
 		int i=0;
 		for(Expression e : parallelExps) {
-			if( !e.isEvaluated() )
-				e.evaluate();
+			if( !e.isEvaluated() ) {
+				try {
+					Globals.getDefaultEvaluator().evaluate(e);
+				} catch (InterruptedException exc) {
+					exc.printStackTrace();
+				}
+			}
 			
 			listToTransMap.put(list.getItemCount(),null); // the process+i
 			list.add(process+i+":");
@@ -232,14 +253,17 @@ public class ChooseActionView extends ViewPart implements IUndoListener, Selecti
 		next.remove(prozessNr-1);
 		Expression target = t.getTarget();
 		if( !target.isEvaluated() ) {
-			target.evaluate();
+			try {
+				Globals.getDefaultEvaluator().evaluate(target);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 		next.add(prozessNr-1, target);
 		history.add(next);
 		parallelExps = next;
 		
 		reportToTrace( list.getItem(selectedItem) );
-		debugOutput(); // DEBUG output call
 		
 		refillList();
 	}
@@ -259,25 +283,6 @@ public class ChooseActionView extends ViewPart implements IUndoListener, Selecti
 		
 		if(traceView != null) {
 			traceView.addAction(act);
-		}
-	}
-	
-	// DEBUG methods
-	private void debugOutput() {
-		System.out.println("---------------------------------------");
-//		for( LinkedList<Expression> paraExp : history )
-			printExpList(parallelExps);
-		System.out.println("---------------------------------------");
-	}
-
-	private void printExpList(LinkedList<Expression> paraExp) {
-		for( Expression e : paraExp ) {
-			System.out.println(e.toString());
-			System.out.println("----------");
-			for( Transition t : e.getTransitions() ) {
-				System.out.println(t.toString());
-			}
-			System.out.println("----------");
 		}
 	}
 }

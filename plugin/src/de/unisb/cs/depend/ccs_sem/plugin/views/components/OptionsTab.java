@@ -2,6 +2,8 @@ package de.unisb.cs.depend.ccs_sem.plugin.views.components;
 
 import java.awt.Dimension;
 
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -15,6 +17,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Listener;
 
+import de.unisb.cs.depend.ccs_sem.plugin.MyPreferenceStore;
 import de.unisb.cs.depend.ccs_sem.plugin.grappa.GrappaFrame;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.EvaluationJob.EvaluationStatus;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
@@ -28,6 +31,8 @@ public class OptionsTab extends CTabItem {
     protected Button buttonZoomOut;
 
     protected boolean scaleToFit = true;
+    
+    private IPropertyChangeListener propListener;
 
     public OptionsTab(CTabFolder parent, int style, GrappaFrame grappaFrame, final CCSFrame ccsFrame) {
         super(parent, style);
@@ -155,10 +160,21 @@ public class OptionsTab extends CTabItem {
 
 			public void handleEvent(Event event) {
 				Expression.setVisibleTau(buttonSemanticSwitch.getSelection());
+				MyPreferenceStore.setVisibleTauSemantic(
+						buttonSemanticSwitch.getSelection());
 				ccsFrame.updateEvaluation(true);
 			}
-        	
         });
+        propListener = new IPropertyChangeListener() {
+			public void propertyChange(PropertyChangeEvent event) {
+				if( event.getProperty().equals(
+						MyPreferenceStore.getTauSemanticsKey()) ) {
+					buttonSemanticSwitch.setSelection(
+							MyPreferenceStore.getVisibleTauSemantic() );
+				}
+			}
+		};
+		MyPreferenceStore.getStore().addPropertyChangeListener(propListener);
 
         buttonLayoutTopToBottom.addListener(SWT.Selection, new Listener() {
 
@@ -194,5 +210,10 @@ public class OptionsTab extends CTabItem {
     public void update(EvaluationStatus evalStatus) {
         // we don't have to update
     }
-
+    
+    @Override
+    public void dispose() {
+    	super.dispose();
+    	MyPreferenceStore.getStore().removePropertyChangeListener(propListener);
+    }
 }

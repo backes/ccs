@@ -19,6 +19,8 @@ public class MyPreferenceStore {
     private static final String PREFERENCE_UNGUARDED_ERROR_TYPE_KEY = "unguardedErrorType";
     
     private static final String PREFERENCE_MAX_GRAPH_SIZE = "maxGraphSize";
+    
+    private static final String PREFERENCE_TAU_SEMANTICS = "tauSemantics";
 
     private MyPreferenceStore() {
         // this private constructor is never called
@@ -31,6 +33,7 @@ public class MyPreferenceStore {
         preferenceStore.setDefault(PREFERENCE_UNREGULAR_ERROR_TYPE_KEY, ParsingProblem.WARNING);
         preferenceStore.setDefault(PREFERENCE_UNGUARDED_ERROR_TYPE_KEY, ParsingProblem.ERROR);
         preferenceStore.setDefault(PREFERENCE_MAX_GRAPH_SIZE, 300);
+        preferenceStore.setDefault(PREFERENCE_TAU_SEMANTICS, false);
     }
 
     public static IPreferenceStore getStore() {
@@ -67,5 +70,17 @@ public class MyPreferenceStore {
     
     public static int getMaxGraphSize() {
     	return getStore().getInt(getMaxGraphSizeKey());
+    }
+    
+    public static String getTauSemanticsKey() {
+    	return PREFERENCE_TAU_SEMANTICS;
+    }
+    
+    public static boolean getVisibleTauSemantic() {
+    	return getStore().getBoolean(getTauSemanticsKey());
+    }
+    
+    public static void setVisibleTauSemantic(boolean b) {
+    	getStore().setValue(getTauSemanticsKey(), b);
     }
 }

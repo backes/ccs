@@ -221,9 +221,8 @@ public class CCSGraphView extends ViewPart implements ISelectionListener, IPartL
     }
 
     public GrappaFrame getGrappaFrame() {
-        final Control page = currentPage;
-        if (page instanceof CCSFrame)
-            return ((CCSFrame)page).getGrappaFrame();
+        if (currentPage instanceof CCSFrame)
+            return ((CCSFrame)currentPage).getGrappaFrame();
         return null;
     }
 }

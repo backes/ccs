@@ -1,5 +1,6 @@
 package de.unisb.cs.depend.ccs_sem.plugin.editors;
 
+import java.awt.Color;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -100,8 +101,9 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
                                     SafeRunner.run(new SafeRunnable() {
                                         public void run() throws CoreException {
                                             final ParsingResult parsingResult = result.getParsingResult();
-                                            if (parsingResult != null)
+                                            if (parsingResult != null) {
                                                 updateMarkers(res, parsingResult);
+                                            }
                                         }
 
                                     });
@@ -201,7 +203,7 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
 
     public static void updateMarkers(IResource res,
             ParsingResult result) throws CoreException {
-
+// FIXME somewhere here is the red underline problem
         if (result == null)
             return;
 

@@ -20,6 +20,7 @@ import de.unisb.cs.depend.ccs_sem.parser.ParsingResult.ReadProcessVariable;
 import de.unisb.cs.depend.ccs_sem.plugin.Global;
 import de.unisb.cs.depend.ccs_sem.plugin.MyPreferenceStore;
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSDocument;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 
 
@@ -111,6 +112,9 @@ public class ParseCCSProgramJob extends Job {
             monitor.worked(WORK_CHECKING);
         }
 
+        if( Expression.getVisibleTau() ) 
+        	Expression.genereateLeftRightMap( ccsProgram.getMainExpression() );
+        
         monitor.done();
 
         return new ParseStatus(IStatus.OK, "", ccsProgram, result);

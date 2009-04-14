@@ -84,8 +84,9 @@ public class CCSBuilder extends IncrementalProjectBuilder {
                 final IProgressMonitor monitor = new NullProgressMonitor();
                 final ParseStatus status = job.run(monitor);
                 final ParsingResult result = status.getParsingResult();
-                if (result != null)
+                if (result != null) {
                     CCSPresentationReconciler.updateMarkers(resource, result);
+                }
             } catch (final Exception e) {
                 StatusManager.getManager().handle(new Status(IStatus.ERROR,
                     Global.getPluginID(), e.getMessage(), e));

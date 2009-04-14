@@ -9,6 +9,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.FileFieldEditor;
@@ -107,6 +108,11 @@ public class CCSPreferencePage
         		"Maximal displayed graph size\n(0 for unlimited)",
         		getFieldEditorParent());
         addField(maxGraphSizeFieldEditor);
+        
+        BooleanFieldEditor tauEditor = new BooleanFieldEditor(MyPreferenceStore.getTauSemanticsKey(),
+        		"Should Tau be visible?",
+        		getFieldEditorParent());
+        addField(tauEditor);
     }
 
     /* (non-Javadoc)
