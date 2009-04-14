@@ -27,9 +27,9 @@ import de.unisb.cs.depend.ccs_sem.utils.Globals;
 public class ParallelExpression extends Expression {
 
     private final Expression left;
-    private final Expression right;
+	private final Expression right;
 
-    protected ParallelExpression(Expression left, Expression right) {
+	protected ParallelExpression(Expression left, Expression right) {
         super();
         this.left = left;
         this.right = right;
@@ -52,6 +52,14 @@ public class ParallelExpression extends Expression {
         children.add(right);
         return children;
     }
+    
+    public Expression getLeft() {
+		return left;
+	}
+
+    public Expression getRight() {
+		return right;
+	}
 
     @Override
     protected List<Transition> evaluate0() {

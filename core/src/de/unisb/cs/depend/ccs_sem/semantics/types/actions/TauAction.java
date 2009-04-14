@@ -77,35 +77,41 @@ public class TauAction extends Action {
     }
 
     @Override
-    public String toString() {
-    	if( syncedLeft == null || syncedRight==null) {
+    public String toString() { // TODO TAU implement
+    	if( syncedLeft == null || syncedRight==null || !Expression.getVisibleTau()) {
     		return "i";
     	}
     	
-    	StringBuilder strb = new StringBuilder();
-    	for( Boolean b : syncedLeft.getLRTrace() ) {
-    		strb.append(b ? "r" : "l" );
-    	}
-    	String left = " ("+syncedLeft.toString()+")" + strb.toString();
+    	if( !Expression.isLeftRightMapGenerated() )
+    		throw new IllegalStateException("Left-right map not initialized.");
     	
-    	strb = new StringBuilder();
-    	for( Boolean b : syncedRight.getLRTrace() ) {
-    		strb.append(b ? "r" : "l" );
+    	int left  = Expression.getProcessNumber(getLeftLRTrace());
+    	int right = Expression.getProcessNumber(getRightLRTrace());
+    	if( left == -1 || right == -1 ) {
+    		throw new IllegalStateException("Neither left nor right is allowed to be -1");
     	}
-    	String right = " ("+syncedRight.toString()+")" + strb.toString();
-    	
-    	strb = new StringBuilder();
-    	for( Boolean b : getLRTrace() ) {
-    		strb.append(b ? "r" : "l" );
+    	String label = "";
+    	OutputAction outA = null;
+    	if( syncedLeft instanceof OutputAction ) {
+    		outA = (OutputAction) syncedLeft;
+    	} else {
+    		outA = (OutputAction) syncedRight;
     	}
+    	label = outA.getLabel();
     	
-        return "i" + (Expression.getVisibleTau() ? left + right + "-" + strb.toString()
-				: "");
+        return "{P"+ left + ",P" + right + "} i ( "+label+" )";
     }
 
-    // TODO TAU evaluate syncLeft,syncRight informations
 	@Override
 	protected Action copySubAction() {
 		return new TauAction(syncedLeft,syncedRight);
-	}    
+	}
+	
+	public String getLeftLRTrace() {
+		return super.getLRTrace()+syncedLeft.getLRTrace();
+	}
+	
+	public String getRightLRTrace() {
+		return super.getLRTrace()+syncedRight.getLRTrace();
+	}
 }

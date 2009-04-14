@@ -3,27 +3,34 @@ package de.unisb.cs.depend.ccs_sem.semantics.expressions;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.RecursiveExpression.RecursiveExpressionAlphabetWrapper;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.adapters.TopMostExpression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ProcessVariable;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.semantics.types.actions.Action;
-import de.unisb.cs.depend.ccs_sem.semantics.types.actions.TauAction;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.ParameterReference;
 import de.unisb.cs.depend.ccs_sem.semantics.types.values.Value;
 import de.unisb.cs.depend.ccs_sem.utils.LazyCreatedMap;
 
 public abstract class Expression {
+	
+	private static final int START_NUMBERING = 0; 
 
-	private static boolean isVisibleTau = true;
+	private static HashMap<String,Integer> leftRightMap;
+	private static boolean isVisibleTau = true; // TODO TAU PreferenceStore
 	
 	public static boolean getVisibleTau() {
 		return isVisibleTau;
@@ -89,7 +96,7 @@ public abstract class Expression {
     		
     		for(Transition trans : list ) {
     			trans.getTarget().resetEval();
-    			trans.getAction().getLRTrace().clear();
+    			trans.getAction().resetLRTrace();
     		}
     		for( Expression e : getChildren() ) {
     			e.resetEval();
@@ -210,4 +217,66 @@ public abstract class Expression {
     public abstract boolean equals(Object obj,
             Map<ParameterOrProcessEqualsWrapper, Integer> parameterOccurences);
 
+    public synchronized static void genereateLeftRightMap(Expression exp) {
+    	if( exp == null )
+    		throw new IllegalArgumentException("Expression to generate l,r-Map is null!");
+    	if( !(exp instanceof TopMostExpression)) {
+    		throw new IllegalArgumentException("l,r-Map has to be initialized with a TopMostExpression");
+    	}
+    	exp = ((TopMostExpression) exp).getInnerExpression();
+    	
+    	if( exp instanceof RestrictExpression) {
+    		exp = ((RestrictExpression) exp).getChildren().iterator().next();
+    	}
+    	
+    	leftRightMap = new HashMap<String, Integer> ();
+    	
+    	SortedSet<String> set = new TreeSet<String> ();
+    	generateLRList(set, exp, "");
+
+    	int counter = START_NUMBERING;
+    	String tmp;
+    	while( !set.isEmpty() ) {
+    		tmp = set.first();
+    		set.remove(tmp);
+    		leftRightMap.put(tmp, counter);
+    		counter++;
+    	}
+    }
+    
+    private static void generateLRList(SortedSet<String> set, Expression exp, String state) {
+    	if( exp instanceof ParallelExpression) {
+    		generateLRList(set, ((ParallelExpression) exp).getLeft(), state+"l");
+    		generateLRList(set, ((ParallelExpression) exp).getRight(), state+"r");
+    	} else {
+    		set.add(state);
+    	}
+    }
+    
+    public static synchronized void removeLeftRightMap() {
+    	leftRightMap = null;
+    }
+    
+    public static synchronized boolean isLeftRightMapGenerated() {
+    	return !(leftRightMap == null);
+    }
+    
+    public static int getProcessNumber(Action act) {
+    	return getProcessNumber(act.getLRTrace());
+    }
+    
+    public static int getProcessNumber(String lrTrace) {
+    	assert isLeftRightMapGenerated();
+    	
+    	for(int i=lrTrace.length(); i>=0; i--) {
+    		if( leftRightMap.containsKey(
+    					lrTrace.substring(0, i)
+    				) ) {
+    			return leftRightMap.get(
+    					lrTrace.substring(0,i)
+    					);
+    		}
+    	}
+    	return -1; // Error
+    }
 }

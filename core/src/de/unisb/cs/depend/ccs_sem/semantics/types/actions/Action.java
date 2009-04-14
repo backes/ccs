@@ -24,8 +24,19 @@ public abstract class Action implements Comparable<Action> {
 		leftRightTrace.addLast(b);
 	}
 	
-	public LinkedList<Boolean> getLRTrace() {
-		return leftRightTrace;
+	public void resetLRTrace() {
+		leftRightTrace = null;
+	}
+	
+	public String getLRTrace() {
+		StringBuilder strB = new StringBuilder();
+		for(int i=leftRightTrace.size()-1; i>=0; i--) {
+			strB.append(
+					leftRightTrace.get(i) ? "r" : "l"
+					);
+		}
+		
+		return strB.toString();
 	}
 	
 	public Action() {
