@@ -44,6 +44,15 @@ public class Transition {
 
         return action.synchronizeWith(otherAction, target);
     }
+    
+    public boolean isSynchronizableWith(Transition t2) {
+    	if( action instanceof InputAction ) {
+    		return this.synchronizeWith( t2.action )!=null;
+    	} else if(t2.action instanceof InputAction ) {
+    		return t2.synchronizeWith( action ) != null;
+    	}
+    	return false;
+    }
 
     @Override
     public int hashCode() {
