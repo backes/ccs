@@ -75,6 +75,7 @@ public class EvaluationJob extends Job {
                 throw new RuntimeException(e);
             } catch (final ExecutionException e) {
                 // an abnormal exception: let eclipse show it to the user
+            	e.printStackTrace();
                 throw new RuntimeException(e);
             } catch (final TimeoutException e) {
                 if (monitor.isCanceled()) {
