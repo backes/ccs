@@ -20,12 +20,12 @@ public abstract class Action implements Comparable<Action> {
 	 * Important for the white-box tau semantics
 	 * @param b - the added direction, false = left; true = right
 	 */
-	public void addToLRTrace(boolean b) {
+	public synchronized void addToLRTrace(boolean b) {
 		leftRightTrace.addLast(b);
 	}
 	
-	public void resetLRTrace() {
-		leftRightTrace = null;
+	public synchronized void resetLRTrace() {
+		leftRightTrace = new LinkedList<Boolean>();
 	}
 	
 	public String getLRTrace() {
