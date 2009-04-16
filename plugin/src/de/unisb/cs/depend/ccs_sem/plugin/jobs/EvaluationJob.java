@@ -28,9 +28,7 @@ import de.unisb.cs.depend.ccs_sem.plugin.MyPreferenceStore;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
-
 public class EvaluationJob extends Job {
-
 
     protected final boolean minimize;
     protected boolean reset;

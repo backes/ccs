@@ -270,13 +270,17 @@ public class GrappaFrame extends Composite {
         getUpdateJob(evalStatus).schedule();
     }
     
+    protected GraphUpdateJob createGraphUpdateJob(EvaluationStatus evalStatus) {
+    	return new GraphUpdateJob(evalStatus,
+                layoutLeftToRight, showNodeLabels, showEdgeLabels);
+    }
+    
     public GraphUpdateJob getUpdateJob(EvaluationStatus evalStatus) {
     	if (graphUpdateJob != null)
             graphUpdateJob.cancel();
         if (evalStatus == null)
             evalStatus = lastEvalStatus;
-        graphUpdateJob = new GraphUpdateJob(evalStatus,
-            layoutLeftToRight, showNodeLabels, showEdgeLabels);
+        graphUpdateJob = createGraphUpdateJob(evalStatus);
         graphUpdateJob.addJobChangeListener(new JobChangeAdapter() {
 
             @Override

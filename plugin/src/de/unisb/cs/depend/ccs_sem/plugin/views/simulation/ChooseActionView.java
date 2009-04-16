@@ -12,7 +12,7 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.List;
+import org.eclipse.swt.widgets.Table;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchPage;
@@ -26,9 +26,9 @@ import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.ParseCCSProgramJob.ParseStatus;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.ParallelExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.RecursiveExpression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.RestrictExpression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.adapters.TopMostExpression;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
@@ -38,28 +38,33 @@ import de.unisb.cs.depend.ccs_sem.utils.Globals;
  * -> kombiniere wer mit wem syncen kann
  * => Map: Position -> Expression (2 for sync)
  */
+@SuppressWarnings("restriction")
 public class ChooseActionView extends ViewPart implements IUndoListener, SelectionListener {
 
 	private final String process = "Prozess ";
 	
 	private Composite mainComp;
-	private List list;
+	private Table table;
 	private Button doButton;
 	
 	private PageBook myPageBook;
 	private TraceView traceView;
+	private TopLevelGraphView topLevelGraphView;
 	
 	private LinkedList<Expression> parallelExps;
 	private LinkedList<LinkedList<Expression>> history;
 	private HashMap<Integer,Transition> listToTransMap;
+	private HashMap<Integer,Integer> indexToProcessNr;
+	
+	private Program originalCcsProgram;
 	
 	private class MyComponent extends SashForm implements SelectionListener {
 
 		public MyComponent(Composite parent) {
 			super(parent, SWT.VERTICAL);
 			
-			list = new List(this,SWT.BORDER | SWT.V_SCROLL | SWT.MULTI);
-			list.addSelectionListener(this);
+			table = new Table(this,SWT.BORDER | SWT.V_SCROLL | SWT.MULTI);
+			table.addSelectionListener(this);
 			doButton = new Button(this,SWT.None);
 			doButton.setText("Do action");
 			
@@ -67,18 +72,36 @@ public class ChooseActionView extends ViewPart implements IUndoListener, Selecti
 		}
 
 		public void widgetDefaultSelected(SelectionEvent e) {
-			LinkedList<Integer> newSelection = new LinkedList<Integer>();
-			for(int i : list.getSelectionIndices()) {
-				if( !list.getItem(i).startsWith(process)) {
-					newSelection.add(i);
+			for(int i : table.getSelectionIndices()) {
+				if( table.getItem(i).getText().startsWith(process)) {
+					table.deselect(i);
 				}
 			}
-			int[] arr = new int[newSelection.size()];
-			int size = newSelection.size();
-			for( int i=0; i<size; i++) {
-				arr[i] = newSelection.poll();
+			
+			// at most 2 elements may be selected
+			if( table.getSelectionCount() > 2 ) {
+				table.deselectAll();
 			}
-			list.setSelection(arr);
+			
+			// mark for synchronisation
+			if( table.getSelectionCount()==1 ) {
+				markSynchronisationPartner( table.getSelectionIndex() );
+			} else if( table.getSelectionCount()==2 ) {
+				int selection[] = table.getSelectionIndices();
+				Transition t1 = listToTransMap.get(selection[0]);
+				Transition t2 = listToTransMap.get(selection[1]);
+				
+				assert t1 != null && t2 != null; // should be checked before
+				
+				// no synchronisation possible or the same process
+				if( !t1.isSynchronizableWith(t2) || indexToProcessNr.get(selection[0])==indexToProcessNr.get(selection[1]) ) {
+					table.deselectAll();
+				}
+			}
+		}
+		
+		private void markSynchronisationPartner(int selection) {
+			
 		}
 
 		public void widgetSelected(SelectionEvent e) {
@@ -90,6 +113,7 @@ public class ChooseActionView extends ViewPart implements IUndoListener, Selecti
 	public ChooseActionView() {
 		history = new LinkedList<LinkedList<Expression>> ();
 		listToTransMap = new HashMap<Integer, Transition> ();
+		indexToProcessNr = new HashMap<Integer,Integer> ();
 	}
 	
 	@Override
@@ -102,6 +126,8 @@ public class ChooseActionView extends ViewPart implements IUndoListener, Selecti
 		if(page != null && page.getActiveEditor() != null) {
 			if (page.getActiveEditor() instanceof CCSEditor) {
 				initPage( (CCSEditor) page.getActiveEditor() );
+				
+				initReferences(page);
 			} else {
 				new Label(mainComp,SWT.None).setText("Active Editor isn't a CCS Editor.");
 			}
@@ -113,6 +139,30 @@ public class ChooseActionView extends ViewPart implements IUndoListener, Selecti
 		// TODO ChooseActionView addWorkbenchListener
 	}
 	
+	private void initReferences(IWorkbenchPage page) {
+		for( IViewReference ref : page.getViewReferences() ) {
+			IViewPart viewPart = ref.getView(false);
+			if( viewPart instanceof TraceView) { // init traceView
+				traceView = (TraceView) viewPart;
+			} else if( viewPart instanceof TopLevelGraphView ) {
+				topLevelGraphView = (TopLevelGraphView) viewPart;
+			}
+			
+			if( traceView != null && topLevelGraphView != null ) break;
+		}
+		
+		// init TopLevelGraphView
+		if( topLevelGraphView != null ) {
+			Iterator<Expression> iter = parallelExps.iterator();
+			Expression temp;
+			for(int i=0; i<parallelExps.size(); i++) {
+				temp = iter.next();
+								
+				topLevelGraphView.addProcess(i, temp);
+			}
+		}
+	}
+	
 	public void initPage(final CCSEditor editor) {
 		assert editor != null;
 		
@@ -120,12 +170,13 @@ public class ChooseActionView extends ViewPart implements IUndoListener, Selecti
 		mainComp = new MyComponent(myPageBook);
 		doButton.addSelectionListener(this);
 		
-		actualizeActions(editor);
+		updateActions(editor);
 	}
 
-	private void actualizeActions(CCSEditor editor) {		
+	private void updateActions(CCSEditor editor) {		
 		CCSDocument doc = ((CCSDocument) editor.getDocument());
 		ParseStatus status = doc.reparseIfNecessary();
+		originalCcsProgram = status.getParsedProgram();
 		Expression mainExp = status.getParsedProgram().getMainExpression();
 		
 		// Get the parallel Expressions
@@ -145,60 +196,61 @@ public class ChooseActionView extends ViewPart implements IUndoListener, Selecti
 		parallelExps = new LinkedList<Expression>();
 		LinkedList<Expression> toCheck = new LinkedList<Expression> ();
 		toCheck.add(mainExp);
+		
 		while(!toCheck.isEmpty()) {
 			 Expression exp = toCheck.poll();
 			 if (exp instanceof ParallelExpression) {
 				ParallelExpression para = (ParallelExpression) exp;
 				toCheck.addAll(para.getChildren());
-			} else if(exp instanceof RecursiveExpression) {
-				RecursiveExpression rec = (RecursiveExpression) exp;
-				Expression temp = rec.getInstantiatedExpression();
-				if( temp instanceof ParallelExpression) {
-					toCheck.add(temp);
-				} else {
-					parallelExps.add(temp);
-				}
+				
+//			} else if(exp instanceof RecursiveExpression) {
+//				RecursiveExpression rec = (RecursiveExpression) exp;
+//				Expression temp = rec.getInstantiatedExpression();
+//				
+//				if( temp instanceof ParallelExpression) {
+//					toCheck.add(temp);
+//				} else {
+//					parallelExps.add(temp);
+//				}
 			} else {
 				parallelExps.add(exp);
 			}
 		}
-		
+
 		mainExp.resetEval();
+		try {
+			for( Expression e : parallelExps ) {
+				evaluator.evaluate(e);
+			}
+		} catch(InterruptedException e) { e.printStackTrace(); }
+		
 		history.add(parallelExps);
 		
-		list.getDisplay().syncExec(new Runnable() {
-			public void run() {
-				fillList();
-			}
-		});
+		fillList();
 	}
 	
 	private void fillList() {		
 		int i=0;
 		for(Expression e : parallelExps) {
-			if( !e.isEvaluated() ) {
-				try {
-					Globals.getDefaultEvaluator().evaluate(e);
-				} catch (InterruptedException exc) {
-					exc.printStackTrace();
-				}
-			}
-			
-			listToTransMap.put(list.getItemCount(),null); // the process+i
-			list.add(process+i+":");
+			listToTransMap.put(table.getItemCount(),null); // the process+i
+			indexToProcessNr.put(table.getItemCount(), -1); // the "process i" doesn't belong to any process 
+			addToTable( process+i+":" );
+
 			for(Transition t : e.getTransitions() ) {
 				// Before add the next element -> getItemCount = nr of next added item
-				listToTransMap.put(list.getItemCount(),t);
+				listToTransMap.put(table.getItemCount(),t);
+				indexToProcessNr.put(table.getItemCount(), i);
 				
-				list.add( "  " + t.getAction().toString());
+				addToTable( "  " + t.getAction().toString() );
 			}
 			i++;
 		}
 	}
 	
 	private void refillList() {
-		list.removeAll();
+		table.removeAll();
 		listToTransMap.clear();
+		indexToProcessNr.clear();
 		
 		fillList();
 	}
@@ -217,16 +269,21 @@ public class ChooseActionView extends ViewPart implements IUndoListener, Selecti
 		}
 	}
 
+	/*
+	 * This method is called when the doAction-Button is pressed
+	 * (non-Javadoc)
+	 * @see org.eclipse.swt.events.SelectionListener#widgetSelected(org.eclipse.swt.events.SelectionEvent)
+	 */
 	public void widgetSelected(SelectionEvent e) {
 		// Do selected action
-		int[] selected = list.getSelectionIndices();
+		int[] selected = table.getSelectionIndices();
 		
 		if( selected.length == 1
-				&& !list.getSelection()[0].startsWith(process) ) {
+				&& !table.getSelection()[0].getText().startsWith(process) ) {
 			doAction( selected[0] );
 		} else if( selected.length == 2 
-				&& !list.getSelection()[0].startsWith(process) 
-				&& !list.getSelection()[1].startsWith(process) ) {
+				&& !table.getSelection()[0].getText().startsWith(process) 
+				&& !table.getSelection()[1].getText().startsWith(process) ) {
 			doSynchronousAction( selected[0], selected[1] );
 		} else {
 			// TODO ChooseActionView notifyUser about bad usage of the view
@@ -237,7 +294,7 @@ public class ChooseActionView extends ViewPart implements IUndoListener, Selecti
 
 
 	private void doSynchronousAction(int i, int j) {
-		// TODO Auto-generated method stub
+		// TODO ChooseActionView implement
 	}
 
 	private void doAction(int selectedItem) {
@@ -245,7 +302,7 @@ public class ChooseActionView extends ViewPart implements IUndoListener, Selecti
 		
 		int prozessNr = 0;
 		for( int j=0; j<selectedItem; j++ ) {
-			if(list.getItem(j).startsWith(process)) {
+			if(table.getItem(j).getText().startsWith(process)) {
 				prozessNr++;
 			}
 		}
@@ -263,7 +320,7 @@ public class ChooseActionView extends ViewPart implements IUndoListener, Selecti
 		history.add(next);
 		parallelExps = next;
 		
-		reportToTrace( list.getItem(selectedItem) );
+		reportToTrace( table.getItem(selectedItem).getText() );
 		
 		refillList();
 	}
@@ -284,5 +341,10 @@ public class ChooseActionView extends ViewPart implements IUndoListener, Selecti
 		if(traceView != null) {
 			traceView.addAction(act);
 		}
+	}
+	
+	private void addToTable(String str) {
+		table.setItemCount(table.getItemCount()+1);
+		table.getItem(table.getItemCount()-1).setText(str);
 	}
 }

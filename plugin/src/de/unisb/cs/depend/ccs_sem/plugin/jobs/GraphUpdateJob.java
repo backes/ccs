@@ -25,6 +25,7 @@ import de.unisb.cs.depend.ccs_sem.plugin.grappa.GraphHelper;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.EvaluationJob.EvaluationStatus;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.utils.Globals;
 import de.unisb.cs.depend.ccs_sem.utils.UniqueQueue;
 
 
@@ -98,6 +99,10 @@ public class GraphUpdateJob extends Job {
     public boolean isShowEdgeLabels() {
         return showEdgeLabels;
     }
+    
+    protected Expression getMainExpression() {
+    	return evalStatus.getCcsProgram().getExpression();
+    }
 
 
     private class ConcurrentJob implements Callable<GraphUpdateStatus> {
@@ -128,7 +133,7 @@ public class GraphUpdateJob extends Job {
             } else if (evalStatus.getWarning() != null) {
                 graph = createWarningGraph(evalStatus.getWarning());
             } else if (evalStatus.isOK()) {
-                graph = createGraph(evalStatus.getCcsProgram().getExpression());
+                graph = createGraph( getMainExpression() );
             } else {
                 graph = createWarningGraph("Unknown error.");
             }
@@ -228,7 +233,9 @@ public class GraphUpdateJob extends Job {
                     throw new InterruptedException();
                 final Expression e = queue.poll();
                 final Node tailNode = getNode(nodes, e);
-
+                if( !e.isEvaluated() ) {
+                	Globals.getDefaultEvaluator().evaluate(e);
+                }
                 for (final Transition trans: e.getTransitions()) {
                     final Node headNode = getNode(nodes, trans.getTarget());
                     final Edge edge = new Edge(graph, tailNode, headNode, "edge_" + edgeCnt++);
