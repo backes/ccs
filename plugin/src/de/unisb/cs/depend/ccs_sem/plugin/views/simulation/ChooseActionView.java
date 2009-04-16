@@ -28,17 +28,9 @@ import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.ParallelExpression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.RestrictExpression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.adapters.TopMostExpression;
-import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
-//TODO ChooseAction syntax check
-/*
- * TODO ChooseAction doAction
- * -> kombiniere wer mit wem syncen kann
- * => Map: Position -> Expression (2 for sync)
- */
-@SuppressWarnings("restriction")
 public class ChooseActionView extends ViewPart implements IUndoListener, SelectionListener {
 
 	private final String process = "Prozess ";
@@ -55,9 +47,7 @@ public class ChooseActionView extends ViewPart implements IUndoListener, Selecti
 	private LinkedList<LinkedList<Expression>> history;
 	private HashMap<Integer,Transition> listToTransMap;
 	private HashMap<Integer,Integer> indexToProcessNr;
-	
-	private Program originalCcsProgram;
-	
+		
 	private class MyComponent extends SashForm implements SelectionListener {
 
 		public MyComponent(Composite parent) {
@@ -176,7 +166,6 @@ public class ChooseActionView extends ViewPart implements IUndoListener, Selecti
 	private void updateActions(CCSEditor editor) {		
 		CCSDocument doc = ((CCSDocument) editor.getDocument());
 		ParseStatus status = doc.reparseIfNecessary();
-		originalCcsProgram = status.getParsedProgram();
 		Expression mainExp = status.getParsedProgram().getMainExpression();
 		
 		// Get the parallel Expressions
@@ -202,16 +191,6 @@ public class ChooseActionView extends ViewPart implements IUndoListener, Selecti
 			 if (exp instanceof ParallelExpression) {
 				ParallelExpression para = (ParallelExpression) exp;
 				toCheck.addAll(para.getChildren());
-				
-//			} else if(exp instanceof RecursiveExpression) {
-//				RecursiveExpression rec = (RecursiveExpression) exp;
-//				Expression temp = rec.getInstantiatedExpression();
-//				
-//				if( temp instanceof ParallelExpression) {
-//					toCheck.add(temp);
-//				} else {
-//					parallelExps.add(temp);
-//				}
 			} else {
 				parallelExps.add(exp);
 			}

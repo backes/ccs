@@ -49,7 +49,8 @@ public class TopLevelGraphView extends ViewPart {
 		comp.setLayout(new GridLayout(1,false));
 		new Label(comp,SWT.None).setText("Prozess "+no);
 		
-		final StaticGrappaFrame grappaFrame = new StaticGrappaFrame(comp,SWT.BORDER,mainExp);
+		final StaticGrappaFrame grappaFrame = new StaticGrappaFrame(comp,
+				SWT.BORDER, mainExp);
 		grappaFrame.updateGraph();
 		
 		Composite buttons = new Composite(comp,SWT.None);
@@ -58,12 +59,10 @@ public class TopLevelGraphView extends ViewPart {
 		button.setText("+");
 		button.addSelectionListener(new SelectionListener() {
 			public void widgetDefaultSelected(SelectionEvent e) {
-				System.out.println(grappaFrame.getSize());
 				grappaFrame.setSize(
 						grappaFrame.getSize().x + 10, 
 						grappaFrame.getSize().y + 10);
 				main.pack();
-//				comp.update();
 				main.update();
 			}
 
@@ -74,6 +73,19 @@ public class TopLevelGraphView extends ViewPart {
 		});
 		button = new Button(buttons,SWT.None);
 		button.setText("-");
+		button.addSelectionListener(new SelectionListener() {
+			public void widgetDefaultSelected(SelectionEvent e) {
+				grappaFrame.setSize(
+						grappaFrame.getSize().x - 10, 
+						grappaFrame.getSize().y - 10);
+				main.pack();
+				main.update();
+			}
+
+			public void widgetSelected(SelectionEvent e) {
+				widgetDefaultSelected(e);
+			}
+		});
 		
 		myPages.showPage(main);
 	}

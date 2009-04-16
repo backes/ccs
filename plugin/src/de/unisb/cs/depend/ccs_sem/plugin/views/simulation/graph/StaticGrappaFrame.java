@@ -3,6 +3,7 @@ package de.unisb.cs.depend.ccs_sem.plugin.views.simulation.graph;
 import java.util.LinkedList;
 
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
@@ -36,6 +37,7 @@ public class StaticGrappaFrame extends GrappaFrame {
 		
 		super.scrollComposite.setMinHeight(300);
 		super.scrollComposite.setMinWidth(300);
+		this.setSize(300, 300);
 	}
 	
 	@Override
@@ -43,16 +45,6 @@ public class StaticGrappaFrame extends GrappaFrame {
 		StaticGraphUpdateJob job = new StaticGraphUpdateJob(status,super.layoutLeftToRight, super.showNodeLabels, super.showEdgeLabels);
 		job.setMainExpression(mainExp);
 		return job;
-	}
-	
-	@Override
-	public void pack() {
-		return;
-	}
-	
-	@Override
-	public void pack(boolean ch) {
-		return;
 	}
 	
 	@Override
@@ -65,5 +57,14 @@ public class StaticGrappaFrame extends GrappaFrame {
 	
 	@Override
 	public void selectTrace(String[] trace) {} // do nothing
-
+	
+	@Override
+	public Point computeSize(int whint, int hhint) {
+		return getSize();
+	}
+	
+	@Override
+	public Point computeSize(int whint, int hhint, boolean changed) {
+		return computeSize(whint, hhint);
+	}
 }
