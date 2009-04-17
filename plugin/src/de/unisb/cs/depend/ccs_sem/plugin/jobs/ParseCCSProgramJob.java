@@ -112,7 +112,7 @@ public class ParseCCSProgramJob extends Job {
             monitor.worked(WORK_CHECKING);
         }
 
-        if( Expression.getVisibleTau() && ccsProgram!=null ) 
+        if( ccsProgram!=null ) 
         	Expression.genereateLeftRightMap( ccsProgram.getMainExpression() );
         
         monitor.done();
