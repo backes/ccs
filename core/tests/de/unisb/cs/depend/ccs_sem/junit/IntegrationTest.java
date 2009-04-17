@@ -585,6 +585,11 @@ public abstract class IntegrationTest implements IParsingProblemListener {
             return label;
         }
 
+		@Override
+		protected Action copySubAction() {
+			return null;
+		}
+
     }
 
 
