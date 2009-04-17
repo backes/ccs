@@ -9,7 +9,11 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
@@ -27,6 +31,9 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IViewActionDelegate;
+import org.eclipse.ui.IViewPart;
 
 import de.unisb.cs.depend.ccs_sem.evaluators.Evaluator;
 import de.unisb.cs.depend.ccs_sem.evaluators.SequentialEvaluator;
@@ -39,8 +46,11 @@ import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 
+// TODO Message -> not updated -> please push button
 public class StepByStepTraverseFrame extends Composite {
 
+	private ParseStatus lastParseResult;
+	
     private final IParsingListener parsingListener = new IParsingListener() {
 
         public void parsingDone(final IDocument document, final ParseStatus result) {
@@ -52,45 +62,22 @@ public class StepByStepTraverseFrame extends Composite {
                 }
                 return;
             }
-            Runnable runnable = new Runnable() {
-                public void run() {
-                    synchronized (StepByStepTraverseFrame.this) {
-                        if (activeEditor == null || activeEditor.getDocument() != document
-                                || isDisposed())
-                            return;
-
-                        ParsingResult parsingResult = result.getParsingResult();
-                        Program program = result.getParsedProgram();
-                        if (result.getSeverity() != IStatus.OK
-                                || parsingResult == null
-                                || parsingResult.hasParsingErrors()
-                                || program == null) {
-                            tree.setEnabled(false);
-                            tree.setItemCount(0);
-                            tree.clearAll(true);
-                            currentExpression = null;
-                        } else {
-                            Expression newExpr = program.getExpression();
-                            if (newExpr != currentExpression) {
-                                currentExpression = newExpr;
-                                if (evaluateProtected(newExpr)) {
-                                    tree.setEnabled(true);
-                                    tree.setItemCount(newExpr.getTransitions().size());
-                                } else {
-                                    tree.setEnabled(false);
-                                    tree.setItemCount(1);
-                                }
-                                tree.clearAll(true);
-                            }
-                        }
-                    }
-                }
-
-            };
-            if (result.isSyncExec())
-                getDisplay().syncExec(runnable);
-            else
-                getDisplay().asyncExec(runnable);
+           
+            if (activeEditor == null || activeEditor.getDocument() != document
+                    || isDisposed())
+                return;
+            
+            lastParseResult = result;
+            
+            // set tree enabled(false) until update of evaluation
+            getDisplay().syncExec(new Runnable() {
+				public void run() {
+					tree.clearAll(true);
+					tree.setItemCount(2);
+					tree.getItem(0).setText("Click on the \"Evaluate\" Button");
+					tree.getItem(1).setText(" to refresh this View.");
+				}
+            });
         }
 
     };
@@ -241,6 +228,39 @@ public class StepByStepTraverseFrame extends Composite {
             // catch any Exception (including InterruptedException)
             task.cancel(true);
             return false;
+        }
+    }
+    
+    public void updateEvaluation() {
+    	synchronized (StepByStepTraverseFrame.this) {
+    		if( lastParseResult == null ) {
+    			return; // Parsing wasn't successfull
+    		}
+    		
+            ParsingResult parsingResult = lastParseResult.getParsingResult();
+            Program program = lastParseResult.getParsedProgram();
+            if (lastParseResult.getSeverity() != IStatus.OK
+                    || parsingResult == null
+                    || parsingResult.hasParsingErrors()
+                    || program == null) {
+                tree.setEnabled(false);
+                tree.setItemCount(0);
+                tree.clearAll(true);
+                currentExpression = null;
+            } else {
+                Expression newExpr = program.getExpression();
+                if (newExpr != currentExpression) {
+                    currentExpression = newExpr;
+                    if (evaluateProtected(newExpr)) {
+                        tree.setEnabled(true);
+                        tree.setItemCount(newExpr.getTransitions().size());
+                    } else {
+                        tree.setEnabled(false);
+                        tree.setItemCount(1);
+                    }
+                    tree.clearAll(true);
+                }
+            }
         }
     }
 }

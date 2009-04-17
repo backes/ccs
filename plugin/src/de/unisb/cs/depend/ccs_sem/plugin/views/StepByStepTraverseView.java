@@ -5,15 +5,22 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.ISelectionListener;
+import org.eclipse.ui.IViewActionDelegate;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPartSite;
@@ -32,6 +39,7 @@ public class StepByStepTraverseView extends ViewPart implements ISelectionListen
 
     private final Map<CCSEditor, StepByStepTraverseFrame> frames =
         new HashMap<CCSEditor, StepByStepTraverseFrame>();
+    private StepByStepTraverseFrame activeFrame;
 
     private final Set<CCSEditor> closedCCSEditors = new HashSet<CCSEditor>();
 
@@ -59,6 +67,9 @@ public class StepByStepTraverseView extends ViewPart implements ISelectionListen
         final IEditorPart activeEditor = page.getActiveEditor();
         if (activeEditor != null)
             changeEditor(activeEditor);
+        
+        IActionBars bars = getViewSite().getActionBars();
+	    fillToolbar(bars.getToolBarManager() );
     }
 
     @Override
@@ -73,6 +84,10 @@ public class StepByStepTraverseView extends ViewPart implements ISelectionListen
     @Override
     public void setFocus() {
         myPages.setFocus();
+    }
+    
+    public void fillToolbar(IToolBarManager toolBarManager) {
+    	toolBarManager.add(new EvaluateAction());
     }
 
     public void selectionChanged(IWorkbenchPart part, ISelection selection) {
@@ -89,6 +104,7 @@ public class StepByStepTraverseView extends ViewPart implements ISelectionListen
                 frames.put(editor, stepByStepTraverseFrame = new StepByStepTraverseFrame(myPages, SWT.NONE, editor));
 
             myPages.showPage(stepByStepTraverseFrame);
+            activeFrame = stepByStepTraverseFrame;
 
             // and now, dispose all frames whose editor has been closed
             final Set<CCSEditor> toDispose = new HashSet<CCSEditor>(closedCCSEditors);
@@ -128,4 +144,29 @@ public class StepByStepTraverseView extends ViewPart implements ISelectionListen
         // ignore
     }
 
+    private class EvaluateAction extends Action implements IViewActionDelegate {
+
+    	public EvaluateAction() {
+    		super("Evaluate");
+    		setImageDescriptor(ImageDescriptor.createFromURL(getClass().getResource("/resources/icons/refresh.gif")));
+            setDisabledImageDescriptor(ImageDescriptor.createFromURL(getClass().getResource("/resources/icons/refresh_dis.gif")));
+            setToolTipText("Evaluate (refresh the step-by-step traverse)");
+    	}
+    	
+		public void init(IViewPart view) {} 
+		// no need since it can only be initialized by StepByStepTraverseFrame.this
+
+		public void run(IAction action) {
+			run();
+		}
+		
+		@Override
+		public void run() {
+			if( activeFrame != null ) {
+				activeFrame.updateEvaluation();	
+			}
+		}
+
+		public void selectionChanged(IAction action, ISelection selection) {} // ignore    	
+	}
 }

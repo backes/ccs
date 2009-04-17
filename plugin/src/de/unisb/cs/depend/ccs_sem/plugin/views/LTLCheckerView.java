@@ -75,8 +75,9 @@ public class LTLCheckerView extends ViewPart implements IPartListener, ISelectio
 	}
 	
 	private void fillToolbar(IToolBarManager toolBarManager) {
-		toolBarManager.add(new ExportAll());
-		toolBarManager.add(new Help("LTLView"));
+		//TODO Actions vervollstŠndigen->uncomment
+//		toolBarManager.add(new ExportAll());
+//		toolBarManager.add(new Help("LTLView"));
 	}
 
 	private void changeEditor( IEditorPart editor ) {
