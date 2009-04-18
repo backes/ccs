@@ -158,6 +158,15 @@ public class LTLPropertyHandler {
 		anzahl++;
 	}
 	
+	public void edit(int index, String newFormula) {
+		try {
+			file.setPersistentProperty(
+					new QualifiedName("LTL","formula"+index), newFormula);
+			file.setPersistentProperty(
+					new QualifiedName("LTL","formula"+index+"tested"), "false");
+		} catch (CoreException e) {}
+	}
+	
 	public void save(int index, Counterexample ce) {
 		try {
 			file.setPersistentProperty(

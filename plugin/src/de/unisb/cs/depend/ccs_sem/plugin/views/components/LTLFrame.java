@@ -6,6 +6,8 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
+import org.eclipse.jface.dialogs.IInputValidator;
+import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.swt.SWT;
@@ -16,6 +18,7 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Text;
@@ -29,7 +32,6 @@ import de.unisb.cs.depend.ccs_sem.plugin.jobs.ModelCheckingJob;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.ModelCheckingJob.ModelCheckingStatus;
 import de.unisb.cs.depend.ccs_sem.plugin.utils.LTLPropertyHandler;
 import de.unisb.cs.depend.ccs_sem.plugin.views.CounterExampleView;
-import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ltlchecker.LTLSyntaxChecker;
 
 public class LTLFrame extends SashForm implements IDocumentListener {	
@@ -42,7 +44,6 @@ public class LTLFrame extends SashForm implements IDocumentListener {
 	private IWorkbenchWindow window;
 	
 	private CCSEditor editor;
-	private Expression checkedExp = null;
 	private HashMap<String,Counterexample> alreadyChecked;
 	private LTLPropertyHandler propertyHandler;
 	
@@ -100,6 +101,18 @@ public class LTLFrame extends SashForm implements IDocumentListener {
 				}
 				public void widgetSelected(SelectionEvent e) {
 					checkProperty();
+				}
+			});
+			
+			button = new Button(topButtons,SWT.None);
+			button.setText("Edit");
+			button.addSelectionListener(new SelectionListener() {
+				public void widgetDefaultSelected(SelectionEvent e) {
+					// nothing to do
+				}
+
+				public void widgetSelected(SelectionEvent e) {
+					editActiveSelection();
 				}
 			});
 			
@@ -174,6 +187,31 @@ public class LTLFrame extends SashForm implements IDocumentListener {
 		
 		theList.remove(index);
 		propertyHandler.remove(index);
+	}
+	
+	public void editActiveSelection() {
+		if( theList.getSelectionCount() == 0 )
+			return;
+		
+		InputDialog inDia = new InputDialog(getShell(),
+				"Titel","Message",theList.getSelection()[0], new IInputValidator() {
+					public String isValid(String newText) {
+						if( LTLSyntaxChecker.correctSyntax(newText) ) {
+							return null;
+						} else {
+							return "Not the correct LTL syntax.";
+						}
+					}
+		});
+		inDia.setBlockOnOpen(true);
+			// BlockOnOpen means in the line after inDia.open(), the dialog is already closed (by user)
+		inDia.open();
+		
+		if( inDia.getReturnCode()==InputDialog.OK) {
+			int selected = theList.getSelectionIndex();
+			theList.setItem(selected, inDia.getValue()); 
+			propertyHandler.edit(selected, inDia.getValue());
+		}
 	}
 	
 	private void checkProperty() {

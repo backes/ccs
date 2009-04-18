@@ -21,8 +21,6 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.part.PageBook;
 import org.eclipse.ui.part.ViewPart;
 
-import de.unisb.cs.depend.ccs_sem.plugin.actions.ExportAll;
-import de.unisb.cs.depend.ccs_sem.plugin.actions.Help;
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor;
 import de.unisb.cs.depend.ccs_sem.plugin.views.components.LTLFrame;
 
