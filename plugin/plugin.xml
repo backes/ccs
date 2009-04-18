@@ -27,6 +27,7 @@
             allowMultiple="false"
             category="de.unisb.cs.depend.ccs_sem.plugin.views.CCS_category"
             class="de.unisb.cs.depend.ccs_sem.plugin.views.LTLCheckerView"
+            icon="resources/icons/ltlChecker.png"
             id="de.unisb.cs.depend.ccs_sem.plugin.views.LTLCheckerView"
             name="LTL Checker">
       </view>
@@ -34,6 +35,7 @@
             allowMultiple="false"
             category="de.unisb.cs.depend.ccs_sem.plugin.views.CCS_category"
             class="de.unisb.cs.depend.ccs_sem.plugin.views.CounterExampleView"
+            icon="resources/icons/counterexample.png"
             id="de.unisb.cs.depend.ccs_sem.plugin.views.CounterExampleView"
             name="CounterExample"
             restorable="true">
@@ -42,6 +44,7 @@
             allowMultiple="false"
             category="de.unisb.cs.depend.ccs_sem.plugin.views.CCS_category"
             class="de.unisb.cs.depend.ccs_sem.plugin.views.simulation.TraceView"
+            icon="resources/icons/trace.png"
             id="de.unisb.cs.depend.ccs_sem.plugin.views.simulation.TraceView"
             name="Trace"
             restorable="true">
@@ -50,6 +53,7 @@
             allowMultiple="false"
             category="de.unisb.cs.depend.ccs_sem.plugin.views.CCS_category"
             class="de.unisb.cs.depend.ccs_sem.plugin.views.simulation.ChooseActionView"
+            icon="resources/icons/chooseAction.png"
             id="de.unisb.cs.depend.ccs_sem.plugin.views.simulation.ChooseActionView"
             name="Choose Action"
             restorable="true">
@@ -58,6 +62,7 @@
             allowMultiple="false"
             category="de.unisb.cs.depend.ccs_sem.plugin.views.CCS_category"
             class="de.unisb.cs.depend.ccs_sem.plugin.views.simulation.TopLevelGraphView"
+            icon="resources/icons/ccs.gif"
             id="de.unisb.cs.depend.ccs_sem.plugin.views.simulation.TopLevelGraphView"
             name="Top Level Graph"
             restorable="true">

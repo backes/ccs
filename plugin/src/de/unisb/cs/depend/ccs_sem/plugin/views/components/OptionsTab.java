@@ -78,7 +78,7 @@ public class OptionsTab extends CTabItem {
         
         final Button buttonSemanticSwitch = new Button(optionsComp, SWT.CHECK);
         buttonSemanticSwitch.setSelection(Expression.getVisibleTau());
-        buttonSemanticSwitch.setText("Tau visible");
+        buttonSemanticSwitch.setText("Interaction visible");
         buttonMinimize.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         
         final Group layoutGroup = new Group(optionsComp, SWT.NONE);

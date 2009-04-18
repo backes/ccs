@@ -9,11 +9,7 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.jface.action.Action;
-import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
@@ -31,10 +27,6 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
-import org.eclipse.ui.IActionBars;
-import org.eclipse.ui.IViewActionDelegate;
-import org.eclipse.ui.IViewPart;
-
 import de.unisb.cs.depend.ccs_sem.evaluators.Evaluator;
 import de.unisb.cs.depend.ccs_sem.evaluators.SequentialEvaluator;
 import de.unisb.cs.depend.ccs_sem.parser.ParsingResult;
@@ -46,7 +38,6 @@ import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 
-// TODO Message -> not updated -> please push button
 public class StepByStepTraverseFrame extends Composite {
 
 	private ParseStatus lastParseResult;
@@ -75,7 +66,9 @@ public class StepByStepTraverseFrame extends Composite {
 					tree.clearAll(true);
 					tree.setItemCount(2);
 					tree.getItem(0).setText("Click on the \"Evaluate\" Button");
+					tree.getItem(0).setItemCount(0);
 					tree.getItem(1).setText(" to refresh this View.");
+					tree.getItem(1).setItemCount(0);
 				}
             });
         }
@@ -236,6 +229,7 @@ public class StepByStepTraverseFrame extends Composite {
     		if( lastParseResult == null ) {
     			return; // Parsing wasn't successfull
     		}
+    		tree.clearAll(true);
     		
             ParsingResult parsingResult = lastParseResult.getParsingResult();
             Program program = lastParseResult.getParsedProgram();
@@ -245,7 +239,6 @@ public class StepByStepTraverseFrame extends Composite {
                     || program == null) {
                 tree.setEnabled(false);
                 tree.setItemCount(0);
-                tree.clearAll(true);
                 currentExpression = null;
             } else {
                 Expression newExpr = program.getExpression();

@@ -110,7 +110,7 @@ public class CCSPreferencePage
         addField(maxGraphSizeFieldEditor);
         
         BooleanFieldEditor tauEditor = new BooleanFieldEditor(MyPreferenceStore.getTauSemanticsKey(),
-        		"Should Tau be visible?",
+        		"Interaction visible",
         		getFieldEditorParent());
         addField(tauEditor);
     }
