@@ -1,8 +1,14 @@
 package de.unisb.cs.depend.ccs_sem.plugin;
 
+import java.util.LinkedList;
+
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 
 import de.unisb.cs.depend.ccs_sem.parser.ParsingProblem;
+import de.unisb.cs.depend.ccs_sem.plugin.utils.ISemanticDependend;
+import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 
 
 public class MyPreferenceStore {
@@ -10,6 +16,18 @@ public class MyPreferenceStore {
     private static IPreferenceStore preferenceStore;
     static {
         initializePreferenceStore();
+        toNotify = new LinkedList<ISemanticDependend> ();
+        
+        getStore().addPropertyChangeListener(new IPropertyChangeListener() {
+			public void propertyChange(PropertyChangeEvent event) {
+				if( event.getProperty().equals(getTauSemanticsKey()) ) {
+					if( !event.getNewValue().equals(event.getOldValue()) ) {
+						Expression.setVisibleTau(getVisibleTauSemantic());
+						notifySemanticDependend();
+					}
+				}
+			}
+        });
     }
 
     private static final String PREFERENCE_DOT_KEY = "dotExecutable";
@@ -81,6 +99,27 @@ public class MyPreferenceStore {
     }
     
     public static void setVisibleTauSemantic(boolean b) {
-    	getStore().setValue(getTauSemanticsKey(), b);
+    		getStore().setValue(getTauSemanticsKey(), b);
     }
+
+    
+    /*
+     * Start Semantic observer implementation
+     * (non-Javadoc)
+     */
+    private static LinkedList<ISemanticDependend> toNotify;
+    
+	public static void addSemanticObserver(ISemanticDependend semDep) {
+		toNotify.addLast(semDep);
+	}
+
+	private static void notifySemanticDependend() {
+		for( ISemanticDependend semDep : toNotify ) {
+			semDep.updateSemantic();
+		}
+	}
+
+	public static void removeSemanticObserver(ISemanticDependend semDep) {
+		toNotify.remove(semDep);
+	}
 }

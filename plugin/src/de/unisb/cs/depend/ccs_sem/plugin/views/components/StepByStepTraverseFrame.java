@@ -34,11 +34,12 @@ import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSDocument;
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor;
 import de.unisb.cs.depend.ccs_sem.plugin.editors.IParsingListener;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.ParseCCSProgramJob.ParseStatus;
+import de.unisb.cs.depend.ccs_sem.plugin.utils.ISemanticDependend;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Program;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 
-public class StepByStepTraverseFrame extends Composite {
+public class StepByStepTraverseFrame extends Composite implements ISemanticDependend {
 
 	private ParseStatus lastParseResult;
 	
@@ -60,20 +61,23 @@ public class StepByStepTraverseFrame extends Composite {
             
             lastParseResult = result;
             
-            // set tree enabled(false) until update of evaluation
-            getDisplay().syncExec(new Runnable() {
-				public void run() {
-					tree.clearAll(true);
-					tree.setItemCount(2);
-					tree.getItem(0).setText("Click on the \"Evaluate\" Button");
-					tree.getItem(0).setItemCount(0);
-					tree.getItem(1).setText(" to refresh this View.");
-					tree.getItem(1).setItemCount(0);
-				}
-            });
+            clearTree();
         }
 
     };
+    
+    public void clearTree() {
+    	getDisplay().syncExec(new Runnable() {
+			public void run() {
+				tree.clearAll(true);
+				tree.setItemCount(2);
+				tree.getItem(0).setText("Click the \"Evaluate\" Button");
+				tree.getItem(0).setItemCount(0);
+				tree.getItem(1).setText(" to refresh this View.");
+				tree.getItem(1).setItemCount(0);
+			}
+        });
+    }
 
 
     protected CCSEditor activeEditor;
@@ -255,5 +259,11 @@ public class StepByStepTraverseFrame extends Composite {
                 }
             }
         }
+    
     }
+    
+    public void updateSemantic() {
+    	lastParseResult.getParsedProgram().getMainExpression().resetEval();
+    	clearTree();
+	}
 }

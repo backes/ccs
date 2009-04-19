@@ -3,7 +3,6 @@ package de.unisb.cs.depend.ccs_sem.plugin.views.components;
 import java.awt.Dimension;
 
 import org.eclipse.jface.util.IPropertyChangeListener;
-import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -20,15 +19,16 @@ import org.eclipse.swt.widgets.Listener;
 import de.unisb.cs.depend.ccs_sem.plugin.MyPreferenceStore;
 import de.unisb.cs.depend.ccs_sem.plugin.grappa.GrappaFrame;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.EvaluationJob.EvaluationStatus;
+import de.unisb.cs.depend.ccs_sem.plugin.utils.ISemanticDependend;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 
-
-public class OptionsTab extends CTabItem {
+public class OptionsTab extends CTabItem implements ISemanticDependend {
 
     protected static final double ZOOM_FACTOR = 1.25;
     protected GrappaFrame gFrame;
     protected Button buttonZoomIn;
     protected Button buttonZoomOut;
+    protected Button buttonSemanticSwitch;
 
     protected boolean scaleToFit = true;
     
@@ -76,7 +76,7 @@ public class OptionsTab extends CTabItem {
         buttonMinimize.setText("Minimize LTS");
         buttonMinimize.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         
-        final Button buttonSemanticSwitch = new Button(optionsComp, SWT.CHECK);
+        buttonSemanticSwitch = new Button(optionsComp, SWT.CHECK);
         buttonSemanticSwitch.setSelection(Expression.getVisibleTau());
         buttonSemanticSwitch.setText("Interaction visible");
         buttonMinimize.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
@@ -165,17 +165,7 @@ public class OptionsTab extends CTabItem {
 				ccsFrame.updateEvaluation(true);
 			}
         });
-        propListener = new IPropertyChangeListener() {
-			public void propertyChange(PropertyChangeEvent event) {
-				if( event.getProperty().equals(
-						MyPreferenceStore.getTauSemanticsKey()) ) {
-					buttonSemanticSwitch.setSelection(
-							MyPreferenceStore.getVisibleTauSemantic() );
-				}
-			}
-		};
-		MyPreferenceStore.getStore().addPropertyChangeListener(propListener);
-
+        
         buttonLayoutTopToBottom.addListener(SWT.Selection, new Listener() {
 
             public void handleEvent(Event event) {
@@ -216,4 +206,13 @@ public class OptionsTab extends CTabItem {
     	super.dispose();
     	MyPreferenceStore.getStore().removePropertyChangeListener(propListener);
     }
+
+	public void updateSemantic() {
+		if( isDisposed() )
+			return;
+		
+		buttonSemanticSwitch.setSelection(
+				MyPreferenceStore.getVisibleTauSemantic()
+				);
+	}
 }

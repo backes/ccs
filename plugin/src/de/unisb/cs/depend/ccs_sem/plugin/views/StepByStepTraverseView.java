@@ -27,11 +27,14 @@ import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.part.PageBook;
 import org.eclipse.ui.part.ViewPart;
 
+import de.unisb.cs.depend.ccs_sem.plugin.MyPreferenceStore;
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor;
+import de.unisb.cs.depend.ccs_sem.plugin.utils.ISemanticDependend;
 import de.unisb.cs.depend.ccs_sem.plugin.views.components.StepByStepTraverseFrame;
 
 
-public class StepByStepTraverseView extends ViewPart implements ISelectionListener, IPartListener {
+public class StepByStepTraverseView extends ViewPart implements ISelectionListener, IPartListener,
+	ISemanticDependend {
 
     private PageBook myPages;
 
@@ -70,6 +73,8 @@ public class StepByStepTraverseView extends ViewPart implements ISelectionListen
         
         IActionBars bars = getViewSite().getActionBars();
 	    fillToolbar(bars.getToolBarManager() );
+	    
+	    MyPreferenceStore.addSemanticObserver(this);
     }
 
     @Override
@@ -78,6 +83,9 @@ public class StepByStepTraverseView extends ViewPart implements ISelectionListen
         final IWorkbenchPage page = site == null ? null : site.getPage();
         if (page != null)
             page.removeSelectionListener(this);
+        
+        MyPreferenceStore.removeSemanticObserver(this);
+        
         super.dispose();
     }
 
@@ -168,5 +176,11 @@ public class StepByStepTraverseView extends ViewPart implements ISelectionListen
 		}
 
 		public void selectionChanged(IAction action, ISelection selection) {} // ignore    	
+	}
+
+	public void updateSemantic() {
+		for( StepByStepTraverseFrame sbstf : frames.values() ) {
+			sbstf.updateSemantic();
+		}
 	}
 }

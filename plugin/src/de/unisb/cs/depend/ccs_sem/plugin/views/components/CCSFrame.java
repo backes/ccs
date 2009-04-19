@@ -13,8 +13,9 @@ import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor;
 import de.unisb.cs.depend.ccs_sem.plugin.grappa.GrappaFrame;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.EvaluationJob;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.EvaluationJob.EvaluationStatus;
+import de.unisb.cs.depend.ccs_sem.plugin.utils.ISemanticDependend;
 
-public class CCSFrame extends SashForm {
+public class CCSFrame extends SashForm implements ISemanticDependend{
 
     protected final GrappaFrame gFrame;
     private EvaluationJob evaluationJob;
@@ -99,5 +100,10 @@ public class CCSFrame extends SashForm {
 
 	public GrappaFrame getGrappaFrame() {
 		return gFrame;
+	}
+
+	public void updateSemantic() {
+		optionsTab.updateSemantic();
+		updateEvaluation(true);
 	}
 }

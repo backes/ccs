@@ -31,6 +31,7 @@ import de.unisb.cs.depend.ccs_sem.exporters.AiSeeGraphExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.CCSExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.ETMCCExporter;
 import de.unisb.cs.depend.ccs_sem.exporters.GraphVizExporter;
+import de.unisb.cs.depend.ccs_sem.plugin.MyPreferenceStore;
 import de.unisb.cs.depend.ccs_sem.plugin.actions.Evaluate;
 import de.unisb.cs.depend.ccs_sem.plugin.actions.ExportGraph;
 import de.unisb.cs.depend.ccs_sem.plugin.actions.ExportProgram;
@@ -42,10 +43,11 @@ import de.unisb.cs.depend.ccs_sem.plugin.dotExporters.SVGDotExporter;
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor;
 import de.unisb.cs.depend.ccs_sem.plugin.grappa.GrappaFrame;
 import de.unisb.cs.depend.ccs_sem.plugin.jobs.EvaluationJob;
+import de.unisb.cs.depend.ccs_sem.plugin.utils.ISemanticDependend;
 import de.unisb.cs.depend.ccs_sem.plugin.views.components.CCSFrame;
 
 
-public class CCSGraphView extends ViewPart implements ISelectionListener, IPartListener {
+public class CCSGraphView extends ViewPart implements ISelectionListener, IPartListener, ISemanticDependend {
 
     private PageBook myPages;
 
@@ -85,6 +87,8 @@ public class CCSGraphView extends ViewPart implements ISelectionListener, IPartL
         final IActionBars bars = getViewSite().getActionBars();
         fillToolbar(bars.getToolBarManager());
         fillMenu(bars.getMenuManager());
+        
+        MyPreferenceStore.addSemanticObserver(this);
     }
 
     private void fillToolbar(IToolBarManager toolBarManager) {
@@ -131,6 +135,7 @@ public class CCSGraphView extends ViewPart implements ISelectionListener, IPartL
     @Override
     public void dispose() {
         myPages.dispose();
+        MyPreferenceStore.removeSemanticObserver(this);
         super.dispose();
     }
 
@@ -225,4 +230,19 @@ public class CCSGraphView extends ViewPart implements ISelectionListener, IPartL
             return ((CCSFrame)currentPage).getGrappaFrame();
         return null;
     }
+
+	public void updateSemantic() {
+		// update only current page, close the others
+		
+		for( CCSEditor edit : frames.keySet() ) {
+			CCSFrame cFrame = frames.get(edit);
+			
+			if( cFrame.equals(currentPage) ) {
+				cFrame.updateSemantic();
+			} else {
+				frames.remove(edit);
+				cFrame.dispose();
+			}
+		}
+	}
 }
