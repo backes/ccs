@@ -2,6 +2,7 @@ package de.unisb.cs.depend.ccs_sem.plugin.editors;
 
 import java.awt.Color;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -105,17 +106,16 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
                                                 updateMarkers(res, parsingResult);
                                             }
                                         }
-
                                     });
                                 }
-                            }
+                            }        
                         }
                     }
                 };
-                if (result.isSyncExec())
+//                if (result.isSyncExec())
                     display.syncExec(runnable);
-                else
-                    display.asyncExec(runnable);
+//                else
+//                    display.asyncExec(runnable);
             }
             return org.eclipse.core.runtime.Status.OK_STATUS;
         }
@@ -165,6 +165,7 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
 
     public IRegion getDamageRegion(ITypedRegion partition, DocumentEvent event,
             boolean documentPartitioningChanged) {
+    	// is never called
         return new Region(0, event.getDocument().getLength());
     }
 
@@ -193,17 +194,21 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
             }
         }
     }
-
+    
     public synchronized void parsingDone(IDocument document, final ParseStatus result) {
         if (createPresentationJob  != null)
             createPresentationJob.cancel();
         createPresentationJob = new CreatePresentationJob(result);
         createPresentationJob.schedule();
+        try { // DEBUG less concurrency for debugging
+			createPresentationJob.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
     }
 
     public static void updateMarkers(IResource res,
             ParsingResult result) throws CoreException {
-// FIXME somewhere here is the red underline problem
         if (result == null)
             return;
 
