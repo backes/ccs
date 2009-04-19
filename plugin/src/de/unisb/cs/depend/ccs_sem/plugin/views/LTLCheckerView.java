@@ -21,6 +21,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.part.PageBook;
 import org.eclipse.ui.part.ViewPart;
 
+import de.unisb.cs.depend.ccs_sem.plugin.actions.ToggleSemantic;
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor;
 import de.unisb.cs.depend.ccs_sem.plugin.views.components.LTLFrame;
 
@@ -73,6 +74,7 @@ public class LTLCheckerView extends ViewPart implements IPartListener, ISelectio
 	}
 	
 	private void fillToolbar(IToolBarManager toolBarManager) {
+		toolBarManager.add(new ToggleSemantic());
 		//TODO Actions vervollstŠndigen->uncomment
 //		toolBarManager.add(new ExportAll());
 //		toolBarManager.add(new Help("LTLView"));

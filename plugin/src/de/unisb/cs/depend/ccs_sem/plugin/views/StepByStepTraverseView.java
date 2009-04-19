@@ -28,6 +28,7 @@ import org.eclipse.ui.part.PageBook;
 import org.eclipse.ui.part.ViewPart;
 
 import de.unisb.cs.depend.ccs_sem.plugin.MyPreferenceStore;
+import de.unisb.cs.depend.ccs_sem.plugin.actions.ToggleSemantic;
 import de.unisb.cs.depend.ccs_sem.plugin.editors.CCSEditor;
 import de.unisb.cs.depend.ccs_sem.plugin.utils.ISemanticDependend;
 import de.unisb.cs.depend.ccs_sem.plugin.views.components.StepByStepTraverseFrame;
@@ -95,6 +96,7 @@ public class StepByStepTraverseView extends ViewPart implements ISelectionListen
     }
     
     public void fillToolbar(IToolBarManager toolBarManager) {
+    	toolBarManager.add(new ToggleSemantic());
     	toolBarManager.add(new EvaluateAction());
     }
 
