@@ -45,6 +45,7 @@ public class ChooseActionView extends ViewPart implements IUndoListener, Selecti
 	
 	private LinkedList<Expression> parallelExps;
 	private LinkedList<LinkedList<Expression>> history;
+	private LinkedList<LinkedList<Integer>> processNoHistory;
 	private HashMap<Integer,Transition> listToTransMap;
 	private HashMap<Integer,Integer> indexToProcessNr;
 		
@@ -104,6 +105,7 @@ public class ChooseActionView extends ViewPart implements IUndoListener, Selecti
 		history = new LinkedList<LinkedList<Expression>> ();
 		listToTransMap = new HashMap<Integer, Transition> ();
 		indexToProcessNr = new HashMap<Integer,Integer> ();
+		processNoHistory = new LinkedList<LinkedList<Integer>> ();
 	}
 	
 	@Override
@@ -240,11 +242,18 @@ public class ChooseActionView extends ViewPart implements IUndoListener, Selecti
 	}
 
 	public void notifyUndo() {
-		if( history.size() > 1 ) {
-			history.removeLast();
-			parallelExps = history.getLast();
+		if( history.size() == 0 )
+			return;
+		
+		history.removeLast();
+		parallelExps = history.getLast();
 			
-			refillList();
+		refillList();
+		
+		if( topLevelGraphView != null ) {
+			for( int i : processNoHistory.poll() ) {
+				topLevelGraphView.undo(i);				
+			}
 		}
 	}
 
@@ -297,9 +306,13 @@ public class ChooseActionView extends ViewPart implements IUndoListener, Selecti
 		}
 		next.add(prozessNr-1, target);
 		history.add(next);
+		LinkedList<Integer> procsChanged = new LinkedList<Integer> ();
+		procsChanged.add(selectedItem);
+		processNoHistory.add(procsChanged);
 		parallelExps = next;
 		
 		reportToTrace( table.getItem(selectedItem).getText() );
+		topLevelGraphView.doAction(selectedItem, t);
 		
 		refillList();
 	}

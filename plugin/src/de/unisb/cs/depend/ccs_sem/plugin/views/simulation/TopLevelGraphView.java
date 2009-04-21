@@ -3,6 +3,7 @@ package de.unisb.cs.depend.ccs_sem.plugin.views.simulation;
 import java.util.HashMap;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridLayout;
@@ -15,12 +16,14 @@ import org.eclipse.ui.part.ViewPart;
 
 import de.unisb.cs.depend.ccs_sem.plugin.views.simulation.graph.StaticGrappaFrame;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
+import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
 
 public class TopLevelGraphView extends ViewPart {
 
 	PageBook myPages;
 	HashMap<Integer,StaticGrappaFrame> processNoToFrame;
 	Composite main, defaultComp;
+	ScrolledComposite scrollComp;
 	
 	public TopLevelGraphView() {
 		processNoToFrame = new HashMap<Integer, StaticGrappaFrame>();
@@ -35,13 +38,25 @@ public class TopLevelGraphView extends ViewPart {
 		
 		myPages.showPage(defaultComp);
 		
-		main = new Composite(myPages,SWT.None);
+		scrollComp = new ScrolledComposite(myPages,SWT.H_SCROLL | SWT.V_SCROLL);
+		scrollComp.setExpandHorizontal(true);
+		scrollComp.setExpandVertical(true);
+		main = new Composite(scrollComp, SWT.None);
+		scrollComp.setContent(main);
+		
 		main.setLayout(new GridLayout(2,false));
+		myPages.showPage(scrollComp);
 	}
 
 	@Override
 	public void setFocus() {
 		myPages.setFocus();
+	}
+	
+	private void updateFrame() {
+		main.pack();
+		scrollComp.setMinSize(main.computeSize(SWT.DEFAULT, SWT.DEFAULT));		
+		scrollComp.update();
 	}
 	
 	public void addProcess(int no, Expression mainExp) {
@@ -62,8 +77,7 @@ public class TopLevelGraphView extends ViewPart {
 				grappaFrame.setSize(
 						grappaFrame.getSize().x + 10, 
 						grappaFrame.getSize().y + 10);
-				main.pack();
-				main.update();
+				updateFrame();
 			}
 
 			public void widgetSelected(SelectionEvent e) {
@@ -78,15 +92,26 @@ public class TopLevelGraphView extends ViewPart {
 				grappaFrame.setSize(
 						grappaFrame.getSize().x - 10, 
 						grappaFrame.getSize().y - 10);
-				main.pack();
-				main.update();
+				updateFrame();
 			}
 
 			public void widgetSelected(SelectionEvent e) {
 				widgetDefaultSelected(e);
 			}
 		});
+	}
+	
+	public void undo(int i) {
+		if( processNoToFrame.get(i) == null )
+			return;
 		
-		myPages.showPage(main);
+		processNoToFrame.get(i).notifyUndo();
+	}
+	
+	public void doAction(int i, Transition trans) {
+		if( processNoToFrame.get(i) == null )
+			return;
+		
+		processNoToFrame.get(i).takeTransition(trans);
 	}
 }

@@ -239,15 +239,7 @@ public class GraphUpdateJob extends Job {
                 for (final Transition trans: e.getTransitions()) {
                     final Node headNode = getNode(nodes, trans.getTarget());
                     final Edge edge = new Edge(graph, tailNode, headNode, "edge_" + edgeCnt++);
-                    final String label = showEdgeLabels ? trans.getAction().toString() : "";
-                    edge.setAttribute(GrappaConstants.LABEL_ATTR, label);
-                    final StringBuilder tipBuilder = new StringBuilder(230);
-                    tipBuilder.append("<html><table border=0>");
-                    tipBuilder.append("<tr><td align=right><i>Transition:</i></td><td>").append(label).append("</td></tr>");
-                    tipBuilder.append("<tr><td align=right><i>from:</i></td><td>").append(e.toString()).append("</td></tr>");
-                    tipBuilder.append("<tr><td align=right><i>to:</i></td><td>").append(trans.getTarget().toString()).append("</td></tr>");
-                    tipBuilder.append("</table></html>.");
-                    edge.setAttribute(GrappaConstants.TIP_ATTR, tipBuilder.toString());
+                    initNode(tailNode, headNode, trans, e, edge);
                     graph.addEdge(edge);
                     queue.add(trans.getTarget());
                 }
@@ -264,7 +256,7 @@ public class GraphUpdateJob extends Job {
                 return node;
 
             node = new Node(graph, "node_" + nodeCnt++);
-            final String label = showNodeLabels ? e.toString() : "";
+            final String label = showNodeLabels ? getNodeLabel(e) : "";
             node.setAttribute(GrappaConstants.LABEL_ATTR,
                 label);
             node.setAttribute(GrappaConstants.TIP_ATTR, "Node: " + e.toString());
@@ -284,7 +276,24 @@ public class GraphUpdateJob extends Job {
             return node;
         }
     }
+    
+    protected String getNodeLabel(Expression e) {
+    	return e.toString();
+    }
 
+    protected void initNode(Node tailNode, Node headNode, Transition trans,
+			Expression e, Edge edge) {
+        final String label = showEdgeLabels ? trans.getAction().toString() : "";
+        edge.setAttribute(GrappaConstants.LABEL_ATTR, label);
+        final StringBuilder tipBuilder = new StringBuilder(230);
+        tipBuilder.append("<html><table border=0>");
+        tipBuilder.append("<tr><td align=right><i>Transition:</i></td><td>").append(label).append("</td></tr>");
+        tipBuilder.append("<tr><td align=right><i>from:</i></td><td>").append(e.toString()).append("</td></tr>");
+        tipBuilder.append("<tr><td align=right><i>to:</i></td><td>").append(trans.getTarget().toString()).append("</td></tr>");
+        tipBuilder.append("</table></html>.");
+        edge.setAttribute(GrappaConstants.TIP_ATTR, tipBuilder.toString());
+	}
+    
     public class GraphUpdateStatus extends Status {
 
         private Graph graph;
@@ -315,5 +324,4 @@ public class GraphUpdateJob extends Job {
         }
 
     }
-
 }

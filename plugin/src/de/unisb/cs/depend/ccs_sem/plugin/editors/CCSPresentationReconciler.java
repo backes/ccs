@@ -104,6 +104,7 @@ public class CCSPresentationReconciler implements IPresentationReconciler,
                                             final ParsingResult parsingResult = result.getParsingResult();
                                             if (parsingResult != null) {
                                                 updateMarkers(res, parsingResult);
+                                                
                                             }
                                         }
                                     });
