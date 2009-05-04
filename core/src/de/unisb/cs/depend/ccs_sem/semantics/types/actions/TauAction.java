@@ -99,7 +99,7 @@ public class TauAction extends Action {
     	}
     	label = outA.getLabel();
     	
-        return "{P"+ left + ",P" + right + "} i ( "+label+" )";
+        return "{"+ left + "," + right + "} i ( "+label+" )";
     }
 
 	@Override
