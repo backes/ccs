@@ -1,8 +1,6 @@
 package de.unisb.cs.depend.ccs_sem.plugin.editors;
 
-import java.awt.Color;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;

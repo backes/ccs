@@ -36,7 +36,7 @@ public class StaticGrappaFrame extends GrappaFrame implements IUndoListener {
 	
 	private LinkedList<Edge> markedEdges;
 	private LinkedList<Node> nodeHistory;
-	private HashMap<Node,Expression> nodeMap;	
+	private HashMap<String,Expression> nodeMap;	
 	
 	public StaticGrappaFrame(Composite parent, int style, Expression mainExp) {
 		super(parent, style, null);
@@ -76,7 +76,7 @@ public class StaticGrappaFrame extends GrappaFrame implements IUndoListener {
 				nodeMap = job.getNodeMap();
 				
 				initCurrentNode();
-				updateMarkerPossibleTransitions();
+				updateMarker();
 			}
 		});
 		return job;
@@ -116,44 +116,54 @@ public class StaticGrappaFrame extends GrappaFrame implements IUndoListener {
 		nodeHistory.add(currentNode);
 	}
 	
-	private void updateMarkerPossibleTransitions() {
+	private void updateMarker() {
 		try {
 			super.graphLock.lock();
+			if( nodeHistory.size()>1 ) {
+				nodeHistory.get(nodeHistory.size()-2).setAttribute(
+						GrappaConstants.COLOR_ATTR, Color.BLACK);
+			}
+			currentNode.setAttribute(GrappaConstants.COLOR_ATTR, Color.RED);
+			
+			// mark possible transitions
 			for( Edge e : markedEdges ) {
 				e.setAttribute(GrappaConstants.COLOR_ATTR, Color.BLACK);
 			}
 			markedEdges.clear();
-		
-			Enumeration<Edge> edges = currentNode.edgeElements();
+			
+			Enumeration<Edge> edges = currentNode.outEdgeElements();
+			
 			while( edges.hasMoreElements() ) {
 				Edge e = edges.nextElement();
 				markedEdges.add(e);
 				e.setAttribute(GrappaConstants.COLOR_ATTR, Color.RED);			
-			}	
+			}
 		} finally {
-			super.graphLock.unlock();
 			graph.repaint();
+			super.graphLock.unlock();
 		}
 	}
 	
 	public void takeTransition(Transition trans) {		
-		Enumeration<Edge> edges = currentNode.edgeElements();
+		Enumeration<Edge> edges = currentNode.outEdgeElements();
 		while(edges.hasMoreElements()) {
 			Edge e = edges.nextElement();
 			if( trans.getTarget().equals(
-				nodeMap.get(e.getTail())
+				nodeMap.get(e.getHead().toString())
 			) ) {
-				currentNode = e.getTail();
+				currentNode = e.getHead();
 				break;
 			}
 		}
 		
 		nodeHistory.addLast(currentNode);
-		updateMarkerPossibleTransitions();
+		updateMarker();
 	}
 
 	public void notifyUndo() {
+		nodeHistory.getLast().setAttribute(GrappaConstants.COLOR_ATTR, Color.BLACK);
 		nodeHistory.removeLast();
-		updateMarkerPossibleTransitions();
+		currentNode = nodeHistory.getLast();
+		updateMarker();
 	}
 }

@@ -29,6 +29,7 @@ import de.unisb.cs.depend.ccs_sem.semantics.expressions.ParallelExpression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.RestrictExpression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.adapters.TopMostExpression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
+import de.unisb.cs.depend.ccs_sem.semantics.types.actions.TauAction;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
 public class ChooseActionView extends ViewPart implements IUndoListener, SelectionListener {
@@ -91,8 +92,21 @@ public class ChooseActionView extends ViewPart implements IUndoListener, Selecti
 			}
 		}
 		
-		private void markSynchronisationPartner(int selection) {
+		private void markSynchronisationPartner(int selection) {			
+			Transition itSelf = listToTransMap.get(selection);
 			
+			for(int i=0; i<table.getItemCount(); i++) {
+				if( indexToProcessNr.get(selection) == indexToProcessNr.get(i) ||
+						listToTransMap.get(i) == null ||
+						!itSelf.isSynchronizableWith(
+								listToTransMap.get(i) ) ) {
+					table.getItem(i).setBackground(null);
+					continue;
+				}
+				table.getItem(i).setBackground(
+						new org.eclipse.swt.graphics.Color(getDisplay(), 255, 0, 0) );
+				
+			}
 		}
 
 		public void widgetSelected(SelectionEvent e) {
@@ -251,9 +265,10 @@ public class ChooseActionView extends ViewPart implements IUndoListener, Selecti
 		refillList();
 		
 		if( topLevelGraphView != null ) {
-			for( int i : processNoHistory.poll() ) {
+			for( int i : processNoHistory.getLast() ) {
 				topLevelGraphView.undo(i);				
 			}
+			processNoHistory.removeLast();
 		}
 	}
 
@@ -273,29 +288,72 @@ public class ChooseActionView extends ViewPart implements IUndoListener, Selecti
 				&& !table.getSelection()[0].getText().startsWith(process) 
 				&& !table.getSelection()[1].getText().startsWith(process) ) {
 			doSynchronousAction( selected[0], selected[1] );
-		} else {
-			// TODO ChooseActionView notifyUser about bad usage of the view
-		}
+		} // else not possible since the tree only allows to mark at most two
 	}
 	
 	public void widgetDefaultSelected(SelectionEvent e) {} // ignore
 
 
+	// TODO refactor, merge with doAction
+	// TODO value passing
 	private void doSynchronousAction(int i, int j) {
-		// TODO ChooseActionView implement
+		Transition t1 = listToTransMap.get(i);
+		Transition t2 = listToTransMap.get(j);
+		
+		if( t1 == null || t2 == null || !t1.isSynchronizableWith(t2) )
+			return;
+		
+		
+		// Make the next process for i
+		int prozessNr = indexToProcessNr.get(i);
+		LinkedList<Expression> next = new LinkedList<Expression> (parallelExps);
+		next.remove(prozessNr);
+		Expression target1 = t1.getTarget();
+		if( !target1.isEvaluated() ) {
+			try {
+				Globals.getDefaultEvaluator().evaluate(target1);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		next.add(prozessNr, target1);
+		
+		// the same for j
+		prozessNr = indexToProcessNr.get(j);
+		next.remove(prozessNr);
+		Expression target2 = t2.getTarget();
+		if( !target2.isEvaluated() ) {
+			try {
+				Globals.getDefaultEvaluator().evaluate(target2);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		next.add(prozessNr, target2);
+		
+		// procChanged
+		history.add(next);
+		LinkedList<Integer> procsChanged = new LinkedList<Integer> ();
+		procsChanged.add( indexToProcessNr.get(i) );
+		procsChanged.add( indexToProcessNr.get(j) );
+		processNoHistory.addLast(procsChanged);
+		parallelExps = next;
+		
+		reportToTrace( "i (" + t1.getAction().toString() +")" );
+		topLevelGraphView.doAction(
+				indexToProcessNr.get(i), t1);
+		topLevelGraphView.doAction(
+				indexToProcessNr.get(j), t2);
+		
+		refillList();
 	}
 
 	private void doAction(int selectedItem) {
 		Transition t = listToTransMap.get(selectedItem);
 		
-		int prozessNr = 0;
-		for( int j=0; j<selectedItem; j++ ) {
-			if(table.getItem(j).getText().startsWith(process)) {
-				prozessNr++;
-			}
-		}
+		int prozessNr = indexToProcessNr.get(selectedItem);
 		LinkedList<Expression> next = new LinkedList<Expression> (parallelExps);
-		next.remove(prozessNr-1);
+		next.remove(prozessNr);
 		Expression target = t.getTarget();
 		if( !target.isEvaluated() ) {
 			try {
@@ -304,15 +362,16 @@ public class ChooseActionView extends ViewPart implements IUndoListener, Selecti
 				e.printStackTrace();
 			}
 		}
-		next.add(prozessNr-1, target);
+		next.add(prozessNr, target);
 		history.add(next);
 		LinkedList<Integer> procsChanged = new LinkedList<Integer> ();
-		procsChanged.add(selectedItem);
-		processNoHistory.add(procsChanged);
+		procsChanged.add( indexToProcessNr.get(selectedItem) );
+		processNoHistory.addLast(procsChanged);
 		parallelExps = next;
 		
 		reportToTrace( table.getItem(selectedItem).getText() );
-		topLevelGraphView.doAction(selectedItem, t);
+		topLevelGraphView.doAction(
+				indexToProcessNr.get(selectedItem), t);
 		
 		refillList();
 	}

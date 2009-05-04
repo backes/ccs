@@ -233,13 +233,14 @@ public class GraphUpdateJob extends Job {
                     throw new InterruptedException();
                 final Expression e = queue.poll();
                 final Node tailNode = getNode(nodes, e);
+                initNode(tailNode, e); // init node meta-data
                 if( !e.isEvaluated() ) {
                 	Globals.getDefaultEvaluator().evaluate(e);
                 }
                 for (final Transition trans: e.getTransitions()) {
                     final Node headNode = getNode(nodes, trans.getTarget());
                     final Edge edge = new Edge(graph, tailNode, headNode, "edge_" + edgeCnt++);
-                    initNode(tailNode, headNode, trans, e, edge);
+                    initTransition(tailNode, headNode, trans, e, edge);
                     graph.addEdge(edge);
                     queue.add(trans.getTarget());
                 }
@@ -281,7 +282,7 @@ public class GraphUpdateJob extends Job {
     	return e.toString();
     }
 
-    protected void initNode(Node tailNode, Node headNode, Transition trans,
+    protected void initTransition(Node tailNode, Node headNode, Transition trans,
 			Expression e, Edge edge) {
         final String label = showEdgeLabels ? trans.getAction().toString() : "";
         edge.setAttribute(GrappaConstants.LABEL_ATTR, label);
@@ -324,4 +325,8 @@ public class GraphUpdateJob extends Job {
         }
 
     }
+
+	protected void initNode(Node node, Expression currentExp) {
+		return;
+	}
 }

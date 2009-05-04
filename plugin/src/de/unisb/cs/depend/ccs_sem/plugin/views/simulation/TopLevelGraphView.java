@@ -67,6 +67,7 @@ public class TopLevelGraphView extends ViewPart {
 		final StaticGrappaFrame grappaFrame = new StaticGrappaFrame(comp,
 				SWT.BORDER, mainExp);
 		grappaFrame.updateGraph();
+		processNoToFrame.put(no, grappaFrame);
 		
 		Composite buttons = new Composite(comp,SWT.None);
 		buttons.setLayout(new RowLayout(SWT.HORIZONTAL));

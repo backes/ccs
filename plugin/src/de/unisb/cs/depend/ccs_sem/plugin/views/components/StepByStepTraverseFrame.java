@@ -246,17 +246,15 @@ public class StepByStepTraverseFrame extends Composite implements ISemanticDepen
                 currentExpression = null;
             } else {
                 Expression newExpr = program.getExpression();
-                if (newExpr != currentExpression) {
-                    currentExpression = newExpr;
-                    if (evaluateProtected(newExpr)) {
-                        tree.setEnabled(true);
-                        tree.setItemCount(newExpr.getTransitions().size());
-                    } else {
-                        tree.setEnabled(false);
-                        tree.setItemCount(1);
-                    }
-                    tree.clearAll(true);
+                currentExpression = newExpr;
+                if (evaluateProtected(newExpr)) {
+                    tree.setEnabled(true);
+                    tree.setItemCount(newExpr.getTransitions().size());
+                } else {
+                    tree.setEnabled(false);
+                    tree.setItemCount(1);
                 }
+                tree.clearAll(true);
             }
         }
     
