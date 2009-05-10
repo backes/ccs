@@ -77,6 +77,12 @@
             id="de.unisb.cs.depend.ccs_sem.plugin.perspectives.CCSPerspective"
             name="CCS">
       </perspective>
+      <perspective
+            class="de.unisb.cs.depend.ccs_sem.plugin.perspectives.SimulationPerspective"
+            fixed="false"
+            id="de.unisb.cs.depend.ccs_sem.plugin.perspectives.SimulationPerspective"
+            name="Interactive Simulation">
+      </perspective>
    </extension>
    <extension
          point="org.eclipse.ui.editors">
