@@ -39,9 +39,11 @@ public class ExpressionLTLChecker {
 	}
 	
 	/**
+	 * Checks the formula after preprocessing it.
+	 * So it's allowed to have things in it like WFAIR(a).
 	 * 
 	 * @param exp - The expression to check (it has to be evaluated before!)
-	 * @param formula
+	 * @param formula - the formula to check
 	 * @return a counter example or <code>null</code> if the formula is satisfied
 	 * @throws ParseErrorException
 	 */
@@ -49,6 +51,8 @@ public class ExpressionLTLChecker {
 				IModelCheckingMonitor monitor) throws ParseErrorException
 	{
 		assert exp!=null && exp.isEvaluated();
+		
+		formula = LTLFormulaPreprocessor.preprocessFormula(formula);
 		
 		if( monitor == null ) {
 			monitor = new IModelCheckingMonitor() {

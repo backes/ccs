@@ -2,8 +2,15 @@ package de.unisb.cs.depend.ltlchecker;
 
 public class LTLSyntaxChecker {
 
+	/**
+	 * Checks the preprocessed version of the formula
+	 * @param formula
+	 * @return true, if it's correct syntax, false otherwise
+	 */
 	public static boolean correctSyntax( String formula ) {
-		return checkExp(formula).trim().equals("");
+		return checkExp(
+				LTLFormulaPreprocessor.preprocessFormula(formula)
+				).trim().equals("");
 	}
 	
 	private static String checkExp( String str ) {
@@ -41,11 +48,15 @@ public class LTLSyntaxChecker {
 		if( str.startsWith("can(") || str.startsWith("did(")) {
 			str = readUntilBracket( str.substring(4) );
 			return str;
-		} if( str.startsWith("(") ) { 
+		} else if( str.startsWith("(") ) { 
 			String temp = checkExp(str.substring(1)).trim();
 			if(temp.startsWith(")") ) {
 				return temp.substring(1).trim();
 			}
+		} else if( str.startsWith("true") ) {
+			return str.substring("true".length());
+		} else if( str.startsWith("false") ) {
+			return str.substring("false".length());
 		}
 		
 		return "failed";
