@@ -2,6 +2,8 @@ package de.unisb.cs.depend.ccs_sem.semantics.types.actions;
 
 import java.util.Map;
 
+import javax.sql.rowset.spi.SyncResolver;
+
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.Expression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Parameter;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ParameterOrProcessEqualsWrapper;
@@ -33,10 +35,14 @@ public class TauAction extends Action {
 
     @Override
     public String getLabel() {
-        return "i"; // TODO TAU deny if semantic is switched to white-box semantic
+        return "i";
     }
 
     public static TauAction get(Action syncedLeft, Action syncedRight) {
+    	// i.0 is still allowed with visible tau semantics
+    	if( syncedLeft == syncedRight && syncedLeft == null ) {
+    		return instance;
+    	}
         return Expression.getVisibleTau() ? (new TauAction(syncedLeft,syncedRight)) : instance;
     }
 
@@ -77,7 +83,7 @@ public class TauAction extends Action {
     }
 
     @Override
-    public String toString() { // TODO TAU implement
+    public String toString() {
     	if( syncedLeft == null || syncedRight==null || !Expression.getVisibleTau()) {
     		return "i";
     	}
@@ -104,6 +110,8 @@ public class TauAction extends Action {
 
 	@Override
 	protected Action copySubAction() {
+		if( syncedLeft == syncedRight && syncedLeft == null )
+			return instance;
 		return new TauAction(syncedLeft,syncedRight);
 	}
 	
