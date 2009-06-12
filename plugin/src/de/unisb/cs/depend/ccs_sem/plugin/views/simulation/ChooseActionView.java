@@ -29,7 +29,6 @@ import de.unisb.cs.depend.ccs_sem.semantics.expressions.ParallelExpression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.RestrictExpression;
 import de.unisb.cs.depend.ccs_sem.semantics.expressions.adapters.TopMostExpression;
 import de.unisb.cs.depend.ccs_sem.semantics.types.Transition;
-import de.unisb.cs.depend.ccs_sem.semantics.types.actions.TauAction;
 import de.unisb.cs.depend.ccs_sem.utils.Globals;
 
 public class ChooseActionView extends ViewPart implements IUndoListener, SelectionListener {
