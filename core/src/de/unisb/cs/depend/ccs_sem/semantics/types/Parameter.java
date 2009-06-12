@@ -2,6 +2,8 @@ package de.unisb.cs.depend.ccs_sem.semantics.types;
 
 import java.util.Map;
 
+import org.omg.CORBA.UNKNOWN;
+
 import de.unisb.cs.depend.ccs_sem.exceptions.ArithmeticError;
 import de.unisb.cs.depend.ccs_sem.exceptions.ParseException;
 import de.unisb.cs.depend.ccs_sem.semantics.types.ranges.IntervalRange;
@@ -265,7 +267,8 @@ public class Parameter {
         if (getClass() != obj.getClass())
             return false;
         final Parameter other = (Parameter) obj;
-        if (!type.equals(other.type))
+        if (!type.equals(other.type) && 
+        		!(type == Type.UNKNOWN || other.type == Type.UNKNOWN) )
             return false;
         if (!name.equals(other.name))
             return false;
@@ -285,7 +288,8 @@ public class Parameter {
         if (getClass() != obj.getClass())
             return false;
         final Parameter other = (Parameter) obj;
-        if (!type.equals(other.type))
+        if (!type.equals(other.type) && 
+        		!(type == Type.UNKNOWN || other.type == Type.UNKNOWN) )
             return false;
         if (!name.equals(other.name))
             return false;

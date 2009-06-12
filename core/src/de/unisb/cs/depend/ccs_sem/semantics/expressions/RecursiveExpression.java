@@ -57,7 +57,7 @@ public class RecursiveExpression extends Expression {
      * @return the generated {@link Expression}
      */
     public Expression getInstantiatedExpression() {
-        if (instantiatedExpression == null) {
+//        if (instantiatedExpression == null) {
             // if all parameters are fully instantiated, check if the parameters
             // are in the correct range. if not, we just do no tests, they are
             // done later, when the expression is further instantiated
@@ -73,7 +73,7 @@ public class RecursiveExpression extends Expression {
             instantiatedExpression = rangesOK
                 ? referencedProcessVariable.instantiate(parameterValues)
                 : ErrorExpression.get();
-        }
+//        }
 
         return instantiatedExpression;
     }
