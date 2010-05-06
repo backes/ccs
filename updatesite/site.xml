@@ -33,5 +33,6 @@
    <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.9.25.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.9.25">
       <category name="CCS"/>
    </feature>
+   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.9.28.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.9.28"/>
    <category-def name="CCS" label="CCS Evaluator Tool"/>
 </site>
