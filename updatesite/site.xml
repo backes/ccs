@@ -42,5 +42,6 @@
    <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.9.34.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.9.34"/>
    <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.9.35.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.9.35"/>
    <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.9.36.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.9.36"/>
+   <feature url="features/de.unisb.cs.depend.ccs_sem.feature_0.9.37.jar" id="de.unisb.cs.depend.ccs_sem.feature" version="0.9.37"/>
    <category-def name="CCS" label="CCS Evaluator Tool"/>
 </site>
