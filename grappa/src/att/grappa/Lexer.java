@@ -278,8 +278,8 @@ public class Lexer {
      *            the character in question.
      */
     public static boolean id_char(char ch) {
-        return ((Character.isJavaIdentifierStart(ch) && Character.getType(ch) != Character.CURRENCY_SYMBOL) || Character
-            .isDigit(ch));
+        return ((Character.isJavaIdentifierStart(ch) && Character.getType(ch) != Character.CURRENCY_SYMBOL)
+        		|| Character.isDigit(ch) || ch == '.');
     }
 
     /**
