@@ -2,7 +2,8 @@ CCS: Evaluate and visualize CCS expressions
 =============================================================
 
 This project was started in the context of the course "concurrent programming"
-by Holger Hermanns at Saarland University in the winter term 2007/2008.
+by Prof. Holger Hermanns at Saarland University (Germany) in the winter term
+2007/2008.
 
 The initial source code was developed by Clemens Hammacher, and since then has
 been subject to many improvements and fixes by other students.
