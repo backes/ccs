@@ -1,4 +1,4 @@
-CCS: Eclipse Plugin to evaluate and visualize CCS expressions
+CCS: Evaluate and visualize CCS expressions
 =============================================================
 
 This project was started in the context of the course "concurrent programming"
