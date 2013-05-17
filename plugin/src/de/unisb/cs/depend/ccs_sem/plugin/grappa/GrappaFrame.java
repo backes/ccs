@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.Graphics;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -111,6 +112,7 @@ public class GrappaFrame extends Composite {
 
     private Graph createGraph() {
         final Graph newGraph = new Graph("CSS-Graph");
+        newGraph.setErrorWriter(new PrintWriter(System.err, true));
         //newGraph.setAttribute(GrappaConstants.MARGIN_ATTR, "0.1,0.1");
         return newGraph;
     }
