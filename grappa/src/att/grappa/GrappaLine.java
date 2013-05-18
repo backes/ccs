@@ -303,9 +303,10 @@ public class GrappaLine implements GrappaConstants, Cloneable, Shape {
                 wasSpace = false;
                 type += HEAD_ARROW_EDGE;
                 break;
+            // http://comments.gmane.org/gmane.comp.video.graphviz/8298
             case 'e':
+                if (wasSpace) type += TAIL_ARROW_EDGE;
                 wasSpace = false;
-                type += TAIL_ARROW_EDGE;
                 break;
             case ' ':
                 if (!wasSpace) {
